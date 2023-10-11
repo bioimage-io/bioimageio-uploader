@@ -40,7 +40,7 @@ on:
         # Required recipients' addresses:
         to: ${{ inputs.user_email }}
         # Required sender full name (address can be skipped):
-        from: Luke Skywalker # <user@example.com>
+        from: ${{ env.MAIL_FROM }}
         # Optional plain body:
         body: Build job of ${{github.repository}} completed successfully!
         # Optional HTML body read from file:
