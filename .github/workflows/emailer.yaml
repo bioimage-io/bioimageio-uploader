@@ -10,6 +10,10 @@ on:
         description: 'Email address of user'
         required: true
         type: string
+      log_message:
+        description: 'Log result from testing'
+        required: false
+        type: string
       # Other inputs from Flynn here 
 
   jobs:
@@ -42,17 +46,17 @@ on:
         # Required sender full name (address can be skipped):
         from: ${{ env.MAIL_FROM }}
         # Optional plain body:
-        body: Build job of ${{github.repository}} completed successfully!
+        body: Build job of ${{github.repository}} completed! Log was ${{ inputs.log_message }} 
         # Optional HTML body read from file:
-        html_body: file://README.html
+        # html_body: file://README.html
         # Optional carbon copy recipients:
-        cc: kyloren@example.com,leia@example.com
+        # cc: kyloren@example.com,leia@example.com
         # Optional blind carbon copy recipients:
-        bcc: r2d2@example.com,hansolo@example.com
+        # bcc: r2d2@example.com,hansolo@example.com
         # Optional recipient of the email response:
-        reply_to: luke@example.com
+        # reply_to: luke@example.com
         # Optional Message ID this message is replying to:
-        in_reply_to: <random-luke@example.com>
+        # in_reply_to: <random-luke@example.com>
         # Optional unsigned/invalid certificates allowance:
         ignore_cert: true
         # Optional converting Markdown to HTML (set content_type to text/html too):
@@ -60,4 +64,4 @@ on:
         # Optional attachments:
         attachments: # TODO Can we attach a test log?
         # Optional priority: 'high', 'normal' (default) or 'low'
-        priority: low
+        # priority: low
