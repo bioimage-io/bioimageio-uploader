@@ -2,7 +2,6 @@
     export let current=0;
     export let max_step=0;
     export let steps=[];
-
 </script>
 
 <style>
