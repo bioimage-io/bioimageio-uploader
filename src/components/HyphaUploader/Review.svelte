@@ -17,6 +17,7 @@
     let upload_headers = {
         Authorization: `Bearer ${token}`,
     };
+    let all_done_here = false;
     const server_url = "https://ai.imjoy.io";
     const dispatch = createEventDispatcher();
 
@@ -55,7 +56,6 @@
         console.log(zip_package);
         //window.files = files;
         window.zip_package = zip_package;
-        alert("Not pulling the trigger yet! (But check console to see how close we are)")
         uploading = true;
         let filename = zip_package.filename;
         let url = `${server_url}/${workspace}/files/${filename}`;

@@ -20,7 +20,7 @@
     let token = browser ? window.sessionStorage.getItem('token') ?? '' : '';
     let connection_retry = 0;
     let api;
-    //let all_done = false;
+    let all_done = false;
     let presigned_url;
     const MAX_CONNECTION_RETRIES = 3;
     
@@ -46,17 +46,22 @@
         presigned_url = null;
         rdf = null;
         zip_package = null;
-        //all_done = false;
+        all_done = false;
         current = 0;
     }
 
-    function next(){
+    function next(data){
+        if(data && data.part === 'review'){
+            current = 0;
+            all_done = true;
+        }
         current = current + 1;
         console.log("Current is now:", current);
-        //console.log("All done:", all_done);
+        console.log("All done:", all_done);
         console.log(steps);
-        if(current => steps.length){
-            //all_done = true;
+        if(current >= steps.length){
+            current = 0;
+            all_done = true;
             return;
         }
         max_step = Math.max(max_step, current);
@@ -76,6 +81,8 @@
         imjoy.start({workspace: 'default'}).then(async ()=>{
             console.log('ImJoy started');
             api = imjoy.api;
+            console.error("DEBUG: ADDING API TO WINDOW")
+            window.api = api;
         })
 
         // Init Imjoy-Hypha
@@ -136,9 +143,9 @@
     {/if}
 {:else if !server}
     Initializing...
-<!--{:else if all_done}-->
-    <!--<p>🥳🎉 Congratulations!!</p>-->
-    <!--<p>You are all done. <button class="button is-info" on:click={reset}>Press here to upload another model</button></p>-->
+{:else if all_done === true}
+    <p>🥳🎉 Congratulations!!</p>
+    <p>You are all done. <button class="button is-info" on:click={reset}>Press here to upload another model</button></p>
 {:else}
     <!--{#key current}-->
     <!--<div transition:slide={{ delay: 250, duration: 300, easing: quintOut, axis: 'x' }}>-->
