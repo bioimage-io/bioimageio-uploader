@@ -1,4 +1,5 @@
 <script>
+    import Input from './Input.svelte';
     export let authors =[];
     export let error;
     export let affiliation=false;
@@ -12,17 +13,17 @@
     }
 </script>
 
-<div>
-
+<div class="field">
+    <div class="field is-grouped has-addons">
     {#each authors as author, index}   
-        <input
+        <Input
             type="text"
             placeholder="Full Name (required)"
             bind:value={author.name}
             maxlength="1000"
             />
         {#if affiliation}
-        <input
+        <Input
             type="text"
             placeholder="Affiliation (optional)"
             bind:value={author.affiliation}
@@ -30,7 +31,7 @@
             />
         {/if}
         {#if orcid}
-        <input
+        <Input
             type="text"
             placeholder="ORCID (optional)"
             bind:value={author.orchid}
@@ -38,29 +39,37 @@
             />
         {/if}
         {#if email}
-        <input
-            type="text"
-            placeholder="Email (optional)"
-            bind:value={author.orchid}
-            maxlength="100"
-            />
+            <p class="control">    
+            <Input
+                type="text"
+                placeholder="Email (optional)"
+                bind:value={author.email}
+                maxlength="100"
+                />
+            </p>     
         {/if}
         {#if github}
-        <input
-            type="text"
-            placeholder="Github username (required)"
-            bind:value={author.github_user}
-            maxlength="100"
-            />
+            <p class="control">    
+            <Input
+                type="text"
+                placeholder="Github username (required)"
+                bind:value={author.github_user}
+                maxlength="100"
+                />
+            </p>
         {/if}
+        <p class="control">
         <button 
-            class="button button-outline" 
-            on:click={()=> delete_author_at_index(index)}>Delete</button>
+            class="button is-danger" 
+            on:click={()=> delete_author_at_index(index)}></button>
+           <i class="fa fa-trash"></i>
+        </p>
     {/each}
+    </div>
 
     <br>
     <button 
-        class="button" 
+        class="button is-success" 
         on:click={()=> {authors = [...authors, {}]}}>Add</button>
 
 <!--

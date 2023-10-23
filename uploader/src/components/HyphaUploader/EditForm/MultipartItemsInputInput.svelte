@@ -12,4 +12,4 @@
             : e.target.value;
     };
 </script>
-<input {type} {value} {placeholder} on:input={handleInput} {...props}/>
+<input class="input" {type} {value} {placeholder} on:input={handleInput} {...props}/>

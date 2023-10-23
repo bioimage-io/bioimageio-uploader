@@ -1,8 +1,8 @@
 <script>
-    import AuthorsInput from './AuthorsInput.svelte';
     import MultipartItemsInput from './MultipartItemsInput.svelte';
     import InputLabel from './InputLabel.svelte';
     import Select from './Select.svelte';
+    import Input from './Input.svelte';
     import Files from './Files.svelte';
     import site_config from "../../../site.config.json";
     import spdxLicenseList from "spdx-license-list/full";
@@ -26,8 +26,18 @@
 
 
     const licenses = Object.keys(spdxLicenseList).sort();
+    const author_fields = [
+        {placeholder:"Full name", key:"name", props:{maxlength:"1000", required:true}},
+        {placeholder:"Affiliation", key:"affiliation", props:{maxlength:"1000"}},
+        {placeholder:"ORCID", key:"orcid", props:{maxlength:"1000"}},
+    ];
+    const maintainer_fields = [
+        {placeholder:"Name", key:"name", props:{maxlength:"1000"}},
+        {placeholder:"Github", key:"github_user", props:{maxlength:"1000"}},
+        {placeholder:"Email", key:"email", props:{maxlength:"1000"}},
+    ];
     const citation_fields = [
-        {placeholder:"Name", key:"text", props:{maxlength:"1000"}},
+        {placeholder:"Citation text", key:"text", props:{maxlength:"1000"}},
         {placeholder:"DOI", key:"doi", props:{maxlength:"100"}},
         {placeholder:"url", key:"url", props:{maxlength:"1000"}},
     ];
@@ -92,47 +102,48 @@
     </InputLabel>
     
     <InputLabel label="Name" required>
-        <span slot="help">The name of your deposit (note: / is not allowed in the name)"</span>
-        <input placeholder="name" bind:value={name} /> 
+        <svelte:fragment slot="help">The name of your deposit (note: / is not allowed in the name)</svelte:fragment>
+        <Input placeholder="name" bind:value={name} /> 
     </InputLabel>
+    <p>Name is {name}</p>
 
     <InputLabel label="Description" required>
-        <input placeholder="description" bind:value={description} /> 
+        <Input Iplaceholder="description" bind:value={description} /> 
     </InputLabel>    
     
     <InputLabel label="Authors" required>
-        <span slot="help">The authors who contributed to this resource item</span>
-        <AuthorsInput bind:authors name orcid affiliation/>
+        <svelte:fragment slot="help">The authors who contributed to this resource item</svelte:fragment>
+        <MultipartItemsInput bind:items={authors} fields={author_fields} entry_name="author"/>
     </InputLabel>
     
     <InputLabel label="Maintainers" required>
-        <span slot="help">The maintainers who maintain this resource item. Importantly, the first maintainer will be contacted for the approval process to the BioImage.IO</span>
-        <AuthorsInput bind:authors={maintainers} name email github />
+        <svelte:fragment slot="help">The maintainers who maintain this resource item. Importantly, the first maintainer will be contacted for the approval process to the BioImage.IO</svelte:fragment>
+        <MultipartItemsInput bind:items={maintainers} fields={maintainer_fields} entry_name="maintainer"/>
     </InputLabel>
 
     <InputLabel label="Version">
-        <input placeholder="Version in MAJOR.MINOR.PATCH format(e.g. 0.1.0)" bind:value={version} />
+        <Input placeholder="Version in MAJOR.MINOR.PATCH format(e.g. 0.1.0)" bind:value={version} />
     </InputLabel>
 
     <InputLabel label="License">
-        <span slot="help">
+        <svelte:fragment slot="help">
             Choose the license that fits you most, we recommend to use 
             <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> 
             (free to share and adapt under the condition of attribution). 
             For other license options, please visit here 
             <a target="_blank" href="https://spdx.org/licenses">https://spdx.org/licenses</a>
-        </span>
+        </svelte:fragment>
         <Select bind:selected={license} options={licenses}/>
     </InputLabel>
     
     <InputLabel label="Git repository">
-        <input placeholder="Git repository URL" bind:value={git_repo}/> 
+        <Input placeholder="Git repository URL" bind:value={git_repo}/> 
     </InputLabel>
 
     <InputLabel label="Tags">
-        <span slot="help">
+        <svelte:fragment slot="help">
             Tags should contain only lower case letters with numbers, or the following characters: +*#;./%@, but no space, then press ENTER, TAB, or SPACE
-        </span>
+        </svelte:fragment>
         <!-- NB minChars 0 means show autocomplete on focus -->
         <Tags   style="color:black"
                 placeholder="Add a tag" 
@@ -143,13 +154,13 @@
     </InputLabel>
 
     <InputLabel label="Citation">
-        <span slot="help">How this resource item should be cited</span>
-        <MultipartItemsInput bind:items={cite} fields={citation_fields}/>
+        <svelte:fragment slot="help">How this resource item should be cited</svelte:fragment>
+        <MultipartItemsInput bind:items={cite} fields={citation_fields} entry_name="citation"/>
     </InputLabel>
 
     <InputLabel label="Source">
-        <span slot="help">The source url of your deposit</span>
-        <input placeholder="Source URL" bind:value={source}/> 
+        <svelte:fragment slot="help">The source url of your deposit</svelte:fragment>
+        <Input placeholder="Source URL" bind:value={source}/> 
     </InputLabel>
 
     <InputLabel label="Links">
@@ -160,24 +171,9 @@
                 minChars={0}
                 addKeys={[9, 13, 32]}/>
     </InputLabel>
-        <!--{-->
-          <!--label: "Links",-->
-          <!--type: "tags",-->
-          <!--value: this.rdf.links,-->
-          <!--placeholder: "Add a link (resource item ID)",-->
-          <!--options: this.resourceItems.map(item => item.id),-->
-          <!--allow_new: true,-->
-          <!--icon: "vector-link",-->
-          <!--isRequired: false-->
-        <!--},-->
+
     <InputLabel label="Files">
         <Files bind:files={filenames} {handle_files_select} {remove_file} />
     </InputLabel>
-        <!--{-->
-          <!--label: "Files",-->
-          <!--type: "files",-->
-          <!--value: files,-->
-          <!--isRequired: false-->
-          <!--},-->
 </form>
 

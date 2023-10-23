@@ -86,7 +86,7 @@
 
 {#if processing}
     Reading model... <Diamonds /> 
-    <button on:click={completed_step()}>Next</button>
+    <button class="button" on:click={completed_step()}>Next</button>
 {:else}
     Please upload your model zip file here 
 

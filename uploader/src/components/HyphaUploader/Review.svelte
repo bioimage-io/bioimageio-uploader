@@ -1,6 +1,5 @@
 <script>
     import { createEventDispatcher } from 'svelte';
-    import { Diamonds } from 'svelte-loading-spinners';
 
     export let token;
     //export let files;
@@ -11,6 +10,7 @@
     export let presigned_url;
     //import yaml from "js-yaml";
     import JSONTree from 'svelte-json-tree';
+    let all_done = false;
     let storage;
     let storage_info;
     let uploading = false;
@@ -64,11 +64,15 @@
             // let presigned_url = await upload_file_to_hypha(url, file); 
         //}
         uploading = false;
+
+        all_done_here = true;
+        await new Promise(r => setTimeout(r, 2000));
+
         is_done();
     }
         
     function is_done() {
-        dispatch('done', {});
+        dispatch('done', {part:'review'});
     }
 </script>
 
@@ -80,7 +84,10 @@
 <br>
 
 {#if uploading}
-    Uploading <Diamonds /> 
+    Uploading 
+    <progress class="progress is-small is-primary" max="100">15%</progress>
+{:else if all_done}
+    All done!
 {:else}
-    <button on:click={is_done}>Publish</button>
+    <button class="button is-primary" on:click={publish}>Publish</button>
 {/if}

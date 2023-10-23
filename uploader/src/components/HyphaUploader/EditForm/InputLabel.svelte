@@ -3,24 +3,17 @@
     export let required=false;
 </script>
 
-<style type="text/css" media="screen">
-    label{
-        display: inline;
-    }
-    .help{
-        font-size: small;
-        font-style: italic;
-        font-weight: normal;
-    }
-</style>
-
-<span>
-    <label>
+<div class="field">
+    <label class="label">
     {label}
-    {#if $$slots.help}<span class="help"><slot name="help"/></span>{/if}
     {#if required}
         <small><sup>*</sup></small>
     {/if}
+    {#if $$slots.help}
+        <span class="has-text-weight-light is-italic is-size-7">
+            <slot name="help"/>
+        </span>
+    {/if}   
     <slot/>
     </label>
-</span>
+</div>

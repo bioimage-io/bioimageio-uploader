@@ -335,21 +335,21 @@ function uniqueID() {
 
 </script>
 
-<div class="svelte-tags-input-layout" class:sti-layout-disable={disable} class:sti-layout-readonly={readonly} bind:this={layoutElement}>
+<div class="svelte-tags-input-layout tags" class:sti-layout-disable={disable} class:sti-layout-readonly={readonly} bind:this={layoutElement}>
     <label for={id} class={labelShow ? "" : "sr-only"}>{labelText}</label>
 
     {#if tags.length > 0}
         {#each tags as tag, i}
-            <button class="svelte-tags-input-tag" on:click={onTagClick(tag)}>
+            <span class="tag is-primary" on:click={onTagClick(tag)}>
                 {#if typeof tag === 'string'}
                     {tag}
                 {:else}
                     {tag[autoCompleteShowKey]}
                 {/if}
                 {#if !disable && !readonly}
-                    <span class="svelte-tags-input-tag-remove" on:pointerdown={() => removeTag(i)}> &#215;</span>
+                    <button class="delete is-small" on:pointerdown={() => removeTag(i)}> &#215;</button>
                 {/if}
-            </button>
+            </span>
         {/each}
     {/if}
     <input
@@ -390,7 +390,6 @@ function uniqueID() {
 /* CSS svelte-tags-input */
 
 .svelte-tags-input,
-.svelte-tags-input-tag,
 .svelte-tags-input-matchs,
 .svelte-tags-input-layout label {
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,Cantarell,"Fira Sans","Droid Sans","Helvetica Neue",sans-serif;

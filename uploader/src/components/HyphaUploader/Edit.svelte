@@ -20,4 +20,4 @@
 
 <Validate {rdf} on:done={completed_step} {api}/>
 
-<button on:click={completed_step}>Next</button>
+<!--<button class="button is-primary" on:click={completed_step}>Next</button>-->

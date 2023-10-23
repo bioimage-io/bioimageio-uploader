@@ -3,6 +3,8 @@
     export let options;
 </script>
 
+<div class="field">
+<div class="select">
 <select bind:value={selected}>
     {#each options as option}
         {#if option.name}
@@ -12,3 +14,5 @@
         {/if}
     {/each}
 </select>
+</div>
+</div>

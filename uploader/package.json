@@ -27,7 +27,7 @@
 		"jszip": "^3.10.1",
 		"prettier": "^2.8.0",
 		"prettier-plugin-svelte": "^2.10.1",
-		"sass": "^1.63.6",
+		"sass": "^1.69.4",
 		"socket.io-client": "^4.7.2",
 		"spdx-license-list": "^6.7.0",
 		"svelte": "^4.0.5",
@@ -42,5 +42,9 @@
 		"vitest": "^0.32.2",
 		"webpack": "^5.89.0"
 	},
-	"type": "module"
+	"type": "module",
+	"dependencies": {
+		"@jamescoyle/svelte-icon": "^0.1.1",
+		"@mdi/js": "^7.3.67"
+	}
 }

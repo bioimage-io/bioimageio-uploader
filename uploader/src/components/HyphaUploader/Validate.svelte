@@ -1,6 +1,6 @@
 <script charset="utf-8">
     import { createEventDispatcher } from 'svelte';
-    import { Diamonds } from 'svelte-loading-spinners';
+    import JSONTree from 'svelte-json-tree';
     import yaml from "js-yaml";
     export let rdf;
     export let api;
@@ -27,7 +27,8 @@
             );
             const results = await validator.validate(rdf);
             if (results.error){
-                error = JSON.stringify(results, null, "  ");
+                //error = JSON.stringify(results, null, "  ");
+                error = results;
             }
             // eslint-disable-next-line no-useless-catch
         } catch (e) {
@@ -42,14 +43,21 @@
     }
 </script>
 
+{#if validating}
+<button class="button is-loading">Validate</button>
+{:else}
+<button class="button is-primary" on:click={validate}>Validate</button>
+{/if}
 {#if error}
-    <p>A validation error occurred!</p>
-    <p>{error}</p>
+    <div>
+        <p>A validation error occurred!</p>
+        <p>You have to fix this issue before you can upload your model.</p>
+        <p>Details:</p>
+        {#if typeof error === "string" || error instanceof String}
+            <p>{error}</p>
+        {:else}
+            <JSONTree value={error}/>
+        {/if}
+    </div>
 {/if}
 
-{#if validating}
-<Diamonds />
-<button disabled>Validation in progress</button>
-{:else}
-<button on:click={validate}>Validate</button>
-{/if}
