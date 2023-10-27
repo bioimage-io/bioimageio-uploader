@@ -126,7 +126,7 @@
         console.log(server);
         connection_retry = 0;
         console.log("Hypha connected");
-    };
+    }
 
     if (browser){
         if(!server) initHypha();
@@ -138,22 +138,40 @@
     }
 
 </script>
-
+<style type="text/css" media="screen">
+    .loader{
+        display: inline-block;
+    }
+</style>
 <section class="container">
-<Steps current={current} {max_step} {steps}/>
+<Nav bind:current={current} {max_step} {steps}/>
+<h1 class="title">Bioimage.io Uploader</h1>
 {#if !token}
-    Connecting to Imjoy
     {#if login_url}
-        <button class="button is-primary" on:click={()=>{window.open(login_url, '_blank')}}>Login to Imjoy</button>
+        <button class="button is-small is-primary" on:click={()=>{window.open(login_url, '_blank')}}>Login to Imjoy</button>
+    {:else}
+        <span class="is-info">Connecting to Imjoy...<span class="loader"></span></span>
     {/if}
 {:else if !server}
-    Initializing...
+    <span class="is-primary">Initializing...<span class="loader"></span></span>
 {:else if all_done === true}
     <p>🥳🎉 Congratulations!!</p>
     <p>You are all done. <button class="button is-info" on:click={reset}>Press here to upload another model</button></p>
+    <div style="
+ position: fixed;
+ top: -50px;
+ left: 0;
+ height: 100vh;
+ width: 100vw;
+ display: flex;
+ justify-content: center;
+ overflow: hidden;
+ pointer-events: none;">
+ <Confetti x={[-5, 5]} y={[0, 0.1]} delay={[500, 2000]} infinite duration=5000 amount=200 fallDistance="100vh" />
+</div>
 {:else}
     <!--{#key current}-->
-    <!--<div transition:slide={{ delay: 250, duration: 300, easing: quintOut, axis: 'x' }}>-->
+    <!--<div transition:slide={{ delay: 250, duration: 500, easing: quintOut, axis: 'x' }}>-->
     <svelte:component 
             this={components[current]._component} 
             {token}
