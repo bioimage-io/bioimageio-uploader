@@ -4,9 +4,9 @@
     import Select from './Select.svelte';
     import Input from './Input.svelte';
     import Files from './Files.svelte';
+    import Tags from "./Tags.svelte";
     import site_config from "../../../site.config.json";
     import spdxLicenseList from "spdx-license-list/full";
-    import Tags from "svelte-tags-input";
     export let rdf; 
     export let zip_package;
     let filenames = [];
@@ -62,6 +62,9 @@
         const { acceptedFiles } = e.detail;
         // files = acceptedFiles;
         // filenames ... 
+
+
+
     }
 
     function remove_file(e,filename, index){
