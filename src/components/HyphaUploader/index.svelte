@@ -1,15 +1,20 @@
 <script>
     import {login,  connectToServer } from '$lib/imjoy-rpc-hypha/websocket-client';
     import * as imjoyCore from 'imjoy-core?client'
+    //import IconPlus from '../icons/IconPlus.svelte';
+    import SvgIcon from '@jamescoyle/svelte-icon';
+    import {mdiPlus, mdiPencil, mdiPublish} from '@mdi/js';
+    import { page } from "$app/stores";
     import { browser } from '$app/environment';
-    import { slide } from 'svelte/transition';
-    import { quintOut } from 'svelte/easing';
+    //import { slide } from 'svelte/transition';
+    //import { quintOut } from 'svelte/easing';
     // import { onMount } from 'svelte';
-    import Steps    from './Steps.svelte';
-    // import {Steps}  from 'svelte-steps';
+
+    import Nav    from './Nav.svelte';
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
+    import Confetti from '../Confetti.svelte';
 
 
     // let current_step = 0;
