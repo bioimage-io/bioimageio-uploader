@@ -1,5 +1,4 @@
 <script>
-    import { Diamonds } from 'svelte-loading-spinners';
     import Dropzone from "svelte-file-dropzone/Dropzone.svelte";
     import JSZip from "jszip";
     import yaml from "js-yaml";
@@ -16,7 +15,7 @@
     const dispatch = createEventDispatcher();
 
     function completed_step() {
-	dispatch('done', {});
+        dispatch('done', {});
     }
 
     async function read_model(rdf_text){
@@ -85,7 +84,7 @@
 <h1>Add model information</h1>
 
 {#if processing}
-    Reading model... <Diamonds /> 
+    Reading model... <div class="is-loading" /> 
     <button class="button" on:click={completed_step()}>Next</button>
 {:else}
     Please upload your model zip file here 
@@ -100,12 +99,5 @@
         {/if}
 
     </Dropzone>
-    <!--input bind:files id="zip-file-upload" type="file" /-->
-
-    <!--    
-    {#if files.length > 0}
-        <button on:click={read_model}>Upload</button>
-    {/if}
-    -->
 {/if}
 
