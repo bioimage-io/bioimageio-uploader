@@ -7,12 +7,6 @@
 </script>
 
 
-<style type="text/css" media="screen">
-    .dropzone{
-        flex-direction: row;
-    }
-</style>
-
 <Dropzone containerStyles="flex-direction:row;flex-wrap:wrap;" containerClasses="dropzone" on:drop={handle_files_select} multiple={true}>
     {#if files.length === 0}
         Click here or drop files
