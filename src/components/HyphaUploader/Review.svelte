@@ -22,8 +22,13 @@
     const server_url = "https://ai.imjoy.io";
     const dispatch = createEventDispatcher();
 
-    async function upload_file_to_hypha(url, file){
+    async function upload_file(file){
         const filename = file.name; 
+        url = await storage.generate_presigned_url(
+            storage_info["bucket"], 
+            storage_info["prefix"] + filename,
+            {client_method: "put_object", _rkwargs: true}
+        )
         try{
             let response = await fetch(
                 url, 
@@ -60,6 +65,7 @@
         console.log(storage);
         storage_info = await storage.generate_credential();
 
+
         // console.log(files);
         //console.log(files);
         console.log(zip_package);
@@ -67,11 +73,10 @@
         window.zip_package = zip_package;
         uploading = true;
         let filename = zip_package.filename;
-        let url = `${server_url}/${workspace}/files/${filename}`;
-        presigned_url = await upload_file_to_hypha(url, zip_package);
+        presigned_url = await upload_file(zip_package);
 
         //for(const file of files){
-            // let presigned_url = await upload_file_to_hypha(url, file); 
+            // let presigned_url = await upload_file(url, file); 
         //}
         uploading = false;
         console.log(presigned_url);
