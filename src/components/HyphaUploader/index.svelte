@@ -1,5 +1,7 @@
 <script>
-    import {login,  connectToServer } from '$lib/imjoy-rpc-hypha/websocket-client';
+    // import {login,  connectToServer } from '$lib/imjoy-rpc-hypha/websocket-client';
+
+    import * as imjoyRPC from 'imjoy-rpc?client';
     import * as imjoyCore from 'imjoy-core?client'
     //import IconPlus from '../icons/IconPlus.svelte';
     import SvgIcon from '@jamescoyle/svelte-icon';
@@ -99,7 +101,9 @@
         console.log(`  connecting to ${server_url}`); 
         if(!token){
             console.log("Getting token...");
-            token = await login({
+            console.log("from");
+            console.log(imjoyRPC);
+            token = await imjoyRPC.hyphaWebsocketClient.login({
                 server_url:server_url, 
                 login_callback: show_login_message,
             });
@@ -109,7 +113,7 @@
         console.log(`Token: ${token.slice(0,5)}...`);
         
         try{
-            server = await connectToServer({
+            server = await imjoyRPC.hyphaWebsocketClient.connectToServer({
                     name: 'BioImageIO.uploader',
                     server_url,
                     token,
