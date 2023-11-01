@@ -148,9 +148,9 @@
 <h1 class="title">Bioimage.io Uploader</h1>
 {#if !token}
     {#if login_url}
-        <button class="button is-small is-primary" on:click={()=>{window.open(login_url, '_blank')}}>Login to Imjoy</button>
+        <button class="button is-small is-primary" on:click={()=>{window.open(login_url, '_blank')}}>Login to BioEngine</button>
     {:else}
-        <span class="is-info">Connecting to Imjoy...<span class="loader"></span></span>
+        <span class="is-info">Connecting to the BioEngine...<span class="loader"></span></span>
     {/if}
 {:else if !server}
     <span class="is-primary">Initializing...<span class="loader"></span></span>
