@@ -147,8 +147,14 @@
         display: inline-block;
     }
 </style>
-<section class="container">
+<svelte:head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <link href="/bulmaswatch.min.css" rel="stylesheet" />
+</svelte:head>
+
+
 <Nav bind:current={current} {max_step} {steps}/>
+<section class="container">
 <h1 class="title">Bioimage.io Uploader</h1>
 {#if !token}
     {#if login_url}
