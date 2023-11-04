@@ -81,13 +81,13 @@
     
 </script>
 
-<h2>Add model information</h2>
+<!--<h2>Add model information</h2>-->
 
 {#if processing}
     Reading model... <div class="is-loading" /> 
     <button class="button" on:click={completed_step()}>Next</button>
 {:else}
-    Please upload your model zip file here 
+    Upload model zip file 
 
     <Dropzone on:drop={handle_files_select} multiple={false}>
         {#if files.length === 0}

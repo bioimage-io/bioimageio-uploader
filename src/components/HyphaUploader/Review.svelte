@@ -18,7 +18,6 @@
     let upload_headers = {
         Authorization: `Bearer ${token}`,
     };
-    let all_done_here = false;
     const server_url = "https://ai.imjoy.io";
     const dispatch = createEventDispatcher();
 
@@ -72,7 +71,7 @@
         //window.files = files;
         window.zip_package = zip_package;
         uploading = true;
-        let filename = zip_package.filename;
+        //let filename = zip_package.filename;
         presigned_url = await upload_file(zip_package);
 
         //for(const file of files){
@@ -84,7 +83,6 @@
             return;
         }
 
-        all_done_here = true;
         await new Promise(r => setTimeout(r, 2000));
 
         is_done();
@@ -95,7 +93,7 @@
     }
 </script>
 
-<h2>Review & Publish</h2>
+<!--<h2>Review & Publish</h2>-->
 
 {#if uploading}
     <p>Uploading</p> 

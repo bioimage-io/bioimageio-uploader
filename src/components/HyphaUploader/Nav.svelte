@@ -21,8 +21,8 @@
     }
 </style>
 
-<nav class="navbar" aria-label="uploader steps">
-    <div class="navbar-menu">
+<nav class="navbar is-fixed-top" aria-label="uploader steps">
+    <div class="navbar-brand">
     {#each steps as step, i}
         {#if i<=max_step}
             <div 

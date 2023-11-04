@@ -156,35 +156,43 @@
 
 
 <Nav bind:current={current} {max_step} {steps}/>
+
 <section class="container is-fluid">
 <h1 class="title">Bioimage.io Uploader</h1>
 {#if !token}
+    <Notification deletable={false} >
+    {#if (current === (steps.length - 1))}
+        <p>You must now login to publish</p>
+    {/if}
     {#if login_url}
-        <Notification> 
-            <button class="button is-small is-primary" on:click={()=>{window.open(login_url, '_blank')}}>Login to BioEngine</button>
-        </Notification>
+        <button class="button is-small is-primary" on:click={()=>{window.open(login_url, '_blank')}}>Login to BioEngine</button>
     {:else}
         <span class="is-info">Connecting to the BioEngine...<span class="loader"></span></span>
     {/if}
+    </Notification>
 {:else if !server}
+    <Notification>
     <span class="is-primary">Initializing...<span class="loader"></span></span>
+    </Notification>
 {:else if all_done}
-    <p>🥳🎉 Congratulations!!</p>
-    <p>You are all done. <button class="button is-info" on:click={reset}>Press here to upload another model</button></p>
-    <div style="
- position: fixed;
- top: -50px;
- left: 0;
- height: 100vh;
- width: 100vw;
- display: flex;
- justify-content: center;
- overflow: hidden;
- pointer-events: none;">
- <Confetti x={[-5, 5]} y={[0, 0.1]} delay={[500, 2000]} infinite duration=5000 amount=200 fallDistance="100vh" />
-</div>
+    <Notification>
+        <p>🥳🎉 Congratulations!!</p>
+        <p>You are all done. <button class="button is-info" on:click={reset}>Press here to upload another model</button></p>
+        <div style="
+            position: fixed;
+            top: -50px;
+            left: 0;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            overflow: hidden;
+            pointer-events: none;">
+            <Confetti x={[-5, 5]} y={[0, 0.1]} delay={[500, 2000]} infinite duration=5000 amount=200 fallDistance="100vh" />
+        </div>
+        </Notification>
 {/if}
-{#if (!all_done) && (current < (steps.length - 1))}
+{#if (!all_done) }
 <!--{#key current}-->
 <!--<div transition:slide={{ delay: 250, duration: 500, easing: quintOut, axis: 'x' }}>-->
 <svelte:component 
@@ -199,9 +207,5 @@
      on:done={next}/>
 <!--</div>-->
 <!--{/key}-->
-{:else if (current === (steps.length - 1))}
-    <Notification>
-        <p>You must now login to publish</p>
-    </Notification>
 {/if}
 </section>
