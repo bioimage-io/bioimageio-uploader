@@ -154,7 +154,7 @@
 
 
 <Nav bind:current={current} {max_step} {steps}/>
-<section class="container">
+<section class="container is-fluid">
 <h1 class="title">Bioimage.io Uploader</h1>
 {#if !token}
     {#if login_url}
