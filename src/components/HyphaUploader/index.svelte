@@ -4,9 +4,9 @@
     import * as imjoyRPC from 'imjoy-rpc?client';
     import * as imjoyCore from 'imjoy-core?client'
     //import IconPlus from '../icons/IconPlus.svelte';
-    import SvgIcon from '@jamescoyle/svelte-icon';
-    import {mdiPlus, mdiPencil, mdiPublish} from '@mdi/js';
-    import { page } from "$app/stores";
+    //import SvgIcon from '@jamescoyle/svelte-icon';
+    //import {mdiPlus, mdiPencil, mdiPublish} from '@mdi/js';
+    //import { page } from "$app/stores";
     import { browser } from '$app/environment';
     //import { slide } from 'svelte/transition';
     //import { quintOut } from 'svelte/easing';
@@ -149,7 +149,7 @@
 </style>
 <svelte:head>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <link href="/bulmaswatch.min.css" rel="stylesheet" />
+    <!--<link href="/bulmaswatch.min.css" rel="stylesheet" />-->
 </svelte:head>
 
 
