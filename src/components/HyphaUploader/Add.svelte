@@ -81,7 +81,7 @@
     
 </script>
 
-<h1>Add model information</h1>
+<h2>Add model information</h2>
 
 {#if processing}
     Reading model... <div class="is-loading" /> 
