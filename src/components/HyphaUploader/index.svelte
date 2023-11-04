@@ -16,6 +16,8 @@
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
+    import Notification from './Notification.svelte';
+
     import Confetti from '../Confetti.svelte';
 
 
@@ -158,13 +160,15 @@
 <h1 class="title">Bioimage.io Uploader</h1>
 {#if !token}
     {#if login_url}
-        <button class="button is-small is-primary" on:click={()=>{window.open(login_url, '_blank')}}>Login to BioEngine</button>
+        <Notification> 
+            <button class="button is-small is-primary" on:click={()=>{window.open(login_url, '_blank')}}>Login to BioEngine</button>
+        </Notification>
     {:else}
         <span class="is-info">Connecting to the BioEngine...<span class="loader"></span></span>
     {/if}
 {:else if !server}
     <span class="is-primary">Initializing...<span class="loader"></span></span>
-{:else if all_done === true}
+{:else if all_done}
     <p>🥳🎉 Congratulations!!</p>
     <p>You are all done. <button class="button is-info" on:click={reset}>Press here to upload another model</button></p>
     <div style="
@@ -179,20 +183,25 @@
  pointer-events: none;">
  <Confetti x={[-5, 5]} y={[0, 0.1]} delay={[500, 2000]} infinite duration=5000 amount=200 fallDistance="100vh" />
 </div>
-{:else}
-    <!--{#key current}-->
-    <!--<div transition:slide={{ delay: 250, duration: 500, easing: quintOut, axis: 'x' }}>-->
-    <svelte:component 
-            this={components[current]._component} 
-            {token}
-            {server_url}
-            {server}
-            {api}
-            bind:zip_package
-            bind:presigned_url
-            bind:rdf
-         on:done={next}/>
-    <!--</div>-->
-    <!--{/key}-->
+{/if}
+{#if (!all_done) && (current < (steps.length - 1))}
+<!--{#key current}-->
+<!--<div transition:slide={{ delay: 250, duration: 500, easing: quintOut, axis: 'x' }}>-->
+<svelte:component 
+        this={components[current]._component} 
+        {token}
+        {server_url}
+        {server}
+        {api}
+        bind:zip_package
+        bind:presigned_url
+        bind:rdf
+     on:done={next}/>
+<!--</div>-->
+<!--{/key}-->
+{:else if (current === (steps.length - 1))}
+    <Notification>
+        <p>You must now login to publish</p>
+    </Notification>
 {/if}
 </section>
