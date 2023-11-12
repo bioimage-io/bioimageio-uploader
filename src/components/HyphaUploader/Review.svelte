@@ -23,20 +23,28 @@
 
     async function upload_file(file){
         const filename = file.name; 
-        url = await storage.generate_presigned_url(
-            storage_info["bucket"], 
-            storage_info["prefix"] + filename,
+
+        console.log("file");
+        console.log(file);
+        console.log("filename");
+        console.log(filename);
+
+        let url = await storage.generate_presigned_url(
+            storage_info.bucket, 
+            storage_info.prefix + filename,
             {client_method: "put_object", _rkwargs: true}
         )
+        console.log("Used bucket and prefix:", storage_info.bucket, storage_info.prefix);
+
         try{
             let response = await fetch(
                 url, 
                 {
                     method:"PUT", 
                     body:file, 
-                    credentials:"include", 
-                    mode: "cors",
-                    headers:upload_headers
+                    //credentials:"include", 
+                    // mode: "cors",
+                    // headers:upload_headers
                 });
             console.log("Upload result:", await response.text());
             let presigned_url = await storage.generate_presigned_url(
@@ -58,35 +66,48 @@
         console.log("Uploading files...");
 
         let workspace = server.config.workspace;
+        console.log("workspace");
+        console.log(workspace);
 
         storage = await server.get_service("s3-storage");
         console.log("storage");
         console.log(storage);
         storage_info = await storage.generate_credential();
-
+        console.log("storage-info");
+        console.log(storage_info);
 
         // console.log(files);
         //console.log(files);
+        console.log("zip_package");
         console.log(zip_package);
         //window.files = files;
         window.zip_package = zip_package;
         uploading = true;
         //let filename = zip_package.filename;
-        presigned_url = await upload_file(zip_package);
+        //presigned_url = await upload_file(zip_package);
+        // Create a status file
+        const status_file = new File([
+            new Blob([JSON.stringify({status:'uploaded'}, null, 2)], {type: "application/json"})],
+            "status.json");
+        status_url = await upload_file(status_file);
+        if(!status_url) return
+        
+        console.log("SUCCESS: status_url:" + status_url);
 
-        //for(const file of files){
-            // let presigned_url = await upload_file(url, file); 
+        rdf_url = await upload_file(files.rdf_file);
+        if(!rdf_url) return
+        console.log("SUCCESS: rdf_url:" + rdf_url);
+
+        //for(const file of zip_package.files){
+            //let presigned_url_file = await upload_file(file); 
         //}
         uploading = false;
-        console.log(presigned_url);
-        if(!presigned_url){
-            return;
-        }
 
         await new Promise(r => setTimeout(r, 2000));
 
         is_done();
     }
+
         
     function is_done() {
         dispatch('done', {part:'review'});
