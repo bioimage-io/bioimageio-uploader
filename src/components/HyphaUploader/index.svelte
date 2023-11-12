@@ -16,6 +16,7 @@
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
+    import Status   from './Status.svelte';
     import Notification from './Notification.svelte';
 
     import Confetti from '../Confetti.svelte';
@@ -24,23 +25,29 @@
     // let current_step = 0;
     let zip_package;
     let rdf;
+    let files;
     const server_url = "https://ai.imjoy.io";
     let server; 
     let token = browser ? window.sessionStorage.getItem('token') ?? '' : '';
     let connection_retry = 0;
     let api;
     let all_done = false;
-    let presigned_url;
+    let status_url;
+    let rdf_url;
     const MAX_CONNECTION_RETRIES = 3;
     
 
     let components = [
         {name: "Add", _component: Add, props: {zip_package, rdf}},
-        {name: "Edit", _component: Edit, props: {zip_package, rdf}},
+        {name: "Edit", _component: Edit, props: {files, rdf}},
         {
             name: "Review", 
             _component: Review, 
-            props:{token, server, rdf, zip_package, api, presigned_url}},
+            props:{token, server, rdf, files, api, status_url, rdf_url}},
+        {
+            name: "Status", 
+            _component: Status, 
+            props:{status_url, rdf_url, files}},
     ];
     let login_url = "";
     let current = 0;
@@ -48,11 +55,12 @@
     let steps = [
         { text: 'Add'},
         { text: 'Edit'},
-        { text: 'Review & Publish'},
+        { text: 'Review & Upload'},
+        { text: 'Status'},
     ]
 
     function reset(){
-        presigned_url = null;
+        status_url = null;
         rdf = null;
         zip_package = null;
         all_done = false;
@@ -202,7 +210,9 @@
         {server}
         {api}
         bind:zip_package
-        bind:presigned_url
+        bind:files
+        bind:status_url
+        bind:rdf_url
         bind:rdf
      on:done={next}/>
 <!--</div>-->
