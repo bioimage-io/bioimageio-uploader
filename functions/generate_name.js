@@ -53,5 +53,5 @@ export default async () => {
     while(name in taken_names){
         name = generate_name(adjectives, animals_with_icons);
     }
-    return name;
+    return Response.json(name);
 }
