@@ -53,5 +53,16 @@ export default async () => {
     while(name in taken_names){
         name = generate_name(adjectives, animals_with_icons);
     }
-    return Response.json(name);
+    return {
+      statusCode: 200,
+      headers: {
+            /* Required for CORS support to work */
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            /* Required for cookies, authorization headers with HTTPS */
+            'Access-Control-Allow-Credentials': true
+        },
+        body: JSON.stringify(name)
+    //Response.json(name);
+    }
 }
