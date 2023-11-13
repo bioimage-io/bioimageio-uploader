@@ -53,7 +53,7 @@ export default async () => {
     while(name in taken_names){
         name = generate_name(adjectives, animals_with_icons);
     }
-    const res = new Response.json(name);
+    const res = Response.json(name);
     res.headers.set("Access-Control-Allow-Origin", "*");
     res.headers.append("Access-Control-Allow-Headers", "*");
     res.headers.append("Access-Control-Allow-Methods", "*");
