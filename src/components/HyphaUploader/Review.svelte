@@ -1,13 +1,14 @@
 <script>
-    import { createEventDispatcher } from 'svelte';
+    import { onMount, createEventDispatcher } from 'svelte';
+    import Notification from './Notification.svelte';
 
-    export let token;
-    //export let files;
-    export let zip_package;
+    // export let token;
+    export let files;
     export let server;
     export let rdf;
-    export let api;
-    export let presigned_url;
+    // export let api;
+    export let status_url;
+    export let rdf_url;
     //import yaml from "js-yaml";
     import JSONTree from 'svelte-json-tree';
     let all_done = false;
@@ -15,10 +16,10 @@
     let storage;
     let storage_info;
     let uploading = false;
-    let upload_headers = {
-        Authorization: `Bearer ${token}`,
-    };
-    const server_url = "https://ai.imjoy.io";
+    let model_id = "<unset>";
+    // let upload_headers = {
+    //     Authorization: `Bearer ${token}`,
+    // };
     const dispatch = createEventDispatcher();
 
     async function upload_file(file){
@@ -28,6 +29,7 @@
         console.log(file);
         console.log("filename");
         console.log(filename);
+
 
         let url = await storage.generate_presigned_url(
             storage_info.bucket, 
@@ -47,11 +49,12 @@
                     // headers:upload_headers
                 });
             console.log("Upload result:", await response.text());
-            let presigned_url = await storage.generate_presigned_url(
-                storage_info["bucket"], 
-                storage_info["prefix"] + filename
-            )
-            return presigned_url;
+            // let presigned_url = await storage.generate_presigned_url(
+            //     storage_info["bucket"], 
+            //     storage_info["prefix"] + filename
+            // )
+            // return presigned_url;
+            return url;
         }catch(err){
             console.error("Upload failed!");
             console.error(err);
@@ -78,10 +81,7 @@
 
         // console.log(files);
         //console.log(files);
-        console.log("zip_package");
-        console.log(zip_package);
         //window.files = files;
-        window.zip_package = zip_package;
         uploading = true;
         //let filename = zip_package.filename;
         //presigned_url = await upload_file(zip_package);
@@ -93,14 +93,22 @@
         if(!status_url) return
         
         console.log("SUCCESS: status_url:" + status_url);
+        let rdf_file = files.filter(item => item.name === "rdf.yaml")
+        if(rdf_file.length !== 1){
+            throw new Error("Could not find RDF file in file list");
+        }
+        rdf_file = rdf_file[0];
 
-        rdf_url = await upload_file(files.rdf_file);
+        // TODO: The following still needs work
+        rdf_url = await upload_file(rdf_file);
         if(!rdf_url) return
         console.log("SUCCESS: rdf_url:" + rdf_url);
-
-        //for(const file of zip_package.files){
-            //let presigned_url_file = await upload_file(file); 
-        //}
+        console.log("Uploading:");
+        for(const file of files){
+            if(file.name === "rdf.yaml") continue
+            console.log(file.name);
+            await upload_file(file); 
+        }
         uploading = false;
 
         await new Promise(r => setTimeout(r, 2000));
@@ -108,6 +116,15 @@
         is_done();
     }
 
+    onMount(async ()=>{
+        model_id = await regenerate_id();
+    })
+
+    async function regenerate_id(){
+        let model_id = "generating...";
+
+        return model_id;
+    }
         
     function is_done() {
         dispatch('done', {part:'review'});
@@ -126,10 +143,17 @@
     <p>Please review the error, and try again. If the issue persists, please contact support</p>
     <code>{error}</code>
 {:else}
+    <p class="level">Your model alias is: <code style="min-width:10em;">{model_id} &nbsp;</code> <button class="button is-primary" on:click={regenerate_id}>Regenerate alias</button></p>
     <p>Please review your submission carefully, then press Publish</p>
 
     <JSONTree value={rdf}/>
 
     <br>
-    <button class="button is-primary" on:click={publish}>Publish</button>
+    {#if server}
+        <button class="button is-primary" on:click={publish}>Publish</button>
+    {:else}
+        <Notification deletable={false} >
+            Please login to the BioEngine to publish
+        </Notification>
+    {/if}
 {/if}

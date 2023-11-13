@@ -5,6 +5,9 @@
     export let rdf_url;
     export let status;
     //const dispatch = createEventDispatcher();
+    // let upload_headers = {
+    //     Authorization: `Bearer ${token}`,
+    // };
 
     let status_message = "...";
     let notify_ci_message;
@@ -16,14 +19,33 @@
     }
 
     async function refrest_status(){
-        if(!status_url) return 
-        let resp = await fetch(status_url);
-        status = await resp.json();
-        if(!status) return
-        status_message = status.status;
+        try{
+            console.log("Refreshing status...");
+            console.log(status_url);
+            if(!status_url){
+                console.log("No status_url");
+                return 
+            }
+            status_message = "Contacting server...";
+            let resp = await fetch(status_url);
+            console.log(resp); 
+            status_message = "Interpreting result...";
+            status = await resp.json();
+            console.log(status);
+            if(!status){
+                console.log("Status not readable at url");
+                console.log(status_url);
+                return
+            }
+                
+            status_message = status.status;
 
-        if(status.status === "uploaded"){
-            await notify_ci_bot();
+            if(status.status === "uploaded"){
+                await notify_ci_bot();
+            }
+        }catch(err){
+            console.warn("Refresh failed:");
+            console.error(err);
         }
     }
 

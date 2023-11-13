@@ -6,6 +6,7 @@
     export let rdf; 
     export let zip_package;
     export let api;
+    export let files;
 
     const dispatch = createEventDispatcher();
 

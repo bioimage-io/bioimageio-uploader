@@ -24,7 +24,7 @@
 
     // let current_step = 0;
     let zip_package;
-    let rdf;
+    let rdf = [];
     let files;
     const server_url = "https://ai.imjoy.io";
     let server; 
@@ -38,7 +38,7 @@
     
 
     let components = [
-        {name: "Add", _component: Add, props: {zip_package, rdf}},
+        {name: "Add", _component: Add, props: {zip_package, rdf, files}},
         {name: "Edit", _component: Edit, props: {files, rdf}},
         {
             name: "Review", 
@@ -98,8 +98,6 @@
         imjoy.start({workspace: 'default'}).then(async ()=>{
             console.log('ImJoy started');
             api = imjoy.api;
-            console.error("DEBUG: ADDING API TO WINDOW")
-            window.api = api;
         })
 
         // Init Imjoy-Hypha
