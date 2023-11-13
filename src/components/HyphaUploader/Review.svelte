@@ -16,7 +16,8 @@
     let storage;
     let storage_info;
     let uploading = false;
-    let model_id = "<unset>";
+    let model_name = "[UNSET]";
+    const generate_name_url = "https://rococo-quokka-67157b.netlify.app/.netlify/functions/generate_name";
     // let upload_headers = {
     //     Authorization: `Bearer ${token}`,
     // };
@@ -117,13 +118,14 @@
     }
 
     onMount(async ()=>{
-        model_id = await regenerate_id();
+        model_name = await regenerate_alias();
     })
 
-    async function regenerate_id(){
-        let model_id = "generating...";
-
-        return model_id;
+    async function regenerate_alias(){
+        model_name = "generating...";
+        let {name, icon} = await (await fetch(generate_name_url)).json(); 
+        model_name = `${name} ${icon}`;
+        return model_name;
     }
         
     function is_done() {
@@ -143,7 +145,7 @@
     <p>Please review the error, and try again. If the issue persists, please contact support</p>
     <code>{error}</code>
 {:else}
-    <p class="level">Your model alias is: <code style="min-width:10em;">{model_id} &nbsp;</code> <button class="button is-primary" on:click={regenerate_id}>Regenerate alias</button></p>
+    <p class="level">Your model alias is: <code style="min-width:10em;">{model_name} &nbsp;</code> <button class="button is-primary" on:click={regenerate_alias}>Regenerate alias</button></p>
     <p>Please review your submission carefully, then press Publish</p>
 
     <JSONTree value={rdf}/>
