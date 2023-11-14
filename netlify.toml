@@ -1,3 +1,5 @@
+[dev] 
+  targetPort = 38283
 [build]
   publish = "site"
   functions = "functions"

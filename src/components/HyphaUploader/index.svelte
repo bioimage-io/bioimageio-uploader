@@ -12,7 +12,8 @@
     //import { quintOut } from 'svelte/easing';
     // import { onMount } from 'svelte';
 
-    import Nav    from './Nav.svelte';
+    import DevBox   from './DevBox.svelte';
+    import Nav      from './Nav.svelte';
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
@@ -160,11 +161,15 @@
     <!--<link href="/bulmaswatch.min.css" rel="stylesheet" />-->
 </svelte:head>
 
-
 <Nav bind:current={current} {max_step} {steps}/>
 
 <section class="container is-fluid">
 <h1 class="title">Bioimage.io Uploader</h1>
+
+{#if server}
+    <!--<DevBox {server} />-->
+{/if}
+
 {#if !token}
     <Notification deletable={false} >
     {#if (current === (steps.length - 1))}

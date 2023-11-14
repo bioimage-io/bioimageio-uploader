@@ -31,8 +31,9 @@ jobs:
               run: |
                   sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running additional steps"  
                   echo "Running additional steps..."
-                  sleep 
+                  sleep 30
                   echo "Done"
+                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Done running additional steps"  
 
             - name: Main testing
               run: |
@@ -44,7 +45,7 @@ jobs:
 
             - name: Publish within S3
               run: |
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Publishing"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running publishing"  
                   echo "Somehow doing publising workflow 🤔"
                   sleep 30
                   echo "Done"

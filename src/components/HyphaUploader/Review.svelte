@@ -17,14 +17,22 @@
     let storage_info;
     let uploading = false;
     let model_name = "[UNSET]";
-    const generate_name_url = "https://rococo-quokka-67157b.netlify.app/.netlify/functions/generate_name";
+    let status_urls;
+    const hostname = "http://127.0.0.1:8888";
+    //const generate_name_url = "https://rococo-quokka-67157b.netlify.app/.netlify/functions/generate_name";
+    const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
+    let notify_ci_message = "unset";
+    let notify_ci_failed = false;
+    const notify_ci_url = `${hostname}/.netlify/functions/notify_ci`;
     // let upload_headers = {
     //     Authorization: `Bearer ${token}`,
     // };
     const dispatch = createEventDispatcher();
+    let status_message = "unset";
 
     async function upload_file(file){
         const filename = file.name; 
+        status_message = `Uploading ${filename}`;
 
         console.log("file");
         console.log(file);
@@ -32,16 +40,20 @@
         console.log(filename);
 
 
-        let url = await storage.generate_presigned_url(
+        let url_put = await storage.generate_presigned_url(
             storage_info.bucket, 
             storage_info.prefix + filename,
             {client_method: "put_object", _rkwargs: true}
         )
+         let url_get = await storage.generate_presigned_url(
+             storage_info.bucket, 
+             storage_info.prefix + filename
+         )
         console.log("Used bucket and prefix:", storage_info.bucket, storage_info.prefix);
 
         try{
             let response = await fetch(
-                url, 
+                url_put, 
                 {
                     method:"PUT", 
                     body:file, 
@@ -50,19 +62,13 @@
                     // headers:upload_headers
                 });
             console.log("Upload result:", await response.text());
-            // let presigned_url = await storage.generate_presigned_url(
-            //     storage_info["bucket"], 
-            //     storage_info["prefix"] + filename
-            // )
-            // return presigned_url;
-            return url;
+            return {'get': url_get, 'put': url_put};
         }catch(err){
             console.error("Upload failed!");
             console.error(err);
             error = err.message;
         }
         return null;
-    
     }
 
     async function publish(){
@@ -90,10 +96,12 @@
         const status_file = new File([
             new Blob([JSON.stringify({status:'uploaded'}, null, 2)], {type: "application/json"})],
             "status.json");
-        status_url = await upload_file(status_file);
-        if(!status_url) return
+        status_urls = await upload_file(status_file);
+        if(!status_urls) return
         
-        console.log("SUCCESS: status_url:" + status_url);
+        console.log("SUCCESS: status_urls:");
+        console.log(status_urls);
+        status_url = status_urls.get;
         let rdf_file = files.filter(item => item.name === "rdf.yaml")
         if(rdf_file.length !== 1){
             throw new Error("Could not find RDF file in file list");
@@ -101,7 +109,7 @@
         rdf_file = rdf_file[0];
 
         // TODO: The following still needs work
-        rdf_url = await upload_file(rdf_file);
+        rdf_url = (await upload_file(rdf_file)).get;
         if(!rdf_url) return
         console.log("SUCCESS: rdf_url:" + rdf_url);
         console.log("Uploading:");
@@ -111,10 +119,14 @@
             await upload_file(file); 
         }
         uploading = false;
+        await refresh_status();
+        await notify_ci_bot();
+        if(notify_ci_failed) return;
 
-        await new Promise(r => setTimeout(r, 2000));
 
-        is_done();
+        await new Promise(r => setTimeout(r, 1000));
+
+        //is_done();
     }
 
     onMount(async ()=>{
@@ -130,6 +142,71 @@
         
     function is_done() {
         dispatch('done', {part:'review'});
+    }
+    
+    async function notify_ci_bot() {
+        // debug url: `https://bioimage-6b0000.netlify.live/.netlify/functions/bioimageiobot?action=notify&source=https://zenodo.org/api/files/3f422e1b-a64e-40d3-89d1-29038d2f405d/rdf.yaml`
+        //if(!rdf_url){
+            //notify_ci_message = "RDF url not set";
+            //return
+        //}
+        if(!notify_ci_url){
+            console.error("notify_ci_url not set")
+            return 
+        } 
+
+        notify_ci_message = "⌛ Trying to notify bioimage-bot for the new item...";
+        notify_ci_failed = false;
+        // trigger CI with the bioimageio bot endpoint
+        console.log("Using body:", JSON.stringify({'status_url': status_urls.put}));
+
+        try{
+            let resp = await fetch(notify_ci_url, {
+                    method: 'POST', 
+                    headers: {"Content-Type": "application/json"}, 
+                    body: JSON.stringify({'status_url': status_urls.put})});
+            if (resp.status === 200) {
+                notify_ci_message =
+                    "🎉 bioimage-bot has successfully detected the item: " +
+                    (await resp.json())["message"];
+            } else {
+                notify_ci_failed = true;
+                notify_ci_message =
+                    "😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: " +
+                    (await resp.text());
+            }
+        }catch(e){
+            notify_ci_message = `😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: ${e}`;
+            notify_ci_failed = true;
+        }
+    }
+    
+    async function refresh_status(){
+        try{
+            console.log("Refreshing status...");
+            console.log(status_url);
+            if(!status_url){
+                console.log("No status_url");
+                return 
+            }
+            status_message = "Contacting server...";
+            let resp = await fetch(status_url);
+            console.log(resp); 
+            status_message = "Interpreting result...";
+            status = await resp.json();
+            console.log(status);
+            if(!status){
+                console.log("Status not readable at url");
+                console.log(status_url);
+                return
+            }
+                
+            status_message = status.status;
+
+        }catch(err){
+            console.warn("Refresh failed:");
+            console.error(err);
+        }
     }
 </script>
 
@@ -159,3 +236,8 @@
         </Notification>
     {/if}
 {/if}
+{#if notify_ci_message}
+    <p>CI: {notify_ci_message}</p>
+    <button on:click={notify_ci_bot}>Notify CI</button>
+{/if}
+<div>Status: {status_message}</div> 
