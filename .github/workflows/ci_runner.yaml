@@ -16,47 +16,39 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             fail-fast: false
-            matrix:
-                python-version: ["3.9", "3.10", "3.11"]
+        steps:
+            - uses: actions/checkout@v3
 
-    steps:
-        - uses: actions/checkout@v3
+            - name: Update status
+              run: sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Starting testing"  
+            
+            - name: Install dependencies
+              run: |
+                    sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Installing dependencies"  
+                    echo "Installing dependencies"
+                    python -m pip install --upgrade pip
+                    python -m pip install flake8 pytest
+                    if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-        - name: Update status
-          run: sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Starting testing"  
-        
-        - name: Install Python
-          uses: actions/setup-python@v3      
-          with:
-            python-version: ${{ matrix.python-version }} 
+            - name: Additional Steps
+              run: |
+                  sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Running additional steps"  
+                  echo "Running additional steps..."
+                  sleep 
+                  echo "Done"
 
-        - name: Install dependencies
-          run: |
-                sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Installing dependencies"  
-                echo "Installing dependencies"
-                python -m pip install --upgrade pip
-                python -m pip install flake8 pytest
-                if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+            - name: Main testing
+              run: |
+                  sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Running main testing"  
+                  echo "Running main testing"
+                  sleep 30
+                  echo "Done"
+                  sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Testing complete"  
 
-        - name: Additional Steps
-          run: |
-              sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Running additional steps"  
-              echo "Running additional steps..."
-              sleep 
-              echo "Done"
-
-        - name: Main testing
-          run: |
-              sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Running main testing"  
-              echo "Running main testing"
-              sleep 30
-              echo "Done"
-              sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Testing complete"  
-
-        - name: Publish within S3
-          run: |
-              sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Publishing"  
-              echo "Somehow doing publising workflow 🤔"
-              sleep 30
-              echo "Done"
-              sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Publishing complete"  
+            - name: Publish within S3
+              run: |
+                  sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Publishing"  
+                  echo "Somehow doing publising workflow 🤔"
+                  sleep 30
+                  echo "Done"
+                  sh .github/scripts/update_status.sh  ${{ inputs.status_url }} "Publishing complete"  
