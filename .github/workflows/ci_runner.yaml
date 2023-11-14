@@ -21,7 +21,7 @@ jobs:
             
             - name: Install dependencies
               run: |
-                    sh .github/scripts/update_status.sh  '${{ inputs.status_url }}" "Installing dependencies"  
+                    sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Installing dependencies"  
                     echo "Installing dependencies"
                     python -m pip install --upgrade pip
                     python -m pip install flake8 pytest
