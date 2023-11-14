@@ -1,5 +1,5 @@
 <script>
-    import { onMount, createEventDispatcher } from 'svelte';
+    import { onMount, createEventDispatcher, browser } from 'svelte';
     import Notification from './Notification.svelte';
 
     // export let token;
@@ -18,7 +18,7 @@
     let uploading = false;
     let model_name = "[UNSET]";
     let status_urls;
-    const hostname = "http://127.0.0.1:8888";
+    const hostname = browser ? window.location.host: "";
     //const generate_name_url = "https://rococo-quokka-67157b.netlify.app/.netlify/functions/generate_name";
     const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
     let notify_ci_message = "unset";
