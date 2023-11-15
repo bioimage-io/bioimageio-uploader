@@ -2,27 +2,24 @@
     import { onMount, createEventDispatcher } from 'svelte';
     import { browser } from '$app/environment';
     import Notification from './Notification.svelte';
-
-    // export let token;
     export let files;
     export let server;
     export let rdf;
-    // export let api;
     export let status_url;
     export let rdf_url;
-    //import yaml from "js-yaml";
     import JSONTree from 'svelte-json-tree';
     let all_done = false;
     let error;
     let storage;
     let storage_info;
     let uploading = false;
-    let model_name = "[UNSET]";
+    let model_name_message = "[UNSET]";
+    let model_name;
     let status_urls;
     const hostname = browser ? `${window.location.protocol}//${window.location.host}` : "";
     //const generate_name_url = "https://rococo-quokka-67157b.netlify.app/.netlify/functions/generate_name";
     const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
-    let notify_ci_message = "unset";
+    let notify_ci_message = "";
     let notify_ci_failed = false;
     const notify_ci_url = `${hostname}/.netlify/functions/notify_ci`;
     console.log(`
@@ -30,21 +27,13 @@
         generate_name_url       : ${generate_name_url}
         notify_ci_url           : ${notify_ci_url}`);
 
-    // let upload_headers = {
-    //     Authorization: `Bearer ${token}`,
-    // };
     const dispatch = createEventDispatcher();
-    let status_message = "unset";
-
+    let status_message = "";
+    
     async function upload_file(file){
-        const filename = file.name; 
+        if(!model_name) return;
+        const filename = `${model_name.name}/${file.name}`; 
         status_message = `Uploading ${filename}`;
-
-        console.log("file");
-        console.log(file);
-        console.log("filename");
-        console.log(filename);
-
 
         let url_put = await storage.generate_presigned_url(
             storage_info.bucket, 
@@ -58,15 +47,7 @@
         console.log("Used bucket and prefix:", storage_info.bucket, storage_info.prefix);
 
         try{
-            let response = await fetch(
-                url_put, 
-                {
-                    method:"PUT", 
-                    body:file, 
-                    //credentials:"include", 
-                    // mode: "cors",
-                    // headers:upload_headers
-                });
+            let response = await fetch(url_put, {method:"PUT", body:file});
             console.log("Upload result:", await response.text());
             return {'get': url_get, 'put': url_put};
         }catch(err){
@@ -79,26 +60,11 @@
 
     async function publish(){
         console.log("Publishing...");
-        console.log("Uploading files...");
-
-        let workspace = server.config.workspace;
-        console.log("workspace");
-        console.log(workspace);
-
+        // let workspace = server.config.workspace;
         storage = await server.get_service("s3-storage");
-        console.log("storage");
-        console.log(storage);
         storage_info = await storage.generate_credential();
-        console.log("storage-info");
-        console.log(storage_info);
 
-        // console.log(files);
-        //console.log(files);
-        //window.files = files;
         uploading = true;
-        //let filename = zip_package.filename;
-        //presigned_url = await upload_file(zip_package);
-        // Create a status file
         const status_file = new File([
             new Blob([JSON.stringify({status:'uploaded'}, null, 2)], {type: "application/json"})],
             "status.json");
@@ -133,7 +99,6 @@
         await notify_ci_bot();
         if(notify_ci_failed) return;
 
-
         await new Promise(r => setTimeout(r, 1000));
 
         is_done();
@@ -144,14 +109,14 @@
     })
 
     async function regenerate_alias(){
-        model_name = "generating...";
+        model_name_message = "generating...";
         try{
-            let {name, icon} = await (await fetch(generate_name_url)).json(); 
-            model_name = `${name} ${icon}`;
+            model_name = await (await fetch(generate_name_url)).json(); 
+            model_name_message = "";
         }catch(err){
             console.error("Failed to generate name:")
             console.error(err);
-            model_name = "ERROR";
+            model_name_message = "ERROR";
         }    
     }
         
@@ -160,11 +125,6 @@
     }
     
     async function notify_ci_bot() {
-        // debug url: `https://bioimage-6b0000.netlify.live/.netlify/functions/bioimageiobot?action=notify&source=https://zenodo.org/api/files/3f422e1b-a64e-40d3-89d1-29038d2f405d/rdf.yaml`
-        //if(!rdf_url){
-            //notify_ci_message = "RDF url not set";
-            //return
-        //}
         if(!notify_ci_url){
             console.error("notify_ci_url not set")
             return 
@@ -177,8 +137,6 @@
         notify_ci_message = "⌛ Trying to notify bioimage-bot for the new item...";
         notify_ci_failed = false;
         // trigger CI with the bioimageio bot endpoint
-        console.log("Using body:", JSON.stringify({'status_url': status_urls.put}));
-
         try{
             let resp = await fetch(notify_ci_url, {
                     method: 'POST', 
@@ -241,7 +199,13 @@
     <p>Please review the error, and try again. If the issue persists, please contact support</p>
     <code>{error}</code>
 {:else}
-    <p class="level">Your model alias is: <code style="min-width:10em;">{model_name} &nbsp;</code> <button class="button is-primary" on:click={regenerate_alias}>Regenerate alias</button></p>
+    <p class="level">Your model alias is: 
+        {#if model_name_message }({model_name_message}){/if}
+        {#if model_name}
+            <code style="min-width:10em;">{model_name.name} {model_name.icon}&nbsp;</code>
+        {/if}
+        <button class="button is-primary" on:click={regenerate_alias}>Regenerate alias</button>
+    </p>
     <p>Please review your submission carefully, then press Publish</p>
 
     <JSONTree value={rdf}/>
@@ -256,7 +220,8 @@
     {/if}
 {/if}
 {#if notify_ci_message}
-    <p>CI: {notify_ci_message}</p>
-    <button on:click={notify_ci_bot}>Notify CI</button>
+    <p>🤖: {notify_ci_message}</p>
 {/if}
-<div>Status: {status_message}</div> 
+{#if status_message}
+    <div>Upload status: {status_message}</div> 
+{/if}

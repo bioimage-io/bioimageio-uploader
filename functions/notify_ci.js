@@ -13,22 +13,7 @@ const headers = {
 export default async (event, context) => {
     //const data = await JSON.parse(event.body)
 
-    console.log("Input event:");
-    console.log(event);
     const data = await event.json();
-    console.log("Attempting to contact CI...");
-    console.log("data");
-    console.log(data);
-    console.log("typeof data");
-    console.log(typeof data);
-    console.log('data["status_url"]');
-    console.log(data["status_url"]);
-
-    console.log("GITHUB_URL");
-    console.log(GITHUB_URL);
-    console.log("GITHUB_TOKEN");
-    console.log(GITHUB_TOKEN);
-    
     const options = {     
         method: "POST",
         headers: headers, 
@@ -39,7 +24,6 @@ export default async (event, context) => {
     };
 
     if(!data.status_url){
-        // const res = new Response("Failed: status_url not found in request json");
         const res = Response.json({'message': "Failed: status_url not found in request json"});
         res.status = 500;
         res.headers.set("Access-Control-Allow-Origin", "*");
@@ -49,13 +33,7 @@ export default async (event, context) => {
         
     }else{
         try{
-            console.log("CONTACTING CI...");
-            console.log("FULL OPTIONS:");
-            console.log(options);
             let resp = await fetch(GITHUB_URL, options);
-            console.log("RESPONSE FROM CI");
-            console.log(resp);
-            // console.log(resp.status);
             try{
                 console.log(await resp.json());
             }catch(err){

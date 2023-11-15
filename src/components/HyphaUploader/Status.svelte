@@ -2,17 +2,12 @@
     //import { createEventDispatcher } from 'svelte';
     import { browser } from '$app/environment';
     export let status_url;
-    export let rdf_url;
     let status;
-    //const dispatch = createEventDispatcher();
-    // let upload_headers = {
-    //     Authorization: `Bearer ${token}`,
-    // };
-
     let status_message = "unset";
-
     
     if (browser){
+
+        status_message = "Contacting server...";
         refresh_status();
     }
 
@@ -24,10 +19,8 @@
                 console.log("No status_url");
                 return 
             }
-            status_message = "Contacting server...";
             let resp = await fetch(status_url);
             console.log(resp); 
-            status_message = "Interpreting result...";
             status = await resp.json();
             console.log(status);
             if(!status){
@@ -35,13 +28,15 @@
                 console.log(status_url);
                 return
             }
-                
-            status_message = status.status;
+            if(status.status !== status_message){    
+                status_message = status.status;
+            }
 
         }catch(err){
             console.warn("Refresh failed:");
             console.error(err);
         }
+          setTimeout(refresh_status, 2000);
     }
 
 
