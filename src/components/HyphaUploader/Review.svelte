@@ -1,5 +1,6 @@
 <script>
-    import { onMount, createEventDispatcher, browser } from 'svelte';
+    import { onMount, createEventDispatcher } from 'svelte';
+    import { browser } from '$app/environment';
     import Notification from './Notification.svelte';
 
     // export let token;
@@ -18,12 +19,17 @@
     let uploading = false;
     let model_name = "[UNSET]";
     let status_urls;
-    const hostname = browser ? window.location.host: "";
+    const hostname = browser ? `${window.location.protocol}//${window.location.host}` : "";
     //const generate_name_url = "https://rococo-quokka-67157b.netlify.app/.netlify/functions/generate_name";
     const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
     let notify_ci_message = "unset";
     let notify_ci_failed = false;
     const notify_ci_url = `${hostname}/.netlify/functions/notify_ci`;
+    console.log(`
+        hostname                : ${hostname}
+        generate_name_url       : ${generate_name_url}
+        notify_ci_url           : ${notify_ci_url}`);
+
     // let upload_headers = {
     //     Authorization: `Bearer ${token}`,
     // };
@@ -116,7 +122,11 @@
         for(const file of files){
             if(file.name === "rdf.yaml") continue
             console.log(file.name);
-            await upload_file(file); 
+            const result = await upload_file(file);
+            if(!result){
+                uploading = false;
+                return
+            }
         }
         uploading = false;
         await refresh_status();
@@ -126,18 +136,23 @@
 
         await new Promise(r => setTimeout(r, 1000));
 
-        //is_done();
+        is_done();
     }
 
     onMount(async ()=>{
-        model_name = await regenerate_alias();
+        await regenerate_alias();
     })
 
     async function regenerate_alias(){
         model_name = "generating...";
-        let {name, icon} = await (await fetch(generate_name_url)).json(); 
-        model_name = `${name} ${icon}`;
-        return model_name;
+        try{
+            let {name, icon} = await (await fetch(generate_name_url)).json(); 
+            model_name = `${name} ${icon}`;
+        }catch(err){
+            console.error("Failed to generate name:")
+            console.error(err);
+            model_name = "ERROR";
+        }    
     }
         
     function is_done() {
@@ -154,6 +169,10 @@
             console.error("notify_ci_url not set")
             return 
         } 
+        if(!status_urls){
+            console.error("status_urls not set");
+            return 
+        }
 
         notify_ci_message = "⌛ Trying to notify bioimage-bot for the new item...";
         notify_ci_failed = false;
@@ -193,7 +212,7 @@
             let resp = await fetch(status_url);
             console.log(resp); 
             status_message = "Interpreting result...";
-            status = await resp.json();
+            let status = await resp.json();
             console.log(status);
             if(!status){
                 console.log("Status not readable at url");
