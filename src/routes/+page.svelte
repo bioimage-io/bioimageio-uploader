@@ -2,6 +2,8 @@
     import HyphaUploader from '../components/HyphaUploader/index.svelte';
 </script>
 
+<h1>Staging test</h1>
+
 <HyphaUploader />
 
 <!-- Test of standard svelte routing -->
