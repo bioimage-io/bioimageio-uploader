@@ -6,18 +6,16 @@ name: Emailer
 
 on:
     workflow_dispatch:
-
-workflow_dispatch:
-    inputs:
-        user_email:
-            description: 'Email address of user'
-            required: true
-            type: string
-        log_message:
-            description: 'Log result from testing'
-            required: false
-            type: string
-        # Other inputs from Flynn here 
+        inputs:
+            user_email:
+                description: 'Email address of user'
+                required: true
+                type: string
+            log_message:
+                description: 'Log result from testing'
+                required: false
+                type: string
+            # Other inputs from Flynn here 
 
 jobs:
     send-email:
