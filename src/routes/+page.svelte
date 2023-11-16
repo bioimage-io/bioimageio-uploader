@@ -2,7 +2,7 @@
     import HyphaUploader from '../components/HyphaUploader/index.svelte';
 </script>
 
-<h1>Staging test</h1>
+<h1>Staging test 2</h1>
 
 <HyphaUploader />
 
