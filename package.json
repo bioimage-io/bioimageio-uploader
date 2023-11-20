@@ -45,5 +45,6 @@
     "webpack": "^5.89.0"
   },
   "type": "module",
-  "dependencies": {}
+  "dependencies": {
+  }
 }
