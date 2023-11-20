@@ -164,7 +164,6 @@
 <Nav bind:current={current} {max_step} {steps}/>
 
 <section class="container is-fluid">
-<h1 class="title">Bioimage.io Uploader</h1>
 
 {#if server}
     <!--<DevBox {server} />-->

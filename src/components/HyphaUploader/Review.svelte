@@ -69,8 +69,10 @@
             new Blob([JSON.stringify({status:'uploaded'}, null, 2)], {type: "application/json"})],
             "status.json");
         status_urls = await upload_file(status_file);
-        if(!status_urls) return
-        
+        if(!status_urls){
+            uploading = false;
+            return
+        }
         console.log("SUCCESS: status_urls:");
         console.log(status_urls);
         status_url = status_urls.get;
@@ -82,7 +84,10 @@
 
         // TODO: The following still needs work
         rdf_url = (await upload_file(rdf_file)).get;
-        if(!rdf_url) return
+        if(!rdf_url){
+            uploading = false;
+            return
+        }
         console.log("SUCCESS: rdf_url:" + rdf_url);
         console.log("Uploading:");
         for(const file of files){
