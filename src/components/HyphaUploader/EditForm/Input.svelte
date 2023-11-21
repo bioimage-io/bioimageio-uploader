@@ -4,4 +4,4 @@
     export let maxlength;
 
 </script>
-<input class="input" {placeholder} bind:value {maxlength} /> 
+<input {placeholder} bind:value {maxlength} /> 

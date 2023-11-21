@@ -3,17 +3,15 @@
     export let required=false;
 </script>
 
-<div class="field">
-    <label class="label">
+<label class="label">
     {label}
     {#if required}
         <small><sup>*</sup></small>
     {/if}
     {#if $$slots.help}
-        <span class="has-text-weight-light is-italic is-size-7">
+        <span><small><em>
             <slot name="help"/>
-        </span>
+        </em></small></span>
     {/if}   
     <slot/>
-    </label>
-</div>
+</label>

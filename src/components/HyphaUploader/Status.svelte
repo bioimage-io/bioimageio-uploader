@@ -3,7 +3,7 @@
     import { browser } from '$app/environment';
     export let status_url;
     let status;
-    let status_message = "unset";
+    let status_message = "";
     
     if (browser){
 
@@ -36,11 +36,12 @@
             console.warn("Refresh failed:");
             console.error(err);
         }
-          setTimeout(refresh_status, 2000);
+        
+        setTimeout(refresh_status, 2000);
     }
 
 
 
 </script>
 
-<div>Status: {status_message}</div> 
+<article>Status: <code>{status_message}</code></article> 

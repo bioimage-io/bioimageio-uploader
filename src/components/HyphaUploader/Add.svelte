@@ -117,8 +117,8 @@
 <!--<h2>Add model information</h2>-->
 
 {#if processing}
-    Reading model... <div class="is-loading" /> 
-    <button class="button" on:click={completed_step()}>Next</button>
+    Reading model... <div aria-busy="true" /> 
+    <button on:click={completed_step()}>Next</button>
 {:else}
     Upload model zip file 
 
