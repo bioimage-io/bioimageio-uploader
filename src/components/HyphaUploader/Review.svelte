@@ -109,10 +109,10 @@
     }
 
     onMount(async ()=>{
-        await regenerate_alias();
+        await regenerate_nickname();
     })
 
-    async function regenerate_alias(){
+    async function regenerate_nickname(){
         model_name_message = "generating...";
         try{
             model_name = await (await fetch(generate_name_url)).json(); 
@@ -201,12 +201,12 @@
     <p>Please review the error, and try again. If the issue persists, please contact support</p>
     <code>{error}</code>
 {:else}
-    <p class="level">Your model alias is: 
+    <p class="level">Your model nickname is: 
         {#if model_name_message }({model_name_message}){/if}
         {#if model_name}
             <code style="min-width:10em;">{model_name.name} {model_name.icon}&nbsp;</code>
         {/if}
-        <button on:click={regenerate_alias}>Regenerate alias</button>
+        <button on:click={regenerate_nickname}>Regenerate nickname</button>
     </p>
     <p>Please review your submission carefully, then press Publish</p>
     

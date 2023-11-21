@@ -28,8 +28,10 @@
     let rdf = [];
     let files;
     const server_url = "https://ai.imjoy.io";
+    //const server_url = "https://hypha.bioimage.io";
     let server; 
     let token = browser ? window.sessionStorage.getItem('token') ?? '' : '';
+    //let token = '';
     let connection_retry = 0;
     let api;
     let all_done = false;
@@ -127,6 +129,7 @@
                     server_url,
                     token,
             });
+            window.server = server;
         }catch(error){
             console.error("Connection to Hypha failed:");
             console.error(error);
