@@ -69,6 +69,7 @@
 
     function remove_file(e,filename, index){
         console.log("RUNNING");
+        e.cancelBubble=true;
         e.stopPropagation();
         // Remove filename from zip_package and filenames list
         filenames.splice(index, 1);
@@ -108,7 +109,6 @@
         <svelte:fragment slot="help">The name of your deposit (note: / is not allowed in the name)</svelte:fragment>
         <Input placeholder="name" bind:value={name} /> 
     </InputLabel>
-    <p>Name is {name}</p>
 
     <InputLabel label="Description" required>
         <Input Iplaceholder="description" bind:value={description} /> 
@@ -150,10 +150,8 @@
         <!-- NB minChars 0 means show autocomplete on focus -->
         <Tags   style="color:black"
                 placeholder="Add a tag" 
-                bind:tags={tags} allowPaste onlyUnique 
-                autoComplete={all_tags} 
-                minChars={0}
-                addKeys={[9, 13, 32]}/>
+                bind:tags  
+                autocomplete={all_tags} />
     </InputLabel>
 
     <InputLabel label="Citation">
@@ -170,9 +168,7 @@
         <!-- NB minChars 0 means show autocomplete on focus -->
         <Tags   style="color:black"
                 placeholder="Add a link (resource item ID)" 
-                bind:tags={links} allowPaste onlyUnique 
-                minChars={0}
-                addKeys={[9, 13, 32]}/>
+                bind:tags={links} />
     </InputLabel>
 
     <InputLabel label="Files">

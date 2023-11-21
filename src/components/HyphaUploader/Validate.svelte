@@ -12,6 +12,7 @@
 
     async function validate(){
         // Perform RDF validation with Imjoy...
+        if(validating) return;
         validating = true;
         if(!api) alert("Imjoy API not ready");
         console.log("Validating RDF:");
@@ -47,13 +48,9 @@
     }
 </script>
 
-{#if validating}
-<button class="button is-loading">Validate</button>
-{:else}
-<button class="button is-primary" on:click={validate}>Validate</button>
-{/if}
+<button aria-busy={validating} on:click={validate}>Validate</button>
 {#if error}
-    <div>
+    <article>
         <p>A validation error occurred!</p>
         <p>You have to fix this issue before you can upload your model.</p>
         <p>Details:</p>
@@ -62,6 +59,6 @@
         {:else}
             <JSONTree value={error}/>
         {/if}
-    </div>
+    </article>
 {/if}
 

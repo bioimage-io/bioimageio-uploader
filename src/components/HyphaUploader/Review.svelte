@@ -13,11 +13,10 @@
     let storage;
     let storage_info;
     let uploading = false;
-    let model_name_message = "[UNSET]";
+    let model_name_message = "";
     let model_name;
     let status_urls;
     const hostname = browser ? `${window.location.protocol}//${window.location.host}` : "";
-    //const generate_name_url = "https://rococo-quokka-67157b.netlify.app/.netlify/functions/generate_name";
     const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
     let notify_ci_message = "";
     let notify_ci_failed = false;
@@ -192,11 +191,9 @@
     }
 </script>
 
-<!--<h2>Review & Publish</h2>-->
-
 {#if uploading}
     <p>Uploading</p> 
-    <progress class="progress is-small is-primary" max="100">15%</progress>
+    <progress max="100">15%</progress>
 {:else if all_done}
     <p>All done!</p>
 {:else if error}
@@ -209,13 +206,14 @@
         {#if model_name}
             <code style="min-width:10em;">{model_name.name} {model_name.icon}&nbsp;</code>
         {/if}
-        <button class="button is-primary" on:click={regenerate_alias}>Regenerate alias</button>
+        <button on:click={regenerate_alias}>Regenerate alias</button>
     </p>
     <p>Please review your submission carefully, then press Publish</p>
+    
+    <article class="contrast" style="--card-background-color: var(--contrast)">
+        <JSONTree defaultExpandedLevel={1} value={rdf}/>
+    </article>
 
-    <JSONTree value={rdf}/>
-
-    <br>
     {#if server}
         <button class="button is-primary" on:click={publish}>Publish</button>
     {:else}
@@ -228,5 +226,5 @@
     <p>🤖: {notify_ci_message}</p>
 {/if}
 {#if status_message}
-    <div>Upload status: {status_message}</div> 
+    <article>Upload status: {status_message}</article> 
 {/if}

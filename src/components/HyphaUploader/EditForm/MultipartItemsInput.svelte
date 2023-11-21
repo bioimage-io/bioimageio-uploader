@@ -1,6 +1,5 @@
 <script>
-    import SvgIcon from '@jamescoyle/svelte-icon';
-    import { mdiPlus, mdiDeleteVariant } from '@mdi/js';
+    import { X, Plus } from 'lucide-svelte'
     import MultipartItemsInputInput from "./MultipartItemsInputInput.svelte";
     export let items =[];
     export let error = null;
@@ -14,39 +13,54 @@
         items = items;
     }
 </script>
+<style>
+    .icon{
+        width: 64px;
 
-<div class="field">
+    }
+    .list-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .list-item {
+        display: flex;
+        width: 100%;
+        gap: 10px;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+</style>
+
 
     {#each items as item, index}   
-        <div class="field is-grouped has-addons">
+    <div class="list-container">
+        <div class="list-item">
         {#each fields as field}
-            <p class="control is-expanded">
             <MultipartItemsInputInput 
                 placeholder={field.placeholder}
                 bind:value={item[field.key]}
                 type={field.type}
                 props={field.props}
                />
-            </p>
         {/each}
         <button 
-            class="button is-danger" 
+            class="icon contrast"
             title="Delete entry for {item[fields[0].key]}"
             on:click={()=> delete_at_index(index)}>
-            <SvgIcon type="mdi" path={mdiDeleteVariant}/>
+            <X />
         </button>
         </div>
+    </div>
     {/each}
 
-    <div class="control">
     <button 
-        class="button is-success" 
         title="Add {entry_name}"
         on:click={()=> {items = [...items, newentry()]}}>
-        <SvgIcon type="mdi" path={mdiPlus}/>
+        <Plus />
     </button>
-    </div>
     {#if error }
         <div class="notification is-error">{error }</div>
     {/if}
-</div>

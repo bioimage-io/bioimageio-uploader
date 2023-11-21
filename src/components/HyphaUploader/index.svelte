@@ -151,19 +151,10 @@
     }
 
 </script>
-<style type="text/css" media="screen">
-    .loader{
-        display: inline-block;
-    }
-</style>
-<svelte:head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <!--<link href="/bulmaswatch.min.css" rel="stylesheet" />-->
-</svelte:head>
 
 <Nav bind:current={current} {max_step} {steps}/>
 
-<section class="container is-fluid">
+<section class="container">
 
 {#if server}
     <!--<DevBox {server} />-->
@@ -175,19 +166,19 @@
         <p>You must now login to publish</p>
     {/if}
     {#if login_url}
-        <button class="button is-small is-primary" on:click={()=>{window.open(login_url, '_blank')}}>Login to BioEngine</button>
+        <button on:click={()=>{window.open(login_url, '_blank')}}>Login to BioEngine</button>
     {:else}
-        <span class="is-info">Connecting to the BioEngine...<span class="loader"></span></span>
+        <span aria-busy="true">Connecting to the BioEngine...</span>
     {/if}
     </Notification>
 {:else if !server}
     <Notification>
-    <span class="is-primary">Initializing...<span class="loader"></span></span>
+    <span aria-busy="true">Initializing...</span>
     </Notification>
 {:else if all_done}
     <Notification>
         <p>🥳🎉 Congratulations!!</p>
-        <p>You are all done. <button class="button is-info" on:click={reset}>Press here to upload another model</button></p>
+        <p>You are all done. <button class="contrast" on:click={reset}>Press here to upload another model</button></p>
         <div style="
             position: fixed;
             top: -50px;
@@ -203,8 +194,6 @@
         </Notification>
 {/if}
 {#if (!all_done) }
-<!--{#key current}-->
-<!--<div transition:slide={{ delay: 250, duration: 500, easing: quintOut, axis: 'x' }}>-->
 <svelte:component 
         this={components[current]._component} 
         {token}
@@ -217,7 +206,5 @@
         bind:rdf_url
         bind:rdf
      on:done={next}/>
-<!--</div>-->
-<!--{/key}-->
 {/if}
 </section>
