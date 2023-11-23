@@ -137,6 +137,10 @@
             console.error("status_urls not set");
             return 
         }
+        if(!model_name){
+            console.error("Model name not set");
+            return 
+        }
 
         notify_ci_message = "⌛ Trying to notify bioimage-bot for the new item...";
         notify_ci_failed = false;
@@ -145,7 +149,7 @@
             let resp = await fetch(notify_ci_url, {
                     method: 'POST', 
                     headers: {"Content-Type": "application/json"}, 
-                    body: JSON.stringify({'status_url': status_urls.put})});
+                    body: JSON.stringify({'status_url': status_urls.put, 'model_nickname': model_name.name})});
             if (resp.status === 200) {
                 notify_ci_message =
                     "🎉 bioimage-bot has successfully detected the item: " +

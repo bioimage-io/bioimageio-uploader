@@ -19,7 +19,10 @@ export default async (event, context) => {
         headers: headers, 
         body: JSON.stringify({
             'ref': 'main',
-            'inputs':{'status_url': data.status_url}
+            'inputs':{
+                'status_url': data.status_url,
+                'model_nickname': data.model_nickname,
+            }
         })
     };
 

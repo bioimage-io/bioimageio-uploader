@@ -7,6 +7,10 @@ on:
                 description: 'URL endpoint for status to be posted to'
                 required: true
                 type: string
+            model_nickname: 
+                description: 'Nickname of the model - to be used to access the model data on S3'
+                required: true
+                type: string
 
 jobs:
     test-model:
@@ -17,11 +21,11 @@ jobs:
             - uses: actions/checkout@v3
 
             - name: Update status
-              run: sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Starting testing"  
+              run: sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Starting testing of ${{inputs.model_nickname}}"  
             
             - name: Install dependencies
               run: |
-                    sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Installing dependencies"  
+                    sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Installing dependencies of ${{inputs.model_nickname}}"  
                     echo "Installing dependencies"
                     python -m pip install --upgrade pip
                     python -m pip install flake8 pytest
@@ -29,24 +33,24 @@ jobs:
 
             - name: Additional Steps
               run: |
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running additional steps"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running additional steps of ${{inputs.model_nickname}}"  
                   echo "Running additional steps..."
                   sleep 30
                   echo "Done"
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Done running additional steps"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Done running additional steps of ${{inputs.model_nickname}}"  
 
             - name: Main testing
               run: |
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running main testing"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running main testing of ${{inputs.model_nickname}}"  
                   echo "Running main testing"
                   sleep 30
                   echo "Done"
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Testing complete"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Testing complete of ${{inputs.model_nickname}}"  
 
             - name: Publish within S3
               run: |
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running publishing"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running publishing of ${{inputs.model_nickname}}"  
                   echo "Somehow doing publising workflow 🤔"
                   sleep 30
                   echo "Done"
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Publishing complete"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Publishing complete of ${{inputs.model_nickname}}"  
