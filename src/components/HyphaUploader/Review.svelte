@@ -1,7 +1,12 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
     import { browser } from '$app/environment';
+
+
+    import toast, { Toaster } from 'svelte-french-toast';
+
     import Notification from './Notification.svelte';
+
     export let files;
     export let server;
     export let rdf;
@@ -10,6 +15,8 @@
     import JSONTree from 'svelte-json-tree';
     let all_done = false;
     let error;
+    let error_element;
+    let last_error_object;
     let storage;
     let storage_info;
     let uploading = false;
@@ -113,19 +120,36 @@
     })
 
     async function regenerate_nickname(){
-        model_name_message = "generating...";
+        model_name_message = "Generating...";
         try{
             model_name = await (await fetch(generate_name_url)).json(); 
             model_name_message = "";
         }catch(err){
             console.error("Failed to generate name:")
             console.error(err);
-            model_name_message = "ERROR";
+            model_name_message = "";
+            error = "Error generating model name";
+            last_error_object = err;
         }    
     }
         
     function is_done() {
         dispatch('done', {part:'review'});
+    }
+
+    function copy_error_to_clipboard(){
+        if(!last_error_object){
+            console.error("No last error object to copy");
+        }
+        const text = last_error_object.stack;
+        copy_text_to_clipboard(text);
+        toast.success("Copied");
+        console.log("Copied text:", text);
+    }
+
+    async function copy_text_to_clipboard(text){
+
+        await navigator.clipboard.writeText(text);
     }
     
     async function notify_ci_bot() {
@@ -195,19 +219,26 @@
     }
 </script>
 
+<Toaster />
+
 {#if uploading}
     <p>Uploading</p> 
     <progress max="100">15%</progress>
 {:else if all_done}
     <p>All done!</p>
 {:else if error}
-    <p>Oops! Something went wrong 😟</p>
-    <p>Please review the error, and try again. If the issue persists, please contact support</p>
-    <code>{error}</code>
+    <!-- svelte-ignore a11y-no-noninteractive-element-interactions a11y-click-events-have-key-events -->
+    <article bind:this={error_element} data-placement="bottom" on:click={copy_error_to_clipboard}>
+        <p>Oops! Something went wrong 😟</p>
+        <p>Please review the error, and try again. If the issue persists, please contact support</p>
+        <code>{error}</code>
+        <p>Click this box to copy the error message to your clipboard</p>
+    </article>
 {:else}
-    <p class="level">Your model nickname is: 
+    <p class="level">
         {#if model_name_message }({model_name_message}){/if}
         {#if model_name}
+            Your model nickname is: 
             <code style="min-width:10em;">{model_name.name} {model_name.icon}&nbsp;</code>
         {/if}
         <button on:click={regenerate_nickname}>Regenerate nickname</button>

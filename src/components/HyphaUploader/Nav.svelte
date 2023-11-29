@@ -9,7 +9,7 @@
         {#if i<=max_step}
             <li><a  on:click={()=> {current=i}}
                     on:keypress={() => {current=i}}
-                    href="#"
+                    href="/{step.url}"
                    >{step.text}</a></li>
         {:else}
             <li>{step.text}</li>

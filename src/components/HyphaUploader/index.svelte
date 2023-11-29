@@ -11,6 +11,7 @@
     //import { slide } from 'svelte/transition';
     //import { quintOut } from 'svelte/easing';
     // import { onMount } from 'svelte';
+    import {Route, router} from 'tinro';
 
     import DevBox   from './DevBox.svelte';
     import Nav      from './Nav.svelte';
@@ -22,6 +23,7 @@
 
     import Confetti from '../Confetti.svelte';
 
+    router.mode.hash();
 
     // let current_step = 0;
     let zip_package;
@@ -41,7 +43,7 @@
     
 
     let components = [
-        {name: "Add", _component: Add, props: {zip_package, rdf, files}},
+        {name: "Add", url: "#add", _component: Add, props: {zip_package, rdf, files}},
         {name: "Edit", _component: Edit, props: {files, rdf}},
         {
             name: "Review", 
@@ -56,7 +58,7 @@
     let current = 0;
     let max_step = 0;
     let steps = [
-        { text: 'Add'},
+        { text: 'Add', url:'add'},
         { text: 'Edit'},
         { text: 'Review & Upload'},
         { text: 'Status'},
@@ -163,6 +165,9 @@
     <!--<DevBox {server} />-->
 {/if}
 
+
+<a href="add">Add</a>
+
 {#if !token}
     <Notification deletable={false} >
     {#if (current === (steps.length - 1))}
@@ -197,17 +202,21 @@
         </Notification>
 {/if}
 {#if (!all_done) }
-<svelte:component 
-        this={components[current]._component} 
-        {token}
-        {server_url}
-        {server}
-        {api}
-        bind:zip_package
-        bind:files
-        bind:status_url
-        bind:rdf_url
-        bind:rdf
-     on:done={next}/>
+    <Route path="/">Home sweet home</Route>
+    <Route path="/add"><Add /></Route>
+    <Route path="/edit"><Edit /></Route>
+
+<!--<svelte:component -->
+        <!--this={components[current]._component} -->
+        <!--{token}-->
+        <!--{server_url}-->
+        <!--{server}-->
+        <!--{api}-->
+        <!--bind:zip_package-->
+        <!--bind:files-->
+        <!--bind:status_url-->
+        <!--bind:rdf_url-->
+        <!--bind:rdf-->
+     <!--on:done={next}/>-->
 {/if}
 </section>

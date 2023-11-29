@@ -9,6 +9,10 @@ export default defineConfig({
 		include: ['src/**/*.{test,spec}.{js,ts}']
 	},
 
+    optimizeDeps: {
+        exclude: ['tinro']
+    },
+
 	css: {
 		preprocessorOptions: {
 			scss: {
