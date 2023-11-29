@@ -1,52 +1,38 @@
-# Using functions for uploading files
+# create-svelte
 
-This lesson will walk through creating a function to get pre-signed s3 upload urls.
+Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte).
 
-Pre-signed upload urls can be used for users to upload profile images and a variety of other user cases.
+## Creating a project
 
-- [Lesson Steps](#lesson-steps)
-- [Complete code](#complete-code)
+If you're seeing this, you've probably already done this step. Congrats!
 
-## Lesson Steps
+```bash
+# create a new project in the current directory
+npm create svelte@latest
 
-1. Create a `netlify.toml` file in your project.
+# create a new project in my-app
+npm create svelte@latest my-app
+```
 
-    The `netlify.toml` file is where we configure how the site builds and where your serverless functions live.
+## Developing
 
-2. In `netlify.toml`, add a `[build]` section and add `publish = "site"` and `functions = "functions"` values
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-3. We need to create this site in Netlify
+```bash
+npm run dev
 
-    Open your terminal and run the following command:
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
 
-    ```bash
-    netlify init --manual
-    ```
+## Building
 
-    Choose "create & configure a new site", then add a site name or hit enter for one to be generated for you.
+To create a production version of your app:
 
-5. After configuring your redirect, its time to deploy
+```bash
+npm run build
+```
 
-    Open your terminal and run the following command:
+You can preview the production build with `npm run preview`.
 
-    ```bash
-    netlify deploy -p
-    ```
-
-6. Invoke the function to ensure it's working properly
-
-    Visit your site and the URL https://your-site-url.netlify.com/.netlify/functions/redirect
-
-    It should redirect you to a new location.
-
-
-
-
-
-
-
-## Complete code
-
-If you need help or get stuck refer to the completed code of this lesson
-
-[View Complete Code](https://github.com/DavidWells/netlify-functions-workshop/tree/master/lessons-code-complete/use-cases/12-handling-file-uploads)
+> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
