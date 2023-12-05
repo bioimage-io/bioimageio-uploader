@@ -1,6 +1,5 @@
 <script>
-    import HyphaUploader from './components/HyphaUploader/index.svelte';
+    import Uploader from './components/Uploader/index.svelte';
 </script>
 
-<!--<Route path="/">🏠</Route>-->
-<HyphaUploader />
+<Uploader />
