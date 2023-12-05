@@ -1,17 +1,8 @@
 <script>
-    // import {login,  connectToServer } from '$lib/imjoy-rpc-hypha/websocket-client';
-
     import toast, { Toaster } from 'svelte-french-toast';
     import * as imjoyRPC from 'imjoy-rpc';
     import * as imjoyCore from 'imjoy-core'
-    //import IconPlus from '../icons/IconPlus.svelte';
-    //import SvgIcon from '@jamescoyle/svelte-icon';
-    //import {mdiPlus, mdiPencil, mdiPublish} from '@mdi/js';
-    //import { page } from "$app/stores";
-    //import { slide } from 'svelte/transition';
-    //import { quintOut } from 'svelte/easing';
-    // import { onMount } from 'svelte';
-    import {Route, router} from 'tinro';
+    import {Route, router, active} from 'tinro';
     router.mode.hash();
 
     import DevBox   from './DevBox.svelte';
@@ -30,14 +21,14 @@
     const server_url = "https://ai.imjoy.io";
     //const server_url = "https://hypha.bioimage.io";
     let server; 
-    //let token = browser ? window.sessionStorage.getItem('token') ?? '' : '';
     let token = window.sessionStorage.getItem('token');
-    //let token = '';
     let connection_retry = 0;
     let api;
     let status_url;
     let rdf_url;
     const MAX_CONNECTION_RETRIES = 3;
+    let max_step = 0;
+    const increment = (val) => {max_step = Math.max(max_step, val); return "";};
     
     let login_url = "";
     let steps = [
@@ -105,29 +96,19 @@
             sessionStore('token', '');
             initHypha();
         }
-        console.log("server");
-        console.log(server);
         connection_retry = 0;
         console.log("Hypha connected");
     }
-
-    //if (browser){
-    initHypha();
-    
-
     
     function show_login_message(context){
         login_url = context.login_url;
     }
 
+    initHypha();
 </script>
 
-<Nav {steps}/>
+<Nav {steps} {max_step}/>
 <Toaster />
-
-{#if server}
-    <!--<DevBox {server} />-->
-{/if}
 
 {#if !token}
     <Notification deletable={false} >
@@ -150,11 +131,14 @@
     <Add bind:files bind:rdf bind:zip_package on:done={()=>{router.goto('edit')}} />
 </Route>
 <Route path="edit">
+    {increment(1)}
     <Edit bind:files bind:rdf {api} on:done={()=>{router.goto('review')}}/>
 </Route>
 <Route path="review">
+    {increment(2)}
     <Review {server} {rdf} {files} bind:status_url bind:rdf_url on:done={()=>{router.goto('status')}}/>
 </Route>
 <Route path="status">
-    <Review {status_url} {rdf_url}/>
+    {increment(3)}
+    <Status {status_url} {rdf_url}/>
 </Route>
