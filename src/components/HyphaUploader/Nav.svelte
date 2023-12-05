@@ -1,5 +1,4 @@
 <script>
-    export let current=0;
     export let max_step=0;
     export let steps = [];
 </script>
@@ -7,10 +6,7 @@
     <ul>
     {#each steps as step, i}
         {#if i<=max_step}
-            <li><a  on:click={()=> {current=i}}
-                    on:keypress={() => {current=i}}
-                    href="/{step.url}"
-                   >{step.text}</a></li>
+            <li><a href="{step.url}">{step.text}</a></li>
         {:else}
             <li>{step.text}</li>
         {/if}

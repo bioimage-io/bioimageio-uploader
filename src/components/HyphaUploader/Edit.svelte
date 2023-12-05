@@ -2,6 +2,7 @@
     import { createEventDispatcher } from 'svelte';
     import EditForm from './EditForm/index.svelte';
     import Validate from './Validate.svelte';
+    import {router} from 'tinro';
     
     export let rdf; 
     export let zip_package;
@@ -13,6 +14,9 @@
     function completed_step() {
         dispatch('done', {});
     }
+
+    if (!rdf) router.goto("add");
+    if (rdf.length === 0) router.goto("add");
 </script>
 
 <h2>Edit your submission</h2>

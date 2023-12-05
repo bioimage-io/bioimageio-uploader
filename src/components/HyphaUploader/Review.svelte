@@ -1,9 +1,7 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
-    import { browser } from '$app/environment';
-
-
-    import toast, { Toaster } from 'svelte-french-toast';
+    import toast from 'svelte-french-toast';
+    import {router} from 'tinro';
 
     import Notification from './Notification.svelte';
 
@@ -12,6 +10,13 @@
     export let rdf;
     export let status_url;
     export let rdf_url;
+
+
+    if (!rdf) router.goto("add");
+    if (rdf.length === 0) router.goto("add");
+    if (!files) router.goto("add");
+    if (files.length === 0) router.goto("add");
+
     import JSONTree from 'svelte-json-tree';
     let all_done = false;
     let error;
@@ -23,7 +28,7 @@
     let model_name_message = "";
     let model_name;
     let status_urls;
-    const hostname = browser ? `${window.location.protocol}//${window.location.host}` : "";
+    const hostname = `${window.location.protocol}//${window.location.host}`;
     const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
     let notify_ci_message = "";
     let notify_ci_failed = false;
@@ -140,6 +145,7 @@
     function copy_error_to_clipboard(){
         if(!last_error_object){
             console.error("No last error object to copy");
+            return;
         }
         const text = last_error_object.stack;
         copy_text_to_clipboard(text);
@@ -219,7 +225,6 @@
     }
 </script>
 
-<Toaster />
 
 {#if uploading}
     <p>Uploading</p> 

@@ -1,15 +1,15 @@
 <script>
     //import { createEventDispatcher } from 'svelte';
-    import { browser } from '$app/environment';
+    //import { browser } from '$app/environment';
     export let status_url;
     let status;
     let status_message = "";
     
-    if (browser){
+    //if (browser){
 
         status_message = "Contacting server...";
         refresh_status();
-    }
+    //}
 
     async function refresh_status(){
         try{

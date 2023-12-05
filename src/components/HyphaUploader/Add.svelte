@@ -1,5 +1,6 @@
 <script>
     import Dropzone from "svelte-file-dropzone/Dropzone.svelte";
+    import toast  from 'svelte-french-toast';
     import JSZip from "jszip";
     import yaml from "js-yaml";
     import { createEventDispatcher } from 'svelte';
@@ -106,6 +107,8 @@
             await load_rdf_file(input_file);
         }else{
             file_info = ["Invalid file given"];
+            toast.error("Invalid file given");
+
             return
         }
         read_model(rdf_text);

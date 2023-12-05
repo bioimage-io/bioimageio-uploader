@@ -1,5 +1,6 @@
 <script charset="utf-8">
     import { createEventDispatcher } from 'svelte';
+    import toast from 'svelte-french-toast';
     import JSONTree from 'svelte-json-tree';
     import yaml from "js-yaml";
     export let rdf;
@@ -46,9 +47,19 @@
         dispatch('done', {});
         validating = false;
     }
+
+    function validate_with_toast(){
+        toast.promise(
+            validate(), 
+            {
+                loading: 'Validating...',
+                success: 'Success 🥳',
+                error: 'Could not validate 😕',
+            });
+    }
 </script>
 
-<button aria-busy={validating} on:click={validate}>Validate</button>
+<button aria-busy={validating} on:click={validate_with_toast}>Validate</button>
 {#if error}
     <article>
         <p>A validation error occurred!</p>
