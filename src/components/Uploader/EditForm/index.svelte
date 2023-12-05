@@ -7,12 +7,11 @@
     import Tags from "./Tags.svelte";
     import site_config from "../../../site.config.json";
     import spdxLicenseList from "spdx-license-list/full";
-    export let rdf; 
-    export let zip_package;
+    export let uploader; 
     let filenames = [];
 
-    if(zip_package){
-        filenames = Object.keys(zip_package.files);
+    if(uploader.zip_package){
+        filenames = Object.keys(uploader.zip_package.files);
     }
 
     const types = site_config.resource_categories.map(cat => cat.type);
@@ -55,7 +54,7 @@
         cite,
         source,
         links,
-    } = rdf;
+    } = uploader.rdf;
 
     // let resource_item_ids = resource_items.map(item => item.id);
     async function handle_files_select(e){

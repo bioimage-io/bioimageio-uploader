@@ -4,10 +4,7 @@
     import Validate from './Validate.svelte';
     import {router} from 'tinro';
     
-    export let rdf; 
-    export let zip_package;
-    export let api;
-    export let files;
+    export let uploader; 
 
     const dispatch = createEventDispatcher();
 
@@ -15,13 +12,13 @@
         dispatch('done', {});
     }
 
-    if (!rdf) router.goto("add");
-    if (rdf.length === 0) router.goto("add");
+    if (!uploader.rdf) router.goto("add");
+    if (uploader.rdf.length === 0) router.goto("add");
 </script>
 
 <h2>Edit your submission</h2>
 
-<EditForm bind:rdf bind:zip_package/>
+<EditForm bind:uploader/>
 
-<Validate {rdf} on:done={completed_step} {api}/>
+<Validate {uploader} on:done={completed_step} />
 
