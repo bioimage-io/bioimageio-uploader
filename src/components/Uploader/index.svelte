@@ -33,8 +33,6 @@
         uploader.reset();
     }
 
-    console.log(uploader);
-
 </script>
 
 <Nav {steps}/>
@@ -60,14 +58,15 @@
 {/key}
 <Route path="">
     <Add bind:uploader on:done={()=>{router.goto('edit')}} />
-
 </Route>
 <Route path="add">
     <Add bind:uploader on:done={()=>{router.goto('edit')}} />
 </Route>
+{#if uploader.rdf}
 <Route path="edit">
     <Edit bind:uploader on:done={()=>{router.goto('review')}}/>
 </Route>
+{/if }
 <Route path="review">
     <Review {uploader} on:done={()=>{router.goto('status')}}/>
 </Route>

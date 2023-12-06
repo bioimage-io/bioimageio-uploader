@@ -12,7 +12,7 @@
     import JSONTree from 'svelte-json-tree';
     let uploading = false;
     let model_name_message = "";
-    let model_nickname = "";
+    let model_nickname = uploader.model_nickname;
     let rdf = uploader.rdf;
     let ready_to_publish = uploader.ready_to_publish();
 
@@ -36,7 +36,7 @@
         //rerender = !rerender;
     }
 
-    regenerate_nickname();
+    if(!model_nickname) regenerate_nickname();
     
 </script>
 

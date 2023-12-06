@@ -13,6 +13,8 @@
     let notify_ci_message = "";
     let notify_ci_failed = false;
 
+    window.router = router;
+
     if (!uploader.ready_for_review()) router.goto("add");
 
     uploader.add_render_callback((data) => {
@@ -37,11 +39,15 @@
 
     async function refresh_status(){
         console.log("Current route:", router.location.hash.get());
-        if(router.location.hash.get() !== "status") return;
+        if(router.location.hash.get() !== "status"){
+            console.error("We are not at status step...? Hash is:");
+            console.log(router.location.hash.get());
+        }
+
 
         try{
             console.log("Refreshing status...");
-            let status = await uploader.refresh_status();
+            status = await uploader.refresh_status();
             if(status.status !== status_message){    
                 status_message = status.status;
             }

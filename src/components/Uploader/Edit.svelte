@@ -12,8 +12,13 @@
         dispatch('done', {});
     }
 
-    if (!uploader.rdf) router.goto("add");
-    if (uploader.rdf.length === 0) router.goto("add");
+    if (!uploader){
+        router.goto("add");
+    }else if (!uploader.rdf){
+        router.goto("add");
+    }else if (uploader.rdf.length === 0){
+        router.goto("add");
+    }
 </script>
 
 <h2>Edit your submission</h2>

@@ -37,69 +37,72 @@ export default class Uploader{
         this.initHypha();
     }
 
+    reset(){
+        this.model_nickname = null;
+        this.rdf = {};
+
+    }
+
     set_login_url(ctx){
-        console.log("WE IS HERE");
-        console.log("THIS IS:");
-        console.log(this);
         window.open(ctx.login_url, '_blank');
         this.login_url = ctx.login_url
     }
 
     async initHypha(){
 
-    // Init Imjoy-Core
-    const imjoy = new imjoyCore.ImJoy({
-        imjoy_api: {},
-        //imjoy config
-    });
-    imjoy.start({workspace: 'default'}).then(async ()=>{
-        console.log('ImJoy started');
-        this.api = imjoy.api;
-    })
-
-    // Init Imjoy-Hypha
-    if(this.connection_retry > this.MAX_CONNECTION_RETRIES){
-        console.error("Max retries reached. Please try again later or contact support"); 
-        return this;
-    }
-    console.log("Initializing Hypha...");
-    console.log(`  connecting to ${this.server_url}`); 
-    if(!this.token){
-        console.log("    Getting token...");
-        console.log(`    from: ${imjoyRPC}`);
-        console.log(`    using url: ${this.server_url}`);
-        this.token = await imjoyRPC.hyphaWebsocketClient.login({
-            server_url: this.server_url, 
-            //login_callback: this.set_login_url (ctx) => {this.login_url = ctx.login_url},
-            login_callback: this.set_login_url.bind(this),
+        // Init Imjoy-Core
+        const imjoy = new imjoyCore.ImJoy({
+            imjoy_api: {},
+            //imjoy config
         });
-        window.sessionStorage.setItem('token', this.token);
-        console.log('    token saved');
-        console.log('    🥳🥳🥳🥳');
-    }
-    console.log(`Token: ${this.token.slice(0,5)}...`);
-    
-    try{
+        imjoy.start({workspace: 'default'}).then(async ()=>{
+            console.log('ImJoy started');
+            this.api = imjoy.api;
+        })
 
-        this.server = await imjoyRPC.hyphaWebsocketClient.connectToServer({
-                name: 'BioImageIO.this',
-                server_url: this.server_url,
-                token: this.token,
-        });
-        this.render();
-    }catch(error){
-        console.error("Connection to Hypha failed:");
-        console.error(error);
-        this.connection_retry = this.connection_retry + 1;
-        this.token = null;
-        window.sessionStorage.setItem('token', '');
-        this.initHypha();
+        // Init Imjoy-Hypha
+        if(this.connection_retry > this.MAX_CONNECTION_RETRIES){
+            console.error("Max retries reached. Please try again later or contact support"); 
+            return this;
+        }
+        console.log("Initializing Hypha...");
+        console.log(`  connecting to ${this.server_url}`); 
+        if(!this.token){
+            console.log("    Getting token...");
+            console.log(`    from: ${imjoyRPC}`);
+            console.log(`    using url: ${this.server_url}`);
+            this.token = await imjoyRPC.hyphaWebsocketClient.login({
+                server_url: this.server_url, 
+                //login_callback: this.set_login_url (ctx) => {this.login_url = ctx.login_url},
+                login_callback: this.set_login_url.bind(this),
+            });
+            window.sessionStorage.setItem('token', this.token);
+            console.log('    token saved');
+            console.log('    🥳🥳🥳🥳');
+        }
+        console.log(`Token: ${this.token.slice(0,5)}...`);
+        
+        try{
+
+            this.server = await imjoyRPC.hyphaWebsocketClient.connectToServer({
+                    name: 'BioImageIO.this',
+                    server_url: this.server_url,
+                    token: this.token,
+            });
+            this.render();
+        }catch(error){
+            console.error("Connection to Hypha failed:");
+            console.error(error);
+            this.connection_retry = this.connection_retry + 1;
+            this.token = null;
+            window.sessionStorage.setItem('token', '');
+            this.initHypha();
+        }
+        this.connection_retry = 0;
+        console.log("Hypha connected");
+        console.log("this instance:");
+        console.log(this);
     }
-    this.connection_retry = 0;
-    console.log("Hypha connected");
-    console.log("this instance:");
-    console.log(this);
-}
 
     show_login_message(context){
         this.login_url = context.login_url;
@@ -328,8 +331,6 @@ export default class Uploader{
     render(data){
         console.log(`Calling render with ${this.render_callbacks.length} callbacks`);
         this.render_callbacks.forEach(callback => callback(data));
-        //console.log("DUMMY RENDER FUNCTION");
-        //console.log(data);
     }
 
     add_render_callback(callback){

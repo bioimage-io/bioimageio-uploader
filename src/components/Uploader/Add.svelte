@@ -2,6 +2,8 @@
     import Dropzone from "svelte-file-dropzone/Dropzone.svelte";
     import toast  from 'svelte-french-toast';
     import { createEventDispatcher } from 'svelte';
+    import Uploader from './index.js';
+    import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
     
     export let uploader;
 
@@ -13,6 +15,10 @@
 
     function completed_step() {
         dispatch('done', {});
+    }
+
+    function start_again(){
+        uploader.reset();
     }
 
     async function handle_files_select(evt){
@@ -38,12 +44,11 @@
     
 </script>
 
-<!--<h2>Add model information</h2>-->
+{#if uploader.rdf}
 
-{#if processing}
-    Reading model... <div aria-busy="true" /> 
-    <button on:click={completed_step()}>Next</button>
+    <ButtonWithConfirmation confirm={start_again}>Clear loaded model & start Again</ButtonWithConfirmation>
 {:else}
+
     Upload model zip file 
 
     <Dropzone on:drop={handle_files_select} multiple={false}>
@@ -56,4 +61,3 @@
         {/if}
     </Dropzone>
 {/if}
-
