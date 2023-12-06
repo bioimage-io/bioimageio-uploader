@@ -17,9 +17,9 @@
     let uploader = new Uploader();
     let rerender = false;
     
-    uploader.render = () => {
-        rerender = true; 
-    };
+    uploader.add_render_callback(() => {
+        rerender = !rerender; 
+    });
 
 
     let steps = [
@@ -47,7 +47,7 @@
         <p>You must now login to publish</p>
     {/if}
     {#if uploader.login_url}
-        <button on:click={()=>{window.open(login_url, '_blank')}}>Login to BioEngine</button>
+        <button on:click={()=>{window.open(uploader.login_url, '_blank')}}>Login to BioEngine</button>
     {:else}
         <span aria-busy="true">Connecting to the BioEngine...</span>
     {/if}

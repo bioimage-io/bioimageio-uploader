@@ -6,10 +6,10 @@
 
 
 {#if show}
-    <div class="notification {classes}">
-        {#if deletable}
-            <button class="delete" on:click={()=>{show=false;}}></button>
-        {/if}
+    <article class="notification {classes}">
+        <!--{#if deletable}-->
+            <!--<button class="close" on:click={()=>{show=false;}}></button>-->
+        <!--{/if}-->
         <slot />
-    </div>
+    </article>
 {/if}

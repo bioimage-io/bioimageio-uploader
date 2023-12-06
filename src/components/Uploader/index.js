@@ -31,6 +31,7 @@ export default class Uploader{
     constructor(){
         console.log("Creating uploader...");
         this.connection_retry = 0;
+        this.render_callbacks = [];
         this.token = window.sessionStorage.getItem('token');
         this.model_nickname = null;
         this.initHypha();
@@ -242,6 +243,10 @@ export default class Uploader{
             "Used bucket and prefix:", 
             this.storage_info.bucket, 
             this.storage_info.prefix);
+        console.log("url_get:");
+        console.log(url_get);
+        console.log("url_put");
+        console.log(url_put);
 
         try{
             const response = await fetch(url_put, {method:"PUT", body:file});
@@ -320,10 +325,16 @@ export default class Uploader{
         }
     }
 
-    //render(data){
+    render(data){
+        console.log(`Calling render with ${this.render_callbacks.length} callbacks`);
+        this.render_callbacks.forEach(callback => callback(data));
         //console.log("DUMMY RENDER FUNCTION");
         //console.log(data);
-    //}
+    }
+
+    add_render_callback(callback){
+        this.render_callbacks.push(callback);
+    }
 
     
     async notify_ci_bot() {

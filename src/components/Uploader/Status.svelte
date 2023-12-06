@@ -8,19 +8,21 @@
     let error;
     let error_element;
     let last_error_object;
+    let uploading = false;
     
     let notify_ci_message = "";
     let notify_ci_failed = false;
 
     if (!uploader.ready_for_review()) router.goto("add");
 
-    uploader.render = (data) => {
+    uploader.add_render_callback((data) => {
         if(!data) return;
         notify_ci_message = data.notify_ci_message;
         notify_ci_failed = data.notify_ci_failed;
-    }
+    });
 
     async function publish(){
+        uploading = true;
         console.log("Publishing...");
         try{
             await uploader.publish();
@@ -30,10 +32,13 @@
             return 
         }    
         await new Promise(r => setTimeout(r, 1000));
-        is_done();
+        uploading = false;
     }
 
     async function refresh_status(){
+        console.log("Current route:", router.location.hash.get());
+        if(router.location.hash.get() !== "status") return;
+
         try{
             console.log("Refreshing status...");
             let status = await uploader.refresh_status();
