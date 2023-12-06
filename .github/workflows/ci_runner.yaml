@@ -17,15 +17,21 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             fail-fast: false
+        env: 
+            S3_ENDPOINT: ${{secrets.S3_ENDPOINT}}
+            S3_ACCESS_KEY_ID: ${{secrets.S3_ACCESS_KEY_ID}}
+            S3_SECRET_ACCESS_KEY: ${{secrets.S3_SECRET_ACCESS_KEY}}
+            S3_BUCKET: ${{secrets.S3_BUCKET}}
         steps:
             - uses: actions/checkout@v3
 
-            - name: Update status
-              run: sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Starting testing of ${{inputs.model_nickname}}"  
+            - shell: bash
+              name: Update status
+              run: sh .github/scripts/update_status.sh  "${{ inputs.model_nickname }}" "Starting testing of ${{inputs.model_nickname}}"  
             
             - name: Install dependencies
               run: |
-                    sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Installing dependencies of ${{inputs.model_nickname}}"  
+                    sh .github/scripts/update_status.sh  "${{ inputs.model_nickname }}" "Installing dependencies of ${{inputs.model_nickname}}"  
                     echo "Installing dependencies"
                     python -m pip install --upgrade pip
                     python -m pip install flake8 pytest
@@ -33,24 +39,24 @@ jobs:
 
             - name: Additional Steps
               run: |
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running additional steps of ${{inputs.model_nickname}}"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.model_nickname }}" "Running additional steps of ${{inputs.model_nickname}}"  
                   echo "Running additional steps..."
                   sleep 30
                   echo "Done"
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Done running additional steps of ${{inputs.model_nickname}}"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.model_nickname }}" "Done running additional steps of ${{inputs.model_nickname}}"  
 
             - name: Main testing
               run: |
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running main testing of ${{inputs.model_nickname}}"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.model_nickname }}" "Running main testing of ${{inputs.model_nickname}}"  
                   echo "Running main testing"
                   sleep 30
                   echo "Done"
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Testing complete of ${{inputs.model_nickname}}"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.model_nickname }}" "Testing complete of ${{inputs.model_nickname}}"  
 
             - name: Publish within S3
               run: |
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Running publishing of ${{inputs.model_nickname}}"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.model_nickname }}" "Running publishing of ${{inputs.model_nickname}}"  
                   echo "Somehow doing publising workflow 🤔"
                   sleep 30
                   echo "Done"
-                  sh .github/scripts/update_status.sh  "${{ inputs.status_url }}" "Publishing complete of ${{inputs.model_nickname}}"  
+                  sh .github/scripts/update_status.sh  "${{ inputs.model_nickname }}" "Publishing complete of ${{inputs.model_nickname}}"  
