@@ -20,7 +20,7 @@ export default async (event, context) => {
         body: JSON.stringify({
             'ref': 'main',
             'inputs':{
-                'status_url': data.status_url,
+                //'status_url': data.status_url,
                 'model_nickname': data.model_nickname,
             }
         })
