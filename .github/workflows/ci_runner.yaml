@@ -44,24 +44,24 @@ jobs:
 
             - name: Additional Steps
               run: |
-                  py .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running additional steps of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running additional steps of ${{inputs.model_nickname}}"  
                   echo "Running additional steps..."
                   sleep 30
                   echo "Done"
-                  py .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Done running additional steps of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Done running additional steps of ${{inputs.model_nickname}}"  
 
             - name: Main testing
               run: |
-                  py .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running main testing of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running main testing of ${{inputs.model_nickname}}"  
                   echo "Running main testing"
                   sleep 30
                   echo "Done"
-                  py .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Testing complete of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Testing complete of ${{inputs.model_nickname}}"  
 
             - name: Publish within S3
               run: |
-                  py .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running publishing of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running publishing of ${{inputs.model_nickname}}"  
                   echo "Somehow doing publising workflow 🤔"
                   sleep 30
                   echo "Done"
-                  py .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Publishing complete of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Publishing complete of ${{inputs.model_nickname}}"  
