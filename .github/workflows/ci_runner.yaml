@@ -26,9 +26,13 @@ jobs:
         steps:
             - uses: actions/checkout@v3
 
-            - shell: bash
-              name: Update status
-              run: sh .github/scripts/update_status.sh  "${{ inputs.model_nickname }}" "Starting testing of ${{inputs.model_nickname}}"  
+            - name: Install workflow script dependencies
+              run: |
+                    echo "Installing workflow script dependencies"
+                    python -m pip install --upgrade pip
+                    python -m pip install "minio==7.2.0"
+            - name: Update status
+              run: sh .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Starting testing of ${{inputs.model_nickname}}"  
             
             - name: Install dependencies
               run: |
