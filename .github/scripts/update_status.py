@@ -7,7 +7,7 @@ from minio import Minio
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("model-name", help="Model name")
+    parser.add_argument("model_name", help="Model name")
     parser.add_argument("status", help="Status")
     return parser
 
