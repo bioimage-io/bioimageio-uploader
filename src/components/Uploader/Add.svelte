@@ -46,7 +46,9 @@
 
 {#if uploader.rdf}
 
-    <ButtonWithConfirmation confirm={start_again}>Clear loaded model & start Again</ButtonWithConfirmation>
+    <ButtonWithConfirmation confirm={start_again}>
+        Clear loaded model & start Again
+    </ButtonWithConfirmation>
 {:else}
 
     Upload model zip file 

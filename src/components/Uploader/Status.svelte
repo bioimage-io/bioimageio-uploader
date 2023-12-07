@@ -1,6 +1,5 @@
 <script>
 
-    import {router} from 'tinro';
     export let uploader;
     let status;
     let status_message = "";
@@ -12,10 +11,6 @@
     
     let notify_ci_message = "";
     let notify_ci_failed = false;
-
-    window.router = router;
-
-    if (!uploader.ready_for_review()) router.goto("add");
 
     uploader.add_render_callback((data) => {
         if(!data) return;
@@ -38,11 +33,11 @@
     }
 
     async function refresh_status(){
-        console.log("Current route:", router.location.hash.get());
-        if(router.location.hash.get() !== "status"){
-            console.error("We are not at status step...? Hash is:");
-            console.log(router.location.hash.get());
-        }
+        //console.log("Current route:", router.location.hash.get());
+        //if(router.location.hash.get() !== "status"){
+            //console.error("We are not at status step...? Hash is:");
+            //console.log(router.location.hash.get());
+        //}
 
 
         try{

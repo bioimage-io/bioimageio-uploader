@@ -34,6 +34,7 @@ export default class Uploader{
         this.render_callbacks = [];
         this.token = window.sessionStorage.getItem('token');
         this.model_nickname = null;
+        this.rdf = null;
         this.initHypha();
     }
 
@@ -69,7 +70,8 @@ export default class Uploader{
         console.log(`  connecting to ${this.server_url}`); 
         if(!this.token){
             console.log("    Getting token...");
-            console.log(`    from: ${imjoyRPC}`);
+            console.log("    from:");
+            console.log(imjoyRPC);
             console.log(`    using url: ${this.server_url}`);
             this.token = await imjoyRPC.hyphaWebsocketClient.login({
                 server_url: this.server_url, 

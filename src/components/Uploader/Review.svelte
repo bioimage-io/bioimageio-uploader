@@ -1,13 +1,9 @@
 <script>
     import { onMount, createEventDispatcher } from 'svelte';
     import toast from 'svelte-french-toast';
-    import {router} from 'tinro';
-
     import Notification from './Notification.svelte';
 
     export let uploader;
-
-    if (!uploader.ready_for_review()) router.goto("add");
 
     import JSONTree from 'svelte-json-tree';
     let uploading = false;
