@@ -2,11 +2,7 @@
     import { createEventDispatcher } from 'svelte';
     import EditForm from './EditForm/index.svelte';
     import Validate from './Validate.svelte';
-    
-    export let rdf; 
-    export let zip_package;
-    export let api;
-    export let files;
+    export let uploader; 
 
     const dispatch = createEventDispatcher();
 
@@ -17,7 +13,7 @@
 
 <h2>Edit your submission</h2>
 
-<EditForm bind:rdf bind:zip_package/>
+<EditForm {uploader}/>
 
-<Validate {rdf} on:done={completed_step} {api}/>
+<Validate {uploader} on:done={completed_step} />
 

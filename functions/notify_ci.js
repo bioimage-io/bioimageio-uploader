@@ -18,13 +18,14 @@ export default async (event, context) => {
         method: "POST",
         headers: headers, 
         body: JSON.stringify({
-            'ref': 'main',
+            'ref': 'uploader-object',
             'inputs':{
-                'status_url': data.status_url,
+                //'status_url': data.status_url,
                 'model_nickname': data.model_nickname,
             }
         })
     };
+    let resp_obj = {};
 
     if(!data.status_url){
         const res = Response.json({'message': "Failed: status_url not found in request json"});
@@ -38,7 +39,7 @@ export default async (event, context) => {
         try{
             let resp = await fetch(GITHUB_URL, options);
             try{
-                console.log(await resp.json());
+                resp_obj = await resp.json();
             }catch(err){
                 console.log("No JSON in response");
             }
@@ -55,7 +56,10 @@ export default async (event, context) => {
             return res;
         }
         // const res = new Response("Success");
-        const res = Response.json({"message":"Success"});
+        const reply_obj = {"status":`Contacted CI: ${resp_obj.message}`};
+        console.log("Response from CI:");
+        console.log(resp_obj);
+        const res = Response.json(reply_obj);
         res.headers.set("Access-Control-Allow-Origin", "*");
         res.headers.append("Access-Control-Allow-Headers", "*");
         res.headers.append("Access-Control-Allow-Methods", "*");

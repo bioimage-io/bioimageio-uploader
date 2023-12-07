@@ -12,3 +12,4 @@ bun.lockb
 
 # Local Netlify folder
 .netlify
+dist/
