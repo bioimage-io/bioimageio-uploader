@@ -32,11 +32,11 @@ jobs:
                     python -m pip install --upgrade pip
                     python -m pip install "minio==7.2.0"
             - name: Update status
-              run: python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Starting testing of ${{inputs.model_nickname}}"  
+              run: python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Starting testing of ${{inputs.model_nickname}}" "1" "8"  
             
             - name: Install dependencies
               run: |
-                    python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Installing dependencies of ${{inputs.model_nickname}}"  
+                    python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Installing dependencies of ${{inputs.model_nickname}}" "2" "8"  
                     echo "Installing dependencies"
                     python -m pip install --upgrade pip
                     python -m pip install flake8 pytest
@@ -44,24 +44,24 @@ jobs:
 
             - name: Additional Steps
               run: |
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running additional steps of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running additional steps of ${{inputs.model_nickname}}" "3" "8"  
                   echo "Running additional steps..."
                   sleep 30
                   echo "Done"
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Done running additional steps of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Done running additional steps of ${{inputs.model_nickname}}" "4" "8"  
 
             - name: Main testing
               run: |
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running main testing of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running main testing of ${{inputs.model_nickname}}" "5" "8"  
                   echo "Running main testing"
                   sleep 30
                   echo "Done"
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Testing complete of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Testing complete of ${{inputs.model_nickname}}" "6" "8"  
 
             - name: Publish within S3
               run: |
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running publishing of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running publishing of ${{inputs.model_nickname}}" "7" "8"  
                   echo "Somehow doing publising workflow 🤔"
                   sleep 30
                   echo "Done"
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Publishing complete of ${{inputs.model_nickname}}"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Publishing complete of ${{inputs.model_nickname}}" "8" "8"  

@@ -1,41 +1,22 @@
 <script>
     import toast, { Toaster } from 'svelte-french-toast';
-    import Router from 'svelte-spa-router';
 
-    //import Uploader from './index.js';
-    import { uploader } from './store.js';
+    import Uploader from './index.js';
 
     import Nav      from './Nav.svelte';
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
-    import Status   from './Status.svelte';
+    import UploadStatus   from './UploadStatus.svelte';
     import Notification from './Notification.svelte';
 
-    import Confetti from '../Confetti.svelte';
-
-    //let uploader = new Uploader();
+    let uploader = new Uploader();
+    let step = "add";
     let rerender = false;
     
-    $uploader.add_render_callback(() => {
+    uploader.add_render_callback(() => {
         rerender = !rerender; 
     });
-
-    const routes = {
-        "/": Add, 
-        "/add": Add,
-        "/edit": Edit, 
-        "/review": Review, 
-        "/status": Status,
-    }
-
-
-    let steps = [
-        { text: 'Add', url:'/add'},
-        { text: 'Edit', url:'/edit'},
-        { text: 'Review & Upload', url:'/review'},
-        { text: 'Status', url:'/status'},
-    ]
 
     function reset(){
         uploader.reset();
@@ -43,7 +24,6 @@
 
 </script>
 
-<Nav {steps}/>
 <Toaster />
 
 {#key rerender}
@@ -65,22 +45,18 @@
 {/if}
 {/key}
 
-<Router {routes}/>
-
-<!--<Route path="">-->
-    <!--<Add bind:uploader on:done={()=>{router.goto('edit')}} />-->
-<!--</Route>-->
-<!--<Route path="add">-->
-    <!--<Add bind:uploader on:done={()=>{router.goto('edit')}} />-->
-<!--</Route>-->
-<!--{#if uploader.rdf}-->
-<!--<Route path="edit">-->
-    <!--<Edit bind:uploader on:done={()=>{router.goto('review')}}/>-->
-<!--</Route>-->
-<!--{/if }-->
-<!--<Route path="review">-->
-    <!--<Review {uploader} on:done={()=>{router.goto('status')}}/>-->
-<!--</Route>-->
-<!--<Route path="status">-->
-    <!--<Status {uploader}/>-->
-<!--</Route>-->
+{#if step == "add"}
+    <Add {uploader} on:done={()=>{step="edit"}} />
+{:else if step == "edit"}
+    <Edit {uploader} on:done={()=>{step="review"}} />
+{:else if step == "review"}
+    <Review {uploader} on:done={()=>{step="uploading"}} />
+{:else if step == "uploading"}
+    <UploadStatus {uploader} on:done={()=>{step="done"}} />
+{:else if step == "done"}
+    <a href="/status/{uploader.model_nickname.name}">Go to status page</a>
+{:else}
+    <Notification>
+        Opps! something went wrong 😬
+    </Notification>
+{/if}

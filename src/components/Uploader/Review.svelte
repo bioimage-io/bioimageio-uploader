@@ -6,7 +6,6 @@
     export let uploader;
 
     import JSONTree from 'svelte-json-tree';
-    let uploading = false;
     let model_name_message = "";
     let model_nickname = uploader.model_nickname;
     let rdf = uploader.rdf;

@@ -10,6 +10,8 @@ def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("model_name", help="Model name")
     parser.add_argument("status", help="Status")
+    parser.add_argument("step", help="Step", nargs="?", default=0, type=int)
+    parser.add_argument("num_steps", help="Status", nargs="?", default=0, type=int)
     return parser
 
 
@@ -24,6 +26,8 @@ def get_args(argv: Optional[list] = None):
 def main():
     args = get_args()
     model_name = args.model_name
+    step = args.step
+    num_steps = args.num_steps
     filename = "status.json"
     status = args.status
     s3_host = os.getenv("S3_HOST")
@@ -41,7 +45,7 @@ def main():
     if not found:
         raise Exception("target bucket does not exist: {s3_bucket}")
 
-    status_message = json.dumps({"status": status}).encode()
+    status_message = json.dumps({"status": status, step=step, num_steps=num_steps}).encode()
 
     status_file_object = io.BytesIO(status_message)
     s3_path = f"{s3_root_folder}/{model_name}/{filename}"

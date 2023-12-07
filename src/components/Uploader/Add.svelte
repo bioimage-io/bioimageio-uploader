@@ -34,7 +34,7 @@
         console.log("Processing file:", input_file); 
         try{
             await uploader.load_from_file(input_file);
-        }catch{
+        }catch(err){
             toast.error(err.message);
             return
         }

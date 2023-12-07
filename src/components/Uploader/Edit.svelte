@@ -13,7 +13,7 @@
 
 <h2>Edit your submission</h2>
 
-<EditForm bind:uploader/>
+<EditForm {uploader}/>
 
 <Validate {uploader} on:done={completed_step} />
 

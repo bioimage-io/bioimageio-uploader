@@ -20,7 +20,7 @@
     "svelte-file-dropzone": "^2.0.2",
     "svelte-french-toast": "^1.2.0",
     "svelte-json-tree": "^2.2.0",
-    "svelte-spa-router": "^3.3.0",
+    "tinro": "^0.6.12",
     "vite": "^5.0.5"
   },
   "dependencies": {}

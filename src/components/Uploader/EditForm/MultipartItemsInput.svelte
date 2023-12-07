@@ -1,6 +1,7 @@
 <script>
     import { X, Plus } from 'lucide-svelte'
     import MultipartItemsInputInput from "./MultipartItemsInputInput.svelte";
+    import SingleLineInputs from "../../SingleLineInputs.svelte";
     export let items =[];
     export let error = null;
     export let fields = [];
@@ -16,51 +17,34 @@
 <style>
     .icon{
         width: 64px;
-
-    }
-    .list-container {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .list-item {
-        display: flex;
-        width: 100%;
-        gap: 10px;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
     }
 </style>
 
-
-    {#each items as item, index}   
-    <div class="list-container">
-        <div class="list-item">
-        {#each fields as field}
-            <MultipartItemsInputInput 
-                placeholder={field.placeholder}
-                bind:value={item[field.key]}
-                type={field.type}
-                props={field.props}
-               />
-        {/each}
-        <button 
-            class="icon contrast"
-            title="Delete entry for {item[fields[0].key]}"
-            on:click={()=> delete_at_index(index)}>
-            <X />
-        </button>
-        </div>
-    </div>
+{#each items as item, index}   
+<SingleLineInputs>
+    {#each fields as field}
+    <MultipartItemsInputInput 
+        placeholder={field.placeholder}
+        bind:value={item[field.key]}
+        type={field.type}
+        props={field.props}
+       />
     {/each}
-
     <button 
-        title="Add {entry_name}"
-        on:click={()=> {items = [...items, newentry()]}}>
-        <Plus />
+        class="icon contrast"
+        title="Delete entry for {item[fields[0].key]}"
+        on:click={()=> delete_at_index(index)}>
+        <X />
     </button>
-    {#if error }
-        <div class="notification is-error">{error }</div>
-    {/if}
+</SingleLineInputs>
+
+{/each}
+
+<button 
+    title="Add {entry_name}"
+    on:click={()=> {items = [...items, newentry()]}}>
+    <Plus />
+</button>
+{#if error }
+    <div class="notification is-error">{error }</div>
+{/if}

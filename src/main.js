@@ -1,5 +1,3 @@
-import "@picocss/pico/css/pico.css"; 
-
 import App from './App.svelte'
 
 const app = new App({

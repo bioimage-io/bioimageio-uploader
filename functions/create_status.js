@@ -3,6 +3,8 @@ const { S3_ENDPOINT,  S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY } = process.env;
 
 
 export default async (event, context) => {
+    
+
     console.log(S3_ENDPOINT);
     console.log(S3_ACCESS_KEY_ID);
     console.log(S3_SECRET_ACCESS_KEY);
