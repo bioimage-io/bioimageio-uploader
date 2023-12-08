@@ -18,7 +18,7 @@ export default async (event, context) => {
         method: "POST",
         headers: headers, 
         body: JSON.stringify({
-            'ref': 'uploader-object',
+            'ref': 'staging',
             'inputs':{
                 //'status_url': data.status_url,
                 'model_nickname': data.model_nickname,
