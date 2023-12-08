@@ -11,8 +11,6 @@ const headers = {
     // 'user-agent': 'bioimage-bot'
 
 export default async (event, context) => {
-    //const data = await JSON.parse(event.body)
-
     const data = await event.json();
     const options = {     
         method: "POST",
@@ -20,7 +18,6 @@ export default async (event, context) => {
         body: JSON.stringify({
             'ref': 'staging',
             'inputs':{
-                //'status_url': data.status_url,
                 'model_nickname': data.model_nickname,
             }
         })
@@ -40,8 +37,20 @@ export default async (event, context) => {
             let resp = await fetch(GITHUB_URL, options);
             try{
                 resp_obj = await resp.json();
-            }catch(err){
-                console.log("No JSON in response");
+            }catch{
+                console.log("No JSON in response from");
+                let text = "";
+                try{
+                    text = await resp.text()
+                }catch{
+                    text = "FAILED TO GET RESPONSE TEXT";
+                }
+                const res = Response.json(
+                    {'message': `Failed to decode json from CI [repsonse-text: ${text}]`},
+                    {status: 500});
+                res.headers.set("Access-Control-Allow-Origin", "*");
+                res.headers.append("Access-Control-Allow-Headers", "*");
+                res.headers.append("Access-Control-Allow-Methods", "*");
             }
 
         }catch(err){
