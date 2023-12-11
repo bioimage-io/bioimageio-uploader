@@ -198,7 +198,6 @@ export default class Uploader{
     }
 
     async validate(){
-        return 
         let rdf = yaml.load(yaml.dump(this.rdf));
         delete rdf._metadata;
         if (rdf?.config?._deposit) delete rdf.config._deposit;
@@ -282,11 +281,57 @@ export default class Uploader{
         }
     }
 
-    async publish(){
-        this.is_uploading = true;
-        this.upload_status = "Uploading..."; 
+    async create_zip(){
+        console.log("Packaging files...");
+        this.is_zipping = true;
+        this.publish_status = "Packaging files...";
         this.render();
+        const zip = new JSZip();
+        const rdf_file = this.files.filter(item => item.name === "rdf.yaml")
+        if(rdf_file.length !== 1){
+            this.is_zipping = false;
+            this.publish_succeeded = false;
+            this.publish_status = "Publishing failed - unable to find rdf.yaml"; 
+            this.render();
+            throw new Error("Could not find RDF file in file list");
+        }
+        //rdf_file = rdf_file[0];
+
+        for(const file of this.files){
+            zip.file(file.name, file);
+            //if(file.name === "rdf.yaml") continue
+            //console.log(file.name);
+            //this.upload_status = `Uploading ${file.name}`;
+            //this.render();
+            //const result = await this.upload_file(file);
+            //if(!result){
+                //this.is_uploading = false;
+                //this.upload_succeeded = false;
+                //this.upload_status = "Upload failed"; 
+                //this.render();
+                //throw new Error(`File upload failed for ${file.name}`);
+            //}
+        }
+        
+        const blob = await zip.generateAsync({type: "blob"});
+        const zipfile = new File([blob], "model.zip");
+        this.is_zipping = false;
+        this.publish_status = "Created zip file";
+        this.render();
+        return zipfile;
+    }
+
+    async publish(){
         console.log("Publishing...");
+        this.is_zipping = true;
+        this.upload_status = "Running publishing..."; 
+        this.render();
+        const zipfile = await this.create_zip();
+        this.is_zipping = false;
+
+        this.is_uploading = true;
+        this.publish_status = "Uploading..."; 
+        this.render();
         console.log(`
             hostname                : ${hostname}
             generate_name_url       : ${generate_name_url}
@@ -294,88 +339,70 @@ export default class Uploader{
         // let workspace = server.config.workspace;
         this.storage = await this.server.get_service("s3-storage");
         this.storage_info = await this.storage.generate_credential();
+        this.zip_urls = await this.upload_file(zipfile);
         
-        this.upload_status = "Uploading status.json";
-        this.render();
-        const status_file = new File([
-            new Blob(
-                [JSON.stringify({status:'uploaded'}, null, 2)], 
-                {type: "application/json"})],
-            "status.json");
-        this.status_urls = await this.upload_file(status_file);
-        if(!this.status_urls){
-            this.is_uploading = false;
-            this.upload_succeeded = false;
-            this.upload_status = "Upload failed"; 
-            this.render();
-            throw new Error("No status_urls for uploader");
-        }
-        console.log("SUCCESS: this.status_urls:");
-        console.log(this.status_urls);
-        this.status_url = this.status_urls.get;
-        let rdf_file = this.files.filter(item => item.name === "rdf.yaml")
-        if(rdf_file.length !== 1){
-            this.is_uploading = false;
-            this.upload_succeeded = false;
-            this.upload_status = "Upload failed"; 
-            this.render();
-            throw new Error("Could not find RDF file in file list");
-        }
-        rdf_file = rdf_file[0];
+        //this.upload_status = "Uploading status.json";
+        //this.render();
+        //const status_file = new File([
+            //new Blob(
+                //[JSON.stringify({status:'uploaded'}, null, 2)], 
+                //{type: "application/json"})],
+            //"status.json");
+        //this.status_urls = await this.upload_file(status_file);
+        //if(!this.status_urls){
+            //this.is_uploading = false;
+            //this.upload_succeeded = false;
+            //this.upload_status = "Upload failed"; 
+            //this.render();
+            //throw new Error("No status_urls for uploader");
+        //}
+        //console.log("SUCCESS: this.status_urls:");
+        //console.log(this.status_urls);
+        //this.status_url = this.status_urls.get;
+        //let rdf_file = this.files.filter(item => item.name === "rdf.yaml")
+        //if(rdf_file.length !== 1){
+            //this.is_uploading = false;
+            //this.upload_succeeded = false;
+            //this.upload_status = "Upload failed"; 
+            //this.render();
+            //throw new Error("Could not find RDF file in file list");
+        //}
+        //rdf_file = rdf_file[0];
 
-        // TODO: The following still needs work
-        this.upload_status = "Uploading RDF";
-        const rdf_url = (await this.upload_file(rdf_file)).get;
-        if(!rdf_url){
-            this.is_uploading = false;
-            this.upload_succeeded = false;
-            this.upload_status = "Upload failed"; 
-            this.render();
-            throw new Error("RDF upload did not produce urls");
-        }
-        console.log("SUCCESS: rdf_url:" + rdf_url);
-        console.log("Uploading:");
-        for(const file of this.files){
-            if(file.name === "rdf.yaml") continue
-            console.log(file.name);
-            this.upload_status = `Uploading ${file.name}`;
-            this.render();
-            const result = await this.upload_file(file);
-            if(!result){
-                this.is_uploading = false;
-                this.upload_succeeded = false;
-                this.upload_status = "Upload failed"; 
-                this.render();
-                throw new Error(`File upload failed for ${file.name}`);
-            }
-        }
-        this.is_uploading = false;
-        this.upload_succeeded = true;
-        this.upload_status = "Upload complete!"; 
-        this.render();
+        //// TODO: The following still needs work
+        //this.upload_status = "Uploading zip file...";
+        //const rdf_url = (await this.upload_file(zip)).get;
+        //if(!rdf_url){
+            //this.is_uploading = false;
+            //this.upload_succeeded = false;
+            //this.upload_status = "Upload failed"; 
+            //this.render();
+            //throw new Error("RDF upload did not produce urls");
+        //}
+        //console.log("SUCCESS: rdf_url:" + rdf_url);
+        //console.log("Uploading:");
+        //for(const file of this.files){
+            //if(file.name === "rdf.yaml") continue
+            //console.log(file.name);
+            //this.upload_status = `Uploading ${file.name}`;
+            //this.render();
+            //const result = await this.upload_file(file);
+            //if(!result){
+                //this.is_uploading = false;
+                //this.upload_succeeded = false;
+                //this.upload_status = "Upload failed"; 
+                //this.render();
+                //throw new Error(`File upload failed for ${file.name}`);
+            //}
+        //}
+        //this.is_uploading = false;
+        //this.upload_succeeded = true;
+        //this.upload_status = "Upload complete!"; 
+        //this.render();
 
         await this.notify_ci_bot();
         this.is_finished = true;
         this.render();
-    }
-
-    async refresh_status(){
-        try{
-            if(!this.status_url){
-                console.log("No status_url");
-                return {status:"No status url"}
-            }
-            const resp = await fetch(this.status_url);
-            const status = await resp.json();
-            if(!status){
-                return {status:"No status"}
-            }
-            return status;
-        }catch(err){
-            console.warn("Refresh failed:");
-            console.error(err);
-            return {status: `Error! ${err}`};
-        }
     }
 
     render(data){
@@ -399,7 +426,7 @@ export default class Uploader{
             const resp = await fetch(notify_ci_url, {
                     method: 'POST', 
                     headers: {"Content-Type": "application/json"}, 
-                    body: JSON.stringify({'status_url': this.status_urls.put, 'model_nickname': this.model_nickname.name})});
+                    body: JSON.stringify({'model_nickname': this.model_nickname.name})});
             if (resp.status === 200) {
                 const ci_resp = (await resp.json()).message;
                 this.ci_status = `🎉 bioimage-bot has successfully detected the item: ${ci_resp}`;

@@ -1,7 +1,7 @@
 <script>
     import toast, { Toaster } from 'svelte-french-toast';
 
-    import Uploader from './index.js';
+    import Uploader from '../../lib/uploader.js';
 
     import Modal    from '../Modal.svelte';
     import Nav      from './Nav.svelte';

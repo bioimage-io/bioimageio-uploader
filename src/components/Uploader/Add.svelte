@@ -2,7 +2,6 @@
     import Dropzone from "svelte-file-dropzone/Dropzone.svelte";
     import toast  from 'svelte-french-toast';
     import { createEventDispatcher } from 'svelte';
-    import Uploader from './index.js';
     import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
     
     export let uploader;
