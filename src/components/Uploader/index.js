@@ -41,7 +41,11 @@ export default class Uploader{
         this.upload_succeeded = null;
         this.ci_failed = null;
         this.is_finished = false;
-        this.initHypha();
+        this.show_login_window = (url) => {window.open(url, '_blank')};
+    }
+
+    async init(){
+        await this.initHypha();
     }
 
     reset(){
@@ -56,9 +60,11 @@ export default class Uploader{
     }
 
     set_login_url(ctx){
-        window.open(ctx.login_url, '_blank');
+
+        this.show_login_window(ctx.login_url);
         this.login_url = ctx.login_url
     }
+
 
     async initHypha(){
 
