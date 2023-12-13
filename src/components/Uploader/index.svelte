@@ -1,8 +1,9 @@
 <script>
     import toast, { Toaster } from 'svelte-french-toast';
 
-    import Uploader from './index.js';
+    import Uploader from '../../lib/uploader.js';
 
+    import Modal    from '../Modal.svelte';
     import Nav      from './Nav.svelte';
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
@@ -10,7 +11,14 @@
     import UploadStatus   from './UploadStatus.svelte';
     import Notification from './Notification.svelte';
 
+    let show_modal = false;
+
     let uploader = new Uploader();
+    uploader.show_login_window = (url) => {
+        console.log("Should be showing the following in a dialog"); 
+        console.log(url);
+        show_modal = true;
+    }
     let step = "add";
     let rerender = false;
     
@@ -22,20 +30,29 @@
         uploader.reset();
     }
 
+    console.log("Uploader in window for live inspection");
+    window.uploader = uploader;
+    if((uploader.token && !uploader.server)) uploader.init();
+
 </script>
 
 <Toaster />
-
 {#key rerender}
 {#if !uploader.token}
     <Notification deletable={false} >
     <!--{#if router.location.hash === "review" }-->
-        <p>You must now login to publish</p>
+        <!--<p>You must now login to publish</p>-->
     <!--{/if}-->
     {#if uploader.login_url}
-        <button on:click={()=>{window.open(uploader.login_url, '_blank')}}>Login to BioEngine</button>
+        <!--<button on:click={()=>{uploader.init();}}>Login to BioEngine</button>-->
+        <Modal show={show_modal}   >
+            <h1>Login</h1>
+            <iframe title="Login" src="{uploader.login_url}" width="400" height="400"></iframe>
+        </Modal>
+
     {:else}
-        <span aria-busy="true">Connecting to the BioEngine...</span>
+        <!--<span aria-busy="true">Connecting to the BioEngine...</span>-->
+        <button on:click={()=>{uploader.init();}}>Login to BioEngine</button>
     {/if}
     </Notification>
 {:else if !uploader.server}

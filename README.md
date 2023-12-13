@@ -3,9 +3,8 @@
 ```mermaid
 stateDiagram-v2
     User --> Client
-    Upload --> CI
     Upload --> ZipFile
-    ZipFile --> PresignedURL
+    ZipFile --> PresignedURL_Zip
     CreateStatus --> status.json
     status.json --> Status
     Unzip --> FileSet
@@ -13,17 +12,19 @@ stateDiagram-v2
     TestTritonModel --> BioEngineRunner
     TritonModel --> BioEngineRunner
     Publish --> PublishedFileSet
+    PresignedURL_Zip --> Unzip
+
 
     state Client {
         Add --> Edit
         Edit --> Verify
         Verify --> Upload
-        Upload --> PresignedURL
-        PresignedURL --> Status
+        PresignedURL_Zip
+        Status 
     }
 
     state CI{
-        CreateStatus --> Unzip
+        CreateStatus
         Unzip --> TestModel
         TestModel --> CreateTritonModel
         CreateTritonModel --> TestTritonModel
@@ -48,6 +49,7 @@ stateDiagram-v2
     state Zenodo {
         PublishedFileSet
     }
+
 ```
 
 

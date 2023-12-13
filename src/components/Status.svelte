@@ -31,8 +31,8 @@
         if(status_step > 0){
             //value = `{status_step}`; 
             console.log(value);
-            value = `{status_step}`; 
-            max = `{status_num_steps}`; 
+            value = `${status_step}`; 
+            max = `${status_num_steps}`; 
             console.log("value and max");
             console.log(value);
             console.log(max);
@@ -77,7 +77,7 @@
     {/if}
 {:else}
     <SingleLineInputs>
-        <input bind:value={input_value} placeholder="Enter model name, e.g. affable-shark"/>
+        <input type="text" bind:value={input_value} placeholder="Enter model name, e.g. affable-shark"/>
         <button class="icon" on:click={()=>set_model_name(input_value)} ><Search /></button>
     </SingleLineInputs>
 {/if}
