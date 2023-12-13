@@ -2,10 +2,16 @@ export default async (event) => {
     const data = await event.json();
     const url = data.url;
     let obj = {};
+
     try{
-        obj = await (await fetch(url)).json();
+        const resp = await fetch(url);
+        try{
+            obj = await resp.json();
+        }catch(err){
+            obj = {status: "CI not started yet [ENDPOINT MISSING JSON]"};
+        }
     }catch(err){
-        obj = {status: "CI not started yet"};
+        obj = {status: "CI not started yet [ENDPOINT NOT FOUND]"}
     }
     console.log("Got status for");
     console.log(url);
