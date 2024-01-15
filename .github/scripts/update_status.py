@@ -45,7 +45,7 @@ def main():
     if not found:
         raise Exception("target bucket does not exist: {s3_bucket}")
 
-    status_message = json.dumps({"status": status, step=step, num_steps=num_steps}).encode()
+    status_message = json.dumps({"status": status, step:step, num_steps:num_steps}).encode()
 
     status_file_object = io.BytesIO(status_message)
     s3_path = f"{s3_root_folder}/{model_name}/{filename}"
