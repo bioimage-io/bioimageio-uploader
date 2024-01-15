@@ -38,7 +38,7 @@
     uploader.add_render_callback(() => {
         uploader = uploader;
         uploading = uploader.is_uploading;
-        if(uploader.ci_failed || !uploader.upload_succeeded){
+        if(uploader.ci_failed || (uploader.is_finished && !uploader.upload_succeeded)){
             last_error_object = uploader.error_object;
             if(uploader.ci_failed){
                 error = uploader.ci_status;
