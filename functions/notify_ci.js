@@ -25,8 +25,9 @@ export default async (event, context) => {
     let resp_obj = {};
 
     if(!data.status_url){
-        const res = Response.json({'message': "Failed: status_url not found in request json"});
-        res.status = 500;
+        const error_message = "Failed: status_url not found in request json";
+        console.error()
+        const res = Response.json({'message': error_message, status: 500});
         res.headers.set("Access-Control-Allow-Origin", "*");
         res.headers.append("Access-Control-Allow-Headers", "*");
         res.headers.append("Access-Control-Allow-Methods", "*");
@@ -38,7 +39,8 @@ export default async (event, context) => {
             try{
                 resp_obj = await resp.json();
             }catch{
-                console.log("No JSON in response from");
+                console.error("No JSON in response from CI:");
+                console.log(resp_obj);
                 let text = "";
                 try{
                     text = await resp.text()
@@ -51,10 +53,12 @@ export default async (event, context) => {
                 res.headers.set("Access-Control-Allow-Origin", "*");
                 res.headers.append("Access-Control-Allow-Headers", "*");
                 res.headers.append("Access-Control-Allow-Methods", "*");
+                return res;
             }
 
         }catch(err){
-            console.error("Failed to fetch:");
+            console.error("Failed to fetch from CI endpoint:");
+            console.error(GITHUB_URL);
             console.error(err);
             const res = Response.json(
                 {'message': `Failed: ${err.message}`},
