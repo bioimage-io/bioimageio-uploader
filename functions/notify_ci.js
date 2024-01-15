@@ -27,7 +27,7 @@ export default async (event, context) => {
     if(!data.status_url){
         const error_message = "Failed: status_url not found in request json";
         console.error()
-        const res = Response.json({'message': error_message, status: 500});
+        const res = Response.json({'message': error_message, 'status': 500});
         res.headers.set("Access-Control-Allow-Origin", "*");
         res.headers.append("Access-Control-Allow-Headers", "*");
         res.headers.append("Access-Control-Allow-Methods", "*");
@@ -49,7 +49,7 @@ export default async (event, context) => {
                 }
                 const res = Response.json(
                     {'message': `Failed to decode json from CI [repsonse-text: ${text}]`},
-                    {status: 500});
+                    {'status': 500});
                 res.headers.set("Access-Control-Allow-Origin", "*");
                 res.headers.append("Access-Control-Allow-Headers", "*");
                 res.headers.append("Access-Control-Allow-Methods", "*");
@@ -69,7 +69,7 @@ export default async (event, context) => {
             return res;
         }
         // const res = new Response("Success");
-        const reply_obj = {"status":`Contacted CI: ${resp_obj.message}`};
+        const reply_obj = {"message":`Contacted CI: ${resp_obj.message}`, 'status': 200};
         console.log("Response from CI:");
         console.log(resp_obj);
         const res = Response.json(reply_obj);

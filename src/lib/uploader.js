@@ -42,6 +42,7 @@ export default class Uploader{
         this.ci_failed = null;
         this.is_finished = false;
         this.show_login_window = (url) => {window.open(url, '_blank')};
+        this.error_object = null;
     }
 
     async init(){
@@ -276,6 +277,7 @@ export default class Uploader{
             return {'get': url_get, 'put': url_put};
         }catch(error){
             console.error("Upload failed!");
+            console.error(`Unable to PUT ${filename} to ${url_put}`);
             console.error(error);
             return error;
         }
@@ -340,6 +342,7 @@ export default class Uploader{
         this.storage = await this.server.get_service("s3-storage");
         this.storage_info = await this.storage.generate_credential();
         this.zip_urls = await this.upload_file(zipfile);
+        this.is_uploading = false;
         
         //this.upload_status = "Uploading status.json";
         //this.render();
@@ -399,9 +402,18 @@ export default class Uploader{
         //this.upload_succeeded = true;
         //this.upload_status = "Upload complete!"; 
         //this.render();
+        
+        try{
+            await this.notify_ci_bot();
+            this.is_finished = true;
+        }catch(err){
+            console.error("Nofiying the ci-bot failed:");
+            console.error(err);
+            this.error_object = err;
+            this.ci_failed = true;
+            this.ci_status = err.message;
+        }
 
-        await this.notify_ci_bot();
-        this.is_finished = true;
         this.render();
     }
 
@@ -418,8 +430,8 @@ export default class Uploader{
             console.error("notify_ci_url not set")
             throw new Error("notify_ci_url not set");
         } 
-
         this.ci_status = "⌛ Trying to notify bioimage-bot for the new item...";
+        console.debug(this.ci_status);
         this.render();
         // trigger CI with the bioimageio bot endpoint
         try{
@@ -428,18 +440,39 @@ export default class Uploader{
                     headers: {"Content-Type": "application/json"}, 
                     body: JSON.stringify({'model_nickname': this.model_nickname.name})});
             if (resp.status === 200) {
-                const ci_resp = (await resp.json()).message;
-                this.ci_status = `🎉 bioimage-bot has successfully detected the item: ${ci_resp}`;
-                this.ci_failed = false;
+                const ci_resp = (await resp.json());
+                if(ci_resp.status == 200){
+                    this.ci_status = `🎉 bioimage-bot has successfully detected the item: ${ci_resp.message}`;
+                    console.log(this.ci_status);
+                    this.ci_failed = false;
+                }else{
+                    
+                    throw new Error(`😬 bioimage-bot notification ran into an issue [${ci_resp.status}]: ${ci_resp.message}`);
+                    //this.ci_status = `😬 bioimage-bot notification ran into an issue [${ci_resp.status}]: ${ci_resp.message}`;
+                    //console.log(this.ci_status);
+                    //this.ci_failed = true;
+                    //console.error(this.ci_status);
+                    //console.debug("url used:");
+                    //console.debug(notify_ci_url);
+                }
+
             } else {
 
                 const ci_resp = await resp.text();
-                this.ci_status = `😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: ${ci_resp}`;
-                this.ci_failed = true;
+                //this.ci_status = `😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: ${ci_resp}`;
+                throw new Error(`😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: ${ci_resp}`);
+                //console.error(this.ci_status);
+                //console.debug("url used:");
+                //console.debug(notify_ci_url);
+                //this.ci_failed = true;
             }
         }catch(err){
 
-            this.ci_status = `😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`;
+            throw new Error(`😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`);
+            //this.ci_status = `😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`;
+            //console.error(this.ci_status);
+            //console.debug("url used:");
+            //console.debug(notify_ci_url);
         }
         this.render();
     }
