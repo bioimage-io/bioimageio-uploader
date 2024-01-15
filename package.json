@@ -14,7 +14,7 @@
   "devDependencies": {
     "@picocss/pico": "^1.5.10",
     "@playwright/test": "^1.40.1",
-    "@sveltejs/vite-plugin-svelte": "^3.0.0",
+    "@sveltejs/vite-plugin-svelte": "^3.0.1",
     "@testing-library/svelte": "^4.0.5",
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.0.4",
@@ -25,12 +25,12 @@
     "lucide-svelte": "^0.294.0",
     "playwright": "^1.40.1",
     "spdx-license-list": "^6.8.0",
-    "svelte": "^4.2.3",
+    "svelte": "^4.2.8",
     "svelte-file-dropzone": "^2.0.2",
     "svelte-french-toast": "^1.2.0",
     "svelte-json-tree": "^2.2.0",
     "tinro": "^0.6.12",
-    "vite": "^5.0.5",
+    "vite": "^5.0.8",
     "vitest": "^1.0.4"
   },
   "dependencies": {}
