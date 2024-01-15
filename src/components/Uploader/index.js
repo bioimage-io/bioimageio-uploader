@@ -42,11 +42,11 @@ export default class Uploader{
         this.ci_failed = null;
         this.is_finished = false;
         this.show_login_window = (url) => {window.open(url, '_blank')};
-        this.error_object = null;
+        this.init();
     }
 
     async init(){
-        await this.initHypha();
+        this.initHypha();
     }
 
     reset(){
@@ -199,6 +199,7 @@ export default class Uploader{
     }
 
     async validate(){
+        return 
         let rdf = yaml.load(yaml.dump(this.rdf));
         delete rdf._metadata;
         if (rdf?.config?._deposit) delete rdf.config._deposit;
@@ -277,63 +278,16 @@ export default class Uploader{
             return {'get': url_get, 'put': url_put};
         }catch(error){
             console.error("Upload failed!");
-            console.error(`Unable to PUT ${filename} to ${url_put}`);
             console.error(error);
             return error;
         }
     }
 
-    async create_zip(){
-        console.log("Packaging files...");
-        this.is_zipping = true;
-        this.publish_status = "Packaging files...";
-        this.render();
-        const zip = new JSZip();
-        const rdf_file = this.files.filter(item => item.name === "rdf.yaml")
-        if(rdf_file.length !== 1){
-            this.is_zipping = false;
-            this.publish_succeeded = false;
-            this.publish_status = "Publishing failed - unable to find rdf.yaml"; 
-            this.render();
-            throw new Error("Could not find RDF file in file list");
-        }
-        //rdf_file = rdf_file[0];
-
-        for(const file of this.files){
-            zip.file(file.name, file);
-            //if(file.name === "rdf.yaml") continue
-            //console.log(file.name);
-            //this.upload_status = `Uploading ${file.name}`;
-            //this.render();
-            //const result = await this.upload_file(file);
-            //if(!result){
-                //this.is_uploading = false;
-                //this.upload_succeeded = false;
-                //this.upload_status = "Upload failed"; 
-                //this.render();
-                //throw new Error(`File upload failed for ${file.name}`);
-            //}
-        }
-        
-        const blob = await zip.generateAsync({type: "blob"});
-        const zipfile = new File([blob], "model.zip");
-        this.is_zipping = false;
-        this.publish_status = "Created zip file";
-        this.render();
-        return zipfile;
-    }
-
     async publish(){
-        console.log("Publishing...");
-        this.is_zipping = true;
-        this.upload_status = "Running publishing..."; 
-        this.render();
-        const zipfile = await this.create_zip();
-        this.is_zipping = false;
-
         this.is_uploading = true;
-        this.publish_status = "Uploading..."; 
+        this.upload_status = "Uploading..."; 
         this.render();
+        console.log("Publishing...");
         console.log(`
             hostname                : ${hostname}
             generate_name_url       : ${generate_name_url}
@@ -341,80 +295,88 @@ export default class Uploader{
         // let workspace = server.config.workspace;
         this.storage = await this.server.get_service("s3-storage");
         this.storage_info = await this.storage.generate_credential();
-        this.zip_urls = await this.upload_file(zipfile);
-        this.is_uploading = false;
         
-        //this.upload_status = "Uploading status.json";
-        //this.render();
-        //const status_file = new File([
-            //new Blob(
-                //[JSON.stringify({status:'uploaded'}, null, 2)], 
-                //{type: "application/json"})],
-            //"status.json");
-        //this.status_urls = await this.upload_file(status_file);
-        //if(!this.status_urls){
-            //this.is_uploading = false;
-            //this.upload_succeeded = false;
-            //this.upload_status = "Upload failed"; 
-            //this.render();
-            //throw new Error("No status_urls for uploader");
-        //}
-        //console.log("SUCCESS: this.status_urls:");
-        //console.log(this.status_urls);
-        //this.status_url = this.status_urls.get;
-        //let rdf_file = this.files.filter(item => item.name === "rdf.yaml")
-        //if(rdf_file.length !== 1){
-            //this.is_uploading = false;
-            //this.upload_succeeded = false;
-            //this.upload_status = "Upload failed"; 
-            //this.render();
-            //throw new Error("Could not find RDF file in file list");
-        //}
-        //rdf_file = rdf_file[0];
-
-        //// TODO: The following still needs work
-        //this.upload_status = "Uploading zip file...";
-        //const rdf_url = (await this.upload_file(zip)).get;
-        //if(!rdf_url){
-            //this.is_uploading = false;
-            //this.upload_succeeded = false;
-            //this.upload_status = "Upload failed"; 
-            //this.render();
-            //throw new Error("RDF upload did not produce urls");
-        //}
-        //console.log("SUCCESS: rdf_url:" + rdf_url);
-        //console.log("Uploading:");
-        //for(const file of this.files){
-            //if(file.name === "rdf.yaml") continue
-            //console.log(file.name);
-            //this.upload_status = `Uploading ${file.name}`;
-            //this.render();
-            //const result = await this.upload_file(file);
-            //if(!result){
-                //this.is_uploading = false;
-                //this.upload_succeeded = false;
-                //this.upload_status = "Upload failed"; 
-                //this.render();
-                //throw new Error(`File upload failed for ${file.name}`);
-            //}
-        //}
-        //this.is_uploading = false;
-        //this.upload_succeeded = true;
-        //this.upload_status = "Upload complete!"; 
-        //this.render();
-        
-        try{
-            await this.notify_ci_bot();
-            this.is_finished = true;
-        }catch(err){
-            console.error("Nofiying the ci-bot failed:");
-            console.error(err);
-            this.error_object = err;
-            this.ci_failed = true;
-            this.ci_status = err.message;
-        }
-
+        this.upload_status = "Uploading status.json";
         this.render();
+        const status_file = new File([
+            new Blob(
+                [JSON.stringify({status:'uploaded'}, null, 2)], 
+                {type: "application/json"})],
+            "status.json");
+        this.status_urls = await this.upload_file(status_file);
+        if(!this.status_urls){
+            this.is_uploading = false;
+            this.upload_succeeded = false;
+            this.upload_status = "Upload failed"; 
+            this.render();
+            throw new Error("No status_urls for uploader");
+        }
+        console.log("SUCCESS: this.status_urls:");
+        console.log(this.status_urls);
+        this.status_url = this.status_urls.get;
+        let rdf_file = this.files.filter(item => item.name === "rdf.yaml")
+        if(rdf_file.length !== 1){
+            this.is_uploading = false;
+            this.upload_succeeded = false;
+            this.upload_status = "Upload failed"; 
+            this.render();
+            throw new Error("Could not find RDF file in file list");
+        }
+        rdf_file = rdf_file[0];
+
+        // TODO: The following still needs work
+        this.upload_status = "Uploading RDF";
+        const rdf_url = (await this.upload_file(rdf_file)).get;
+        if(!rdf_url){
+            this.is_uploading = false;
+            this.upload_succeeded = false;
+            this.upload_status = "Upload failed"; 
+            this.render();
+            throw new Error("RDF upload did not produce urls");
+        }
+        console.log("SUCCESS: rdf_url:" + rdf_url);
+        console.log("Uploading:");
+        for(const file of this.files){
+            if(file.name === "rdf.yaml") continue
+            console.log(file.name);
+            this.upload_status = `Uploading ${file.name}`;
+            this.render();
+            const result = await this.upload_file(file);
+            if(!result){
+                this.is_uploading = false;
+                this.upload_succeeded = false;
+                this.upload_status = "Upload failed"; 
+                this.render();
+                throw new Error(`File upload failed for ${file.name}`);
+            }
+        }
+        this.is_uploading = false;
+        this.upload_succeeded = true;
+        this.upload_status = "Upload complete!"; 
+        this.render();
+
+        await this.notify_ci_bot();
+        this.is_finished = true;
+        this.render();
+    }
+
+    async refresh_status(){
+        try{
+            if(!this.status_url){
+                console.log("No status_url");
+                return {status:"No status url"}
+            }
+            const resp = await fetch(this.status_url);
+            const status = await resp.json();
+            if(!status){
+                return {status:"No status"}
+            }
+            return status;
+        }catch(err){
+            console.warn("Refresh failed:");
+            console.error(err);
+            return {status: `Error! ${err}`};
+        }
     }
 
     render(data){
@@ -430,49 +392,28 @@ export default class Uploader{
             console.error("notify_ci_url not set")
             throw new Error("notify_ci_url not set");
         } 
+
         this.ci_status = "⌛ Trying to notify bioimage-bot for the new item...";
-        console.debug(this.ci_status);
         this.render();
         // trigger CI with the bioimageio bot endpoint
         try{
             const resp = await fetch(notify_ci_url, {
                     method: 'POST', 
                     headers: {"Content-Type": "application/json"}, 
-                    body: JSON.stringify({'model_nickname': this.model_nickname.name})});
+                    body: JSON.stringify({'status_url': this.status_urls.put, 'model_nickname': this.model_nickname.name})});
             if (resp.status === 200) {
-                const ci_resp = (await resp.json());
-                if(ci_resp.status == 200){
-                    this.ci_status = `🎉 bioimage-bot has successfully detected the item: ${ci_resp.message}`;
-                    console.log(this.ci_status);
-                    this.ci_failed = false;
-                }else{
-                    
-                    throw new Error(`😬 bioimage-bot notification ran into an issue [${ci_resp.status}]: ${ci_resp.message}`);
-                    //this.ci_status = `😬 bioimage-bot notification ran into an issue [${ci_resp.status}]: ${ci_resp.message}`;
-                    //console.log(this.ci_status);
-                    //this.ci_failed = true;
-                    //console.error(this.ci_status);
-                    //console.debug("url used:");
-                    //console.debug(notify_ci_url);
-                }
-
+                const ci_resp = (await resp.json()).message;
+                this.ci_status = `🎉 bioimage-bot has successfully detected the item: ${ci_resp}`;
+                this.ci_failed = false;
             } else {
 
                 const ci_resp = await resp.text();
-                //this.ci_status = `😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: ${ci_resp}`;
-                throw new Error(`😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: ${ci_resp}`);
-                //console.error(this.ci_status);
-                //console.debug("url used:");
-                //console.debug(notify_ci_url);
-                //this.ci_failed = true;
+                this.ci_status = `😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: ${ci_resp}`;
+                this.ci_failed = true;
             }
         }catch(err){
 
-            throw new Error(`😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`);
-            //this.ci_status = `😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`;
-            //console.error(this.ci_status);
-            //console.debug("url used:");
-            //console.debug(notify_ci_url);
+            this.ci_status = `😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`;
         }
         this.render();
     }
