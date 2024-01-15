@@ -3,10 +3,6 @@ name: CI Runner
 on:
     workflow_dispatch:
         inputs:
-            status_url:
-                description: 'URL endpoint for status to be posted to'
-                required: false
-                type: string
             model_nickname: 
                 description: 'Nickname of the model - to be used to access the model data on S3'
                 required: true
