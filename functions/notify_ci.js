@@ -24,15 +24,14 @@ export default async (event, context) => {
     };
     let resp_obj = {};
 
-    if(!data.status_url){
-        const error_message = "Failed: status_url not found in request json";
+    if(!data.model_nickname){
+        const error_message = "Failed: model_nickname not found in request json";
         console.error()
         const res = Response.json({'message': error_message, 'status': 500});
         res.headers.set("Access-Control-Allow-Origin", "*");
         res.headers.append("Access-Control-Allow-Headers", "*");
         res.headers.append("Access-Control-Allow-Methods", "*");
         return res;
-        
     }else{
         try{
             let resp = await fetch(GITHUB_URL, options);
