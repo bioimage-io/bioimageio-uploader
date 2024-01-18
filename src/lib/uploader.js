@@ -444,6 +444,7 @@ export default class Uploader{
                 const ci_resp = (await resp.json());
                 if(ci_resp.status == 200){
                     this.ci_status = `🎉 bioimage-bot has successfully detected the item: ${ci_resp.message}`;
+                    console.log(ci_resp);
                     console.log(this.ci_status);
                     this.ci_failed = false;
                 }else{

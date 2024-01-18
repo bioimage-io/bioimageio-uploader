@@ -21,6 +21,15 @@ export default async (event, context) => {
         res.headers.append("Access-Control-Allow-Methods", "*");
         return res;
     }
+    if(!data.model_zip_url){
+        const error_message = "Failed: model_zip_url not found in request json";
+        console.error()
+        const res = Response.json({'message': error_message, 'status': 500});
+        res.headers.set("Access-Control-Allow-Origin", "*");
+        res.headers.append("Access-Control-Allow-Headers", "*");
+        res.headers.append("Access-Control-Allow-Methods", "*");
+        return res;
+    }
 
 
     const options = {     
@@ -30,6 +39,7 @@ export default async (event, context) => {
             'ref': GITHUB_BRANCH,
             'inputs':{
                 'model_nickname': data.model_nickname,
+                'model_zip_url': data.model_zip_url,
             }
         })
     };
