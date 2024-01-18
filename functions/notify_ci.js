@@ -46,20 +46,20 @@ export default async (event, context) => {
     let resp_obj = {};
 
     try{
-        let resp = await fetch(GITHUB_URL, options);
-        try{
-            resp_obj = await resp.json();
-        }catch{
-            console.error("No JSON in response from CI:");
-            console.log(resp_obj);
+        const resp = await fetch(GITHUB_URL, options);
+        if( resp.status === 204){
+            // According to API docs, just expect a 204
+            resp_obj = {'status': resp.status};
+        }else{
+            console.error("Bad response from CI: ${resp.status}");
             let text = "";
             try{
                 text = await resp.text()
             }catch{
-                text = "FAILED TO GET RESPONSE TEXT";
+                text = "(no-text)";
             }
             const res = Response.json(
-                {'message': `Failed to decode json from CI [repsonse-text: ${text}]`},
+                {'message': `Failed to decode json from CI [status: ${resp.status}, content: ${text}]`},
                 {'status': 500});
             res.headers.set("Access-Control-Allow-Origin", "*");
             res.headers.append("Access-Control-Allow-Headers", "*");
