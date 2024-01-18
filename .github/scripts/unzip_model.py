@@ -62,7 +62,7 @@ def unzip_from_url(model_name, model_zip_url):
     zipobj = zipfile.ZipFile(zipinmemory)
     for filename in zipobj.namelist():
         # file_object = io.BytesIO(zipobj)
-        file_object = zipfile.open(filename)
+        file_object = zipobj.open(filename)
         s3_path = f"{s3_root_folder}/{model_name}/{filename}"
 
         client.put_object(
