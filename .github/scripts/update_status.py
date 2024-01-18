@@ -28,13 +28,17 @@ def main():
     model_name = args.model_name
     step = args.step
     num_steps = args.num_steps
-    filename = "status.json"
     status = args.status
+    update_status(model_name, status, step, num_steps)
+
+
+def update_status(model_name, status, step=None, num_steps=None):
     s3_host = os.getenv("S3_HOST")
     s3_bucket = os.getenv("S3_BUCKET")
     s3_root_folder = os.getenv("S3_ROOT_FOLDER")
     s3_access_key_id = os.getenv("S3_ACCESS_KEY_ID")
     s3_secret_access_key = os.getenv("S3_SECRET_ACCESS_KEY")
+    filename = "status.json"
 
     client = Minio(
         s3_host,
@@ -45,7 +49,10 @@ def main():
     if not found:
         raise Exception("target bucket does not exist: {s3_bucket}")
 
-    status_message = json.dumps({"status": status, step:step, num_steps:num_steps}).encode()
+    if (step is None) or (num_steps is None):
+        status_message = json.dumps({"status": status}).encode()
+    else:
+        status_message = json.dumps({"status": status, step:step, num_steps:num_steps}).encode()
 
     status_file_object = io.BytesIO(status_message)
     s3_path = f"{s3_root_folder}/{model_name}/{filename}"

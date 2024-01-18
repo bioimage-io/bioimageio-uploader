@@ -1,11 +1,14 @@
 import argparse
 import io
 import os
+import traceback
 from typing import Optional
 import urllib.request
 import zipfile
 
 from minio import Minio  # type: ignore
+
+from update_status import update_status
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -27,6 +30,14 @@ def main():
     args = get_args()
     model_name = args.model_name
     model_zip_url = args.model_zip_url
+    try:
+        unzip_from_url(model_name, model_zip_url)
+    except Exception:
+        err_message = f"An error occurred in the CI:\n {traceback.format_exc()}"
+        update_status(model_name, {'status' : err_message})
+
+
+def unzip_from_url(model_name, model_zip_url):
     filename = "model.zip"
     s3_host = os.getenv("S3_HOST")
     s3_bucket = os.getenv("S3_BUCKET")
