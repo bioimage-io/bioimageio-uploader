@@ -344,6 +344,7 @@ export default class Uploader{
         this.storage_info = await this.storage.generate_credential();
         this.zip_urls = await this.upload_file(zipfile);
         this.is_uploading = false;
+        this.upload_succeeded = true;
         
         //this.upload_status = "Uploading status.json";
         //this.render();
