@@ -34,8 +34,9 @@ def main():
         unzip_from_url(model_name, model_zip_url)
     except Exception:
         err_message = f"An error occurred in the CI:\n {traceback.format_exc()}"
+        print(err_message)
         update_status(model_name, {'status' : err_message})
-
+        raise
 
 def unzip_from_url(model_name, model_zip_url):
     filename = "model.zip"
