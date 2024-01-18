@@ -3,7 +3,7 @@ import io
 import argparse
 from typing import Optional
 import json
-from minio import Minio
+from minio import Minio  # type: ignore
 # from minio.error import S3Error
 
 def create_parser() -> argparse.ArgumentParser:

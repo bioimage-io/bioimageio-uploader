@@ -34,6 +34,7 @@ export default class Uploader{
         this.render_callbacks = [];
         this.token = window.sessionStorage.getItem('token');
         this.model_nickname = null;
+        this.model_zip_url = null;
         this.rdf = null;
         this.upload_status = "";
         this.ci_status = "";
@@ -438,7 +439,7 @@ export default class Uploader{
             const resp = await fetch(notify_ci_url, {
                     method: 'POST', 
                     headers: {"Content-Type": "application/json"}, 
-                    body: JSON.stringify({'model_nickname': this.model_nickname.name})});
+                    body: JSON.stringify({'model_nickname': this.model_nickname.name, 'model_zip_url': this.zip_urls.get})});
             if (resp.status === 200) {
                 const ci_resp = (await resp.json());
                 if(ci_resp.status == 200){
