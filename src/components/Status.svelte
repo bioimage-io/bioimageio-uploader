@@ -21,11 +21,18 @@
 
     async function poll_status(){
         if(modelName){ 
-            const resp = await refresh_status(modelName);
-            status_message = resp.status;
-            status_step = resp.step;
-            status_num_steps = resp.num_steps;
-            console.log(status);
+            try{
+                const resp = await refresh_status(modelName);
+                status_message = resp.status;
+                status_step = resp.step;
+                status_num_steps = resp.num_steps;
+                console.log(status);
+            }catch(err){
+                status_message = "Error polling status 😬. Please let the dev-team know 🙏";
+                console.error("Error polling status:");
+                console.error(err);
+                return;
+            }
         }
         is_finished = status_message.startsWith("Publishing complete");
         if(status_step > 0){

@@ -203,6 +203,12 @@ export default class Uploader{
         let rdf = yaml.load(yaml.dump(this.rdf));
         delete rdf._metadata;
         if (rdf?.config?._deposit) delete rdf.config._deposit;
+        // Null or zero-length orcid causes issues 
+        for (let index=0; index < rdf.authors.length; index++){
+            if(!rdf.authors[index].orcid){
+                delete rdf.authors[index].orcid;
+            }
+        }
         console.log("RDF after cleaning: ", rdf);
         const validator = await this.api.getPlugin(
             "https://raw.githubusercontent.com/jmetz/spec-bioimage-io/dev/scripts/bio-rdf-validator.imjoy.html"
