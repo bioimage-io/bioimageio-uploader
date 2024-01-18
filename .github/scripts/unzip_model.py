@@ -65,11 +65,13 @@ def unzip_from_url(model_name, model_zip_url):
         file_object = zipobj.open(filename)
         s3_path = f"{s3_root_folder}/{model_name}/{filename}"
 
+        # For unknown length (ie without reading file into mem) give `part_size`
         client.put_object(
             s3_bucket,
             s3_path,
             file_object,
             length=-1,
+            part_size=10*1024*1024,
             # length=len(status_message),
             # content_type="application/json",
         )
