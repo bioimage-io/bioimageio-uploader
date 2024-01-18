@@ -1,4 +1,4 @@
-const { GITHUB_URL, GITHUB_TOKEN } = process.env;
+const { GITHUB_URL, GITHUB_TOKEN, GITHUB_BRANCH } = process.env;
 const return_cors_headers = {
     'Access-Control-Allow-Origin': 'https://bioimage.io',
     'Access-Control-Allow-Headers': 'Content-Type',
@@ -27,7 +27,7 @@ export default async (event, context) => {
         method: "POST",
         headers: headers, 
         body: JSON.stringify({
-            'ref': 'staging',
+            'ref': GITHUB_BRANCH,
             'inputs':{
                 'model_nickname': data.model_nickname,
             }
