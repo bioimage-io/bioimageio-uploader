@@ -1,6 +1,5 @@
 <script>
     import toast from 'svelte-french-toast';
-    //import FullScreenConfetti from '../FullScreenConfetti.svelte';
     export let uploader;
     //let status;
     //let status_message = "";
@@ -65,7 +64,6 @@
     <h4>Almost there,</h4> 
 
     <p><b>There's nothing you need to do right now. Your model is uploaded and the CI-bots have started their work!</b><p>
-    <!--<FullScreenConfetti /> -->
     <p>You can check the status of the CI at any point from <a href="#/status/{uploader.model_nickname.name}">here</a></p>
 {:else}        
     {#if uploading}

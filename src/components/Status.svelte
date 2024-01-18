@@ -1,45 +1,42 @@
 <script>
+    import FullScreenConfetti from './FullScreenConfetti.svelte';
     import SingleLineInputs from './SingleLineInputs.svelte';
     import refresh_status from "../lib/status.js";
     import { Search } from 'lucide-svelte';
 
     export let modelName="";
-    let status;
-    let status_step = 0;
-    let status_message = "";
-    let status_num_steps;
-    let error;
-    let error_element;
-    let last_error_object;
+    let step = 0;
+    let message = "";
+    let num_steps;
+    //let error;
+    //let error_element;
+    //let last_error_object;
     let input_value;
     let is_finished = false;
     let value=0;
     let max=0;
 
-    let notify_ci_message = "";
-    let notify_ci_failed = false;
-
     async function poll_status(){
         if(modelName){ 
             try{
                 const resp = await refresh_status(modelName);
-                status_message = resp.status;
-                status_step = resp.step;
-                status_num_steps = resp.num_steps;
+                message = resp.status;
+                step = resp.step;
+                num_steps = resp.num_steps;
                 console.log(status);
             }catch(err){
-                status_message = "Error polling status 😬. Please let the dev-team know 🙏";
+                message = "Error polling status 😬. Please let the dev-team know 🙏";
                 console.error("Error polling status:");
                 console.error(err);
                 return;
             }
         }
-        is_finished = status_message.startsWith("Publishing complete");
-        if(status_step > 0){
+        is_finished = message.startsWith("Publishing complete");
+        if(step > 0){
             //value = `{status_step}`; 
             console.log(value);
-            value = `${status_step}`; 
-            max = `${status_num_steps}`; 
+            value = `${step}`; 
+            max = `${num_steps}`; 
             console.log("value and max");
             console.log(value);
             console.log(max);
@@ -59,14 +56,12 @@
 {#if modelName }
     <h2>Model: <code>{modelName}</code></h2>
     <article>Status:
-        {#if status_message}
-            <code>{status_message}</code>
+        {#if message}
+            <code>{message}</code>
         {:else}
             <code aria-busy="true"></code>
         {/if}
 
-        <!--{@debug value} -->
-        <!--{@debug max} -->
         {#if !is_finished }
             {#if max > 0 }
                 <br>
@@ -75,13 +70,15 @@
                 <br>
                 <progress max="{max}">15%</progress>
             {/if}
+        {:else}
+            <FullScreenConfetti /> 
         {/if}
         <!--<progress {value} {max}>15%</progress>-->
 
     </article> 
-    {#if notify_ci_message}
-        <p>🤖: {notify_ci_message}</p>
-    {/if}
+    <!--{#if notify_ci_message}-->
+        <!--<p>🤖: {notify_ci_message}</p>-->
+    <!--{/if}-->
 {:else}
     <SingleLineInputs>
         <input type="text" bind:value={input_value} placeholder="Enter model name, e.g. affable-shark"/>
