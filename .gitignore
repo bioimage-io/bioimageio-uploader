@@ -5,6 +5,7 @@ node_modules
 /package
 .env
 .env.*
+__pycache__
 !.env.example
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
@@ -15,3 +16,4 @@ bun.lockb
 dist/
 coverage/
 tests/__snapshots__/
+functions_off/
