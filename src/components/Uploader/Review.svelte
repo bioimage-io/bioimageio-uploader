@@ -37,7 +37,7 @@
 
 {#if !uploader.logged_in()}
     <Notification deletable={false} >
-        Please login to the BioEngine to publish
+        Please login to the BioEngine to complete upload 
     </Notification>
 {/if}
 
@@ -51,12 +51,12 @@
     <button on:click={regenerate_nickname}>Regenerate nickname</button>
 </p>
 <!--{/key}-->
-<p>Please review your submission carefully, then press Publish</p>
+<p>Please review your submission carefully, then press Upload</p>
 
 <article class="contrast" style="--card-background-color: var(--contrast)">
     <JSONTree defaultExpandedLevel={1} value={rdf}/>
 </article>
 
 {#if ready_to_publish}
-    <button class="button is-primary" on:click={publish}>Publish</button>
+    <button class="button is-primary" on:click={publish}>Upload</button>
 {/if}
