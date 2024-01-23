@@ -43,20 +43,20 @@
         {placeholder:"url", key:"url", props:{maxlength:"1000"}},
     ];
 
-    let {
-        type,
-        name,
-        description, 
-        authors,
-        maintainers,
-        version,
-        license,
-        git_repo,
-        tags,
-        cite,
-        source,
-        links,
-    } = uploader.rdf;
+    //let {
+        //type,
+        //name,
+        //description, 
+        //authors,
+        //maintainers,
+        //version,
+        //license,
+        //git_repo,
+        //tags,
+        //cite,
+        //source,
+        //links,
+    //} = uploader.rdf;
 
     // let resource_item_ids = resource_items.map(item => item.id);
     async function handle_files_select(e){
@@ -77,8 +77,6 @@
         filenames = filenames;
     
     }
-
-    console.log(cite);
 
     // TODO: Cant get validation working on tags 😬
     // See 
@@ -103,30 +101,30 @@
 
 <form>
     <InputLabel label="Type" required>
-        <Select bind:selected={type} options={types}/>
+        <Select bind:selected={uploader.rdf.type} options={types}/>
     </InputLabel>
     
     <InputLabel label="Name" required>
         <svelte:fragment slot="help">The name of your deposit (note: / is not allowed in the name)</svelte:fragment>
-        <Input placeholder="name" bind:value={name} /> 
+        <Input placeholder="name" bind:value={uploader.rdf.name} /> 
     </InputLabel>
 
     <InputLabel label="Description" required>
-        <Input Iplaceholder="description" bind:value={description} /> 
+        <Input placeholder="description" bind:value={uploader.rdf.description} /> 
     </InputLabel>    
     
     <InputLabel label="Authors" required>
         <svelte:fragment slot="help">The authors who contributed to this resource item</svelte:fragment>
-        <MultipartItemsInput bind:items={authors} fields={author_fields} entry_name="author"/>
+        <MultipartItemsInput bind:items={uploader.rdf.authors} fields={author_fields} entry_name="author"/>
     </InputLabel>
     
     <InputLabel label="Maintainers" required>
         <svelte:fragment slot="help">The maintainers who maintain this resource item. Importantly, the first maintainer will be contacted for the approval process to the BioImage.IO</svelte:fragment>
-        <MultipartItemsInput bind:items={maintainers} fields={maintainer_fields} entry_name="maintainer"/>
+        <MultipartItemsInput bind:items={uploader.rdf.maintainers} fields={maintainer_fields} entry_name="maintainer"/>
     </InputLabel>
 
     <InputLabel label="Version">
-        <Input placeholder="Version in MAJOR.MINOR.PATCH format(e.g. 0.1.0)" bind:value={version} />
+        <Input placeholder="Version in MAJOR.MINOR.PATCH format(e.g. 0.1.0)" bind:value={uploader.rdf.version} />
     </InputLabel>
 
     <InputLabel label="License">
@@ -137,11 +135,11 @@
             For other license options, please visit here 
             <a target="_blank" href="https://spdx.org/licenses">https://spdx.org/licenses</a>
         </svelte:fragment>
-        <Select bind:selected={license} options={licenses}/>
+        <Select bind:selected={uploader.rdf.license} options={licenses}/>
     </InputLabel>
     
     <InputLabel label="Git repository">
-        <Input placeholder="Git repository URL" bind:value={git_repo}/> 
+        <Input placeholder="Git repository URL" bind:value={uploader.rdf.git_repo}/> 
     </InputLabel>
 
     <InputLabel label="Tags">
@@ -151,28 +149,29 @@
         <!-- NB minChars 0 means show autocomplete on focus -->
         <Tags   style="color:black"
                 placeholder="Add a tag" 
-                bind:tags  
+                bind:tags={uploader.rdf.tags}  
                 autocomplete={all_tags} />
     </InputLabel>
 
     <InputLabel label="Citation">
         <svelte:fragment slot="help">How this resource item should be cited</svelte:fragment>
-        <MultipartItemsInput bind:items={cite} fields={citation_fields} entry_name="citation"/>
+        <MultipartItemsInput bind:items={uploader.rdf.cite} fields={citation_fields} entry_name="citation"/>
     </InputLabel>
 
     <InputLabel label="Source">
         <svelte:fragment slot="help">The source url of your deposit</svelte:fragment>
-        <Input placeholder="Source URL" bind:value={source}/> 
+        <Input placeholder="Source URL" bind:value={uploader.rdf.source}/> 
     </InputLabel>
 
     <InputLabel label="Links">
         <!-- NB minChars 0 means show autocomplete on focus -->
         <Tags   style="color:black"
                 placeholder="Add a link (resource item ID)" 
-                bind:tags={links} />
+                bind:tags={uploader.rdf.links} />
     </InputLabel>
 
     <InputLabel label="Files">
+        <svelte:fragment slot="help">Click anywhere not on a file in this box to add more files</svelte:fragment>
         <Files bind:files={filenames} {handle_files_select} {remove_file} />
     </InputLabel>
 </form>

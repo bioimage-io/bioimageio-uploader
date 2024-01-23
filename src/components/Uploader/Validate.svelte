@@ -18,12 +18,14 @@
         try {
             await uploader.validate();
         } catch (e) {
+            window.DB_ERR = e;
             error = e.message;
         }
         if(error){
             console.error("VALIDATION FAILED!");
-            console.error(error);
-            console.error("DEBUG|DEV: CONTINUINIG...");
+            console.log(error);
+            validating = false;
+            throw(error);
         }
         dispatch('done', {});
         validating = false;

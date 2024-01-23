@@ -44,6 +44,7 @@ export default class Uploader{
         this.is_finished = false;
         this.show_login_window = (url) => {window.open(url, '_blank')};
         this.error_object = null;
+
     }
 
     async init(){
@@ -75,10 +76,15 @@ export default class Uploader{
             imjoy_api: {},
             //imjoy config
         });
-        imjoy.start({workspace: 'default'}).then(async ()=>{
-            console.log('ImJoy started');
-            this.api = imjoy.api;
-        })
+        
+        await imjoy.start({workspace: 'default'});
+        console.log('ImJoy started');
+        this.api = imjoy.api;
+
+        this.api.getPlugin(
+            "https://raw.githubusercontent.com/jmetz/spec-bioimage-io/dev/scripts/bio-rdf-validator.imjoy.html"
+        ).then((plugin)=>{this.validator = plugin});
+
 
         // Init Imjoy-Hypha
         if(this.connection_retry > this.MAX_CONNECTION_RETRIES){
@@ -146,21 +152,27 @@ export default class Uploader{
         const candidates = files.filter((file) => file.name.search(regex_rdf) !== -1)
         // Obtain the RDF file
 
-        if( candidates.length !== 1){
-            if(candidates.length === 0){
-                console.error("Unable to find any RDF files");
-            }else{
-                console.error("Given too many RDF files");
-            }
+        //if( candidates.length !== 1){
+        if( candidates.length > 1){
+            //if(candidates.length === 0){
+                //console.error("Unable to find any RDF files");
+            //}else{
+            console.error("Given too many RDF files. Please make sure at most one RDF file is present");
+            //}
             console.debug("Found files:");
             for(const item of files){
                 console.debug(item.name);
             }
-            throw Error(`Invalid files: ${candidates.length} bioimage.yaml file(s) found!`);
+            throw Error(`Invalid files given: ${candidates.length} model-definition files found!`);
         }
-        const rdf_file = candidates[0];
-        const rdf_text = await rdf_file.text();
-        this.read_model_text(rdf_text);
+        if (candidates.length === 1){
+            const rdf_file = candidates[0];
+            await this.load_rdf_file(rdf_file);
+        }else{
+            this.rdf = {};
+        }
+        console.log('RDF:');
+        console.log(this.rdf);
         // Empty files and repopulate from the zip file
         this.files = files;
         
@@ -183,22 +195,24 @@ export default class Uploader{
 
 
     async load_rdf_file(rdf_file){
-        const rdf_text = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (event) => {resolve(event.target.result);};
-            reader.onerror = reject;
-            reader.readAsText(rdf_file);
-        });
+        //const rdf_text = await new Promise((resolve, reject) => {
+            //const reader = new FileReader();
+            //reader.onload = (event) => {resolve(event.target.result);};
+            //reader.onerror = reject;
+            //reader.readAsText(rdf_file);
+        //});
+        const rdf_text = await rdf_file.text();
         this.read_model_text(rdf_text);
     }
 
     read_model_text(rdf_text){
         this.rdf = yaml.load(rdf_text);
-        console.log('RDF:');
-        console.log(this.rdf);
     }
 
     async validate(){
+        if(!this.validator){
+            throw new Error("The validator plugin was not loaded");
+        }
         const rdf = yaml.load(yaml.dump(this.rdf));
         delete rdf._metadata;
         if (rdf?.config?._deposit) delete rdf.config._deposit;
@@ -214,12 +228,9 @@ export default class Uploader{
             }
         }
         console.log("RDF after cleaning: ", rdf);
-        const validator = await this.api.getPlugin(
-            "https://raw.githubusercontent.com/jmetz/spec-bioimage-io/dev/scripts/bio-rdf-validator.imjoy.html"
-        );
-        const results = await validator.validate(rdf);
+        const results = await this.validator.validate(rdf);
         if (results.error){
-            throw Error(results.error);
+            throw new Error(results.error);
         }
         this.rdf = rdf;
     }
