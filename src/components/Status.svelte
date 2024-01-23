@@ -1,4 +1,5 @@
 <script>
+    import { onDestroy } from 'svelte';
     import FullScreenConfetti from './FullScreenConfetti.svelte';
     import SingleLineInputs from './SingleLineInputs.svelte';
     import refresh_status from "../lib/status.js";
@@ -15,6 +16,14 @@
     let is_finished = false;
     let value=0;
     let max=0;
+    let timeout_id;
+
+    ///
+    /// Clear timeout when navigating away from this page
+    /// 
+    onDestroy(()=>{
+        clearTimeout(timeout_id);
+    });
 
     async function poll_status(){
         if(modelName){ 
@@ -41,7 +50,9 @@
             console.log(value);
             console.log(max);
         }
-        if(!is_finished) setTimeout(poll_status, 2000);
+        if(!is_finished){
+            timeout_id = setTimeout(poll_status, 2000);
+        }
     }
 
     function set_model_name(name){

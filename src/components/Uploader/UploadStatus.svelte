@@ -14,6 +14,7 @@
     //let notify_ci_message = "";
     //let notify_ci_failed = false;
 
+
     function copy_error_to_clipboard(text){
         // Copy the text inside the text field
         if(navigator){
