@@ -16,7 +16,7 @@
     }
 </style>
 
-<nav>
+<nav class="container-fluid">
     <ul>
         <li><strong>BioImage.IO</strong></li>
     </ul>
