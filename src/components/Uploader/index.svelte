@@ -1,15 +1,17 @@
 <script>
-    import toast, { Toaster } from 'svelte-french-toast';
+    //import toast, { Toaster } from 'svelte-french-toast';
+    import { Toaster } from 'svelte-french-toast';
 
     import Uploader from '../../lib/uploader.js';
 
     import Modal    from '../Modal.svelte';
-    import Nav      from './Nav.svelte';
+    //import Nav      from './Nav.svelte';
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
     import UploadStatus   from './UploadStatus.svelte';
     import Notification from './Notification.svelte';
+    import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
 
     let show_modal = false;
 
@@ -28,6 +30,7 @@
 
     function reset(){
         uploader.reset();
+        step = "add";
     }
 
     console.log("Uploader in window for live inspection");
@@ -77,3 +80,11 @@
         Opps! something went wrong 😬
     </Notification>
 {/if}
+
+<!--{#if step != "add"}-->
+{#if uploader.rdf}
+    <ButtonWithConfirmation confirm={reset}>
+        Clear model + start again
+    </ButtonWithConfirmation>
+{/if}
+<!--{/if}-->

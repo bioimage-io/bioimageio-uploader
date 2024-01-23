@@ -2,13 +2,12 @@
     import Dropzone from "svelte-file-dropzone/Dropzone.svelte";
     import toast  from 'svelte-french-toast';
     import { createEventDispatcher } from 'svelte';
-    import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
     
     export let uploader;
 
-    let rdf_text; 
+    //let rdf_text; 
     let file_info = [];
-    let processing = false;
+    //let processing = false;
 
     const dispatch = createEventDispatcher();
 
@@ -16,9 +15,6 @@
         dispatch('done', {});
     }
 
-    function start_again(){
-        uploader.reset();
-    }
 
     async function handle_files_select(evt){
         console.log("handle_files_select"); 
@@ -43,22 +39,15 @@
     
 </script>
 
-{#if uploader.rdf}
 
-    <ButtonWithConfirmation confirm={start_again}>
-        Clear loaded model & start Again
-    </ButtonWithConfirmation>
-{:else}
+Upload model zip file 
 
-    Upload model zip file 
-
-    <Dropzone on:drop={handle_files_select} multiple={false}>
-        {#if file_info.length === 0}
-            Click here or drop files
-        {:else}
-            {#each file_info as line}
-                {line}<br>
-            {/each}
-        {/if}
-    </Dropzone>
-{/if}
+<Dropzone on:drop={handle_files_select} multiple={false}>
+    {#if file_info.length === 0}
+        Click here or drop files
+    {:else}
+        {#each file_info as line}
+            {line}<br>
+        {/each}
+    {/if}
+</Dropzone>

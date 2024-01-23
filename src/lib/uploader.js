@@ -52,7 +52,7 @@ export default class Uploader{
 
     reset(){
         this.model_nickname = null;
-        this.rdf = {};
+        this.rdf = null;
         this.upload_status = "";
         this.ci_status = "";
         this.upload_status = ""
@@ -209,6 +209,11 @@ export default class Uploader{
                 delete rdf.authors[index].orcid;
             }
         }
+        for (let index=0; index < rdf.maintainers.length; index++){
+            if(!rdf.maintainers[index].email){
+                delete rdf.maintainers[index].email;
+            }
+        }
         console.log("RDF after cleaning: ", rdf);
         const validator = await this.api.getPlugin(
             "https://raw.githubusercontent.com/jmetz/spec-bioimage-io/dev/scripts/bio-rdf-validator.imjoy.html"
@@ -217,6 +222,7 @@ export default class Uploader{
         if (results.error){
             throw Error(results.error);
         }
+        this.rdf = rdf;
     }
 
     ready_for_review(){
