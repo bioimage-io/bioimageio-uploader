@@ -6,7 +6,7 @@ import yaml from "js-yaml";
 
 
 const regex_zip = /\.zip$/gi ;
-const regex_rdf = /(rdf\.yml|rdf\.yaml)$/gi ;
+const regex_rdf = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml)$/gi ;
 
 
 const hostname = `${window.location.protocol}//${window.location.host}`;
@@ -129,7 +129,6 @@ export default class Uploader{
         this.login_url = context.login_url;
     }
 
-     
 
     async load_from_file(input_file){
         if(input_file.name.search(regex_zip) !== -1){
@@ -140,46 +139,46 @@ export default class Uploader{
             throw Error("Invalid file given");
         }
     }
+    
+    async load_from_files(files){
+        console.debug("Loading model from files");
+        const file_names = files.map((file) => file.name);
+        const candidates = files.filter((file) => file.name.search(regex_rdf) !== -1)
+        // Obtain the RDF file
 
+        if( candidates.length !== 1){
+            if(candidates.length === 0){
+                console.error("Unable to find any RDF files");
+            }else{
+                console.error("Given too many RDF files");
+            }
+            console.debug("Found files:");
+            for(const item of files){
+                console.debug(item.name);
+            }
+            throw Error(`Invalid files: ${candidates.length} bioimage.yaml file(s) found!`);
+        }
+        const rdf_file = candidates[0];
+        const rdf_text = await rdf_file.text();
+        this.read_model_text(rdf_text);
+        // Empty files and repopulate from the zip file
+        this.files = files;
+        
+        // files = new_files;
+        console.log("Files:");
+        console.log(this.files);
+    }
 
     async load_zip_file(zip_file){
         console.log("Loading zip file...");
         const zip_package = await JSZip.loadAsync(zip_file);
         console.log(zip_package);
-        // Obtain the RDF file
-        const file_names = Object.keys(zip_package.files);
-        const candidates = file_names.filter((file) => file.search(regex_rdf) !== -1)
-        console.log(file_names);
-        console.log(candidates);
 
-        if(candidates.length === 0){
-            console.error("Unable to find any RDF files in Zip");
-            console.debug("Found files:");
-            for(const key of Object.keys(zip_package.files)){
-                console.debug(key);
-            }
-            throw Error("Invalid Zip file: no RDF file found!");
-        }
-        const rdf_file = zip_package.files[candidates[0]];
-        const rdf_text = await rdf_file.async("string");
-        this.read_model_text(rdf_text);
-        // Empty files and repopulate from the zip file
-        this.files = [];
-        console.log("About to read");
-
-
+        const files = [];
         for(const item of Object.values(zip_package.files)){
-            console.log(item);
-            this.files.push( await FileFromJSZipZipOject(item))
+            files.push( await FileFromJSZipZipOject(item));
         };
-        // files = new_files;
-        console.log("Files:");
-        console.log(this.files);
-
-        return [
-            `Zip file: ${zip_file.name}`,
-            `with ${Object.keys(zip_package.files).length} entries`,
-            `And RDF file: ${rdf_file.name}`];
+        await this.load_from_files(files);
     }
 
 
@@ -200,7 +199,7 @@ export default class Uploader{
     }
 
     async validate(){
-        let rdf = yaml.load(yaml.dump(this.rdf));
+        const rdf = yaml.load(yaml.dump(this.rdf));
         delete rdf._metadata;
         if (rdf?.config?._deposit) delete rdf.config._deposit;
         // Null or zero-length orcid causes issues 
@@ -337,15 +336,15 @@ export default class Uploader{
     }
 
     async publish(){
-        console.log("Publishing...");
+        console.log("Running upload steps (zip, upload, notify CI)");
         this.is_zipping = true;
-        this.upload_status = "Running publishing..."; 
+        this.upload_status = "Zipping model"; 
         this.render();
         const zipfile = await this.create_zip();
         this.is_zipping = false;
 
         this.is_uploading = true;
-        this.publish_status = "Uploading..."; 
+        this.publish_status = "Uploading"; 
         this.render();
         console.log(`
             hostname                : ${hostname}

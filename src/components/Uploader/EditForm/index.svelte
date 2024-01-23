@@ -12,6 +12,8 @@
 
     if(uploader.zip_package){
         filenames = Object.keys(uploader.zip_package.files);
+    }else if (uploader.files){
+        filenames = uploader.files.map((item)=> item.name);
     }
 
     const types = site_config.resource_categories.map(cat => cat.type);
