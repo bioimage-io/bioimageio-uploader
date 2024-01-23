@@ -82,7 +82,7 @@
 {/if}
 
 <!--{#if step != "add"}-->
-{#if uploader.rdf}
+{#if uploader.rdf && (["add", "edit", "review"].includes(step))}
     <ButtonWithConfirmation confirm={reset}>
         Clear model + start again
     </ButtonWithConfirmation>
