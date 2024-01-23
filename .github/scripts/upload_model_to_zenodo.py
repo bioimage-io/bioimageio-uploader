@@ -1,5 +1,5 @@
 import argparse
-from io import BytesIO
+# from io import BytesIO
 import logging
 import os
 from pathlib import Path

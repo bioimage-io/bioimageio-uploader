@@ -33,39 +33,36 @@ jobs:
               run: |
                     echo "Installing workflow script dependencies"
                     python -m pip install --upgrade pip
-                    python -m pip install "minio==7.2.3"
+                    python -m pip install "minio==7.2.3" "loguru=0.7.2"
             - name: Unzip model file
               run: |
-                    python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Unzipping model-file of ${{inputs.model_nickname}}" "1" "8"  
+                    python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Unzipping model-file of ${{inputs.model_nickname}}" "1" "6"  
                     python .github/scripts/unzip_model.py "${{inputs.model_nickname}}" "${{inputs.model_zip_url}}" 
             - name: Install dependencies
               run: |
-                    python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Installing dependencies of ${{inputs.model_nickname}}" "2" "8"  
+                    python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Installing dependencies of ${{inputs.model_nickname}}" "2" "6"  
                     echo "Installing dependencies"
                     python -m pip install --upgrade pip
                     python -m pip install flake8 pytest
                     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-            - name: Additional Steps
-              run: |
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running additional steps of ${{inputs.model_nickname}}" "3" "8"  
-                  echo "Running additional steps..."
-                  sleep 30
-                  echo "Done"
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Done running additional steps of ${{inputs.model_nickname}}" "4" "8"  
+            #- name: Additional Steps
+              #run: |
+                  #python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running additional steps of ${{inputs.model_nickname}}" "3" "8"  
+                  #echo "Running additional steps..."
+                  #sleep 30
+                  #echo "Done"
+                  #python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Done running additional steps of ${{inputs.model_nickname}}" "4" "8"  
 
             - name: Main testing
               run: |
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running main testing of ${{inputs.model_nickname}}" "5" "8"  
-                  echo "Running main testing"
-                  sleep 30
-                  echo "Done"
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Testing complete of ${{inputs.model_nickname}}" "6" "8"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "WARNING: Skipping testing ${{inputs.model_nickname}}" "3" "6"  
+                  #python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "WARNING: Skipping Running main testing of ${{inputs.model_nickname}}" "5" "8"  
+                  sleep 5
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Testing complete of ${{inputs.model_nickname}}" "4" "6"  
 
-            - name: Publish within S3
+            - name: Publish within to Zenodo
               run: |
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running publishing of ${{inputs.model_nickname}}" "7" "8"  
-                  echo "Somehow doing publising workflow 🤔"
-                  sleep 30
-                  echo "Done"
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Publishing complete of ${{inputs.model_nickname}}" "8" "8"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running publishing of ${{inputs.model_nickname}} to Zenodo" "5" "6"  
+                  python .github/scripts/upload_model_to_zenodo.py "${{inputs.model_nickname}}" 
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Publishing complete" "6" "6"  
