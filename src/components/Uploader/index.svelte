@@ -72,9 +72,9 @@
 {:else if step == "review"}
     <Review {uploader} on:done={()=>{step="uploading"}} />
 {:else if step == "uploading"}
-    <UploadStatus {uploader} on:done={()=>{step="done"}} />
-{:else if step == "done"}
-    <a href="/status/{uploader.model_nickname.name}">Go to status page</a>
+    <UploadStatus {uploader} on:done={()=>{step="add"}} />
+<!--{:else if step == "done"}-->
+    <!--<a href="/status/{uploader.model_nickname.name}">Go to status page</a>-->
 {:else}
     <Notification>
         Opps! something went wrong 😬

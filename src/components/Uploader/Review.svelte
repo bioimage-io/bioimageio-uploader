@@ -1,6 +1,6 @@
 <script>
-    import { onMount, createEventDispatcher } from 'svelte';
-    import toast from 'svelte-french-toast';
+    import { createEventDispatcher } from 'svelte';
+    //import toast from 'svelte-french-toast';
     import Notification from './Notification.svelte';
 
     export let uploader;
@@ -41,7 +41,7 @@
     </Notification>
 {/if}
 
-{#key rerender}
+<!--{#key rerender}-->
 <p class="level">
     {#if model_name_message }({model_name_message}){/if}
     {#if model_nickname}
@@ -50,7 +50,7 @@
     {/if}
     <button on:click={regenerate_nickname}>Regenerate nickname</button>
 </p>
-{/key}
+<!--{/key}-->
 <p>Please review your submission carefully, then press Publish</p>
 
 <article class="contrast" style="--card-background-color: var(--contrast)">

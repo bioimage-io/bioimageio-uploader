@@ -1,8 +1,8 @@
 <script>
     import "@picocss/pico/css/pico.css"; 
     import {Route, router} from 'tinro'; 
-    import {Home} from 'lucide-svelte';
-    import {fade} from 'svelte/transition';
+    //import {Home} from 'lucide-svelte';
+    //import {fade} from 'svelte/transition';
     import Uploader from './components/Uploader/index.svelte';
     import Status from './components/Status.svelte';
     import Transition from './components/Transition.svelte';

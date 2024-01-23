@@ -1,4 +1,5 @@
 <script>
+    import { createEventDispatcher } from 'svelte';
     import toast from 'svelte-french-toast';
     export let uploader;
     //let status;
@@ -8,6 +9,7 @@
     let error_element;
     let last_error_object;
     let uploading = uploader.is_uploading;
+    const dispatch = createEventDispatcher();
     
     //let notify_ci_message = "";
     //let notify_ci_failed = false;
@@ -47,6 +49,12 @@
         }
     });
 
+    function restart(){
+        uploader.reset();
+        dispatch('done', {});
+    }
+
+
 </script>
 
 {#if error}
@@ -56,6 +64,7 @@
         <p>Please review the error, and try again. If the issue persists, please contact support</p>
         <code>{error}</code>
         <p>Click this box to copy the error message to your clipboard</p>
+        <button on:click={restart}>Start again</button>
     </article>
 {/if}
 
@@ -65,6 +74,9 @@
 
     <p><b>There's nothing you need to do right now. Your model is uploaded and the CI-bots have started their work!</b><p>
     <p>You can check the status of the CI at any point from <a href="#/status/{uploader.model_nickname.name}">here</a></p>
+
+
+    <button on:click={restart}>Upload another model</button>
 {:else}        
     {#if uploading}
         <p>Uploading</p> 
