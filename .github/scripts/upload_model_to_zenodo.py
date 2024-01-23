@@ -1,5 +1,5 @@
 import argparse
-# from io import BytesIO
+from io import BytesIO
 import logging
 import os
 from pathlib import Path
@@ -130,11 +130,11 @@ def put_file_from_url(file_url: str, destination_url: str, params: dict) -> dict
     """Gets a remote file and pushes it up to a destination"""
     # TODO: Can we use stream=True and pass response.raw into requests.put?
     filename = Path(urlparse(file_url).path).name
-    # response = requests.get(file_url)
-    # file_like = BytesIO(response.content)
-    # return put_file(file_like, filename, destination_url, params)
-    response = requests.get(file_url, stream=True)
-    return put_file(response.raw, filename, destination_url, params)
+    response = requests.get(file_url)
+    file_like = BytesIO(response.content)
+    return put_file(file_like, filename, destination_url, params)
+    # response = requests.get(file_url, stream=True)
+    # return put_file(response.raw, filename, destination_url, params)
 
 
 
