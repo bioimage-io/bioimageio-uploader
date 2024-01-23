@@ -64,5 +64,5 @@ jobs:
             - name: Publish within to Zenodo
               run: |
                   python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running publishing of ${{inputs.model_nickname}} to Zenodo" "5" "6"  
-                  python .github/scripts/upload_model_to_zenodo.py "${{inputs.model_nickname}}" 
+                  python .github/scripts/upload_model_to_zenodo.py --model_name "${{inputs.model_nickname}}" 
                   python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Publishing complete" "6" "6"  

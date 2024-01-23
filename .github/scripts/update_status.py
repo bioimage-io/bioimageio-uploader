@@ -35,7 +35,7 @@ def main():
 def update_status(model_name, status, step=None, num_steps=None):
     s3_host = os.getenv("S3_HOST")
     s3_bucket = os.getenv("S3_BUCKET")
-    s3_root_folder = os.getenv("S3_ROOT_FOLDER")
+    s3_root_folder = os.getenv("S3_FOLDER")
     s3_access_key_id = os.getenv("S3_ACCESS_KEY_ID")
     s3_secret_access_key = os.getenv("S3_SECRET_ACCESS_KEY")
     filename = "status.json"
