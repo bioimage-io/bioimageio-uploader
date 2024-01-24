@@ -1,6 +1,7 @@
 import * as imjoyRPC from 'imjoy-rpc';
 import * as imjoyCore from 'imjoy-core';
-import axios from 'axios'; ///dist/browser/axios.cjs';
+// import axios from 'axios'; ///dist/browser/axios.cjs';
+import { default as axios } from 'axios';
 
 import { FileFromJSZipZipOject } from "./utils.js";
 //import { fetch_with_progress } from "./utils.js";

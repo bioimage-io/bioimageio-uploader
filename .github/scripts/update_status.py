@@ -3,6 +3,8 @@ import io
 import argparse
 from typing import Optional
 import json
+import datetime
+
 from minio import Minio  # type: ignore
 # from minio.error import S3Error
 
@@ -33,6 +35,7 @@ def main():
 
 
 def update_status(model_name, status, step=None, num_steps=None):
+    timenow = datetime.datetime.now().isoformat()
     s3_host = os.getenv("S3_HOST")
     s3_bucket = os.getenv("S3_BUCKET")
     s3_root_folder = os.getenv("S3_FOLDER")
@@ -50,34 +53,36 @@ def update_status(model_name, status, step=None, num_steps=None):
     try:
         response = client.get_object(s3_bucket, s3_path)
         # Read data from response.
-        status_message = json.load(response)
+        status_message = json.loads(response.read())
     except Exception:
-        status_message = {"messages": []}
-    finally:
-        try:
-            response.close()
-            response.release_conn()
-        except Exception:
-            pass
+        status_message = {}
+    try:
+        response.close()
+        response.release_conn()
+    except Exception:
+        pass
 
     found = client.bucket_exists(s3_bucket)
     if not found:
         raise Exception("target bucket does not exist: {s3_bucket}")
+    if "messages" not in status_message:
+        status_message["messages"] = []
 
     if step is not None:
         status_message["step"] = step
     if num_steps is not None:
         status_message["num_steps"] = num_steps
     status_message["last_message"] = status
-    status_message["messages"].append(status)
+    status_message["messages"].append({"timestamp": timenow, "text": status})
 
-    status_file_object = io.BytesIO(json.dumps(status_message).encode())
+    status_message_str = json.dumps(status_message).encode()
+    status_file_object = io.BytesIO(status_message_str)
 
     client.put_object(
         s3_bucket,
         s3_path,
         status_file_object,
-        length=len(status_message),
+        length=len(status_message_str),
         content_type="application/json",
     )
 

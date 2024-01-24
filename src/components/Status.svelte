@@ -61,7 +61,6 @@
             console.log(value);
             console.log(max);
         }
-        console.debug(messages);
         if(!is_finished){
             timeout_id = setTimeout(poll_status, 2000);
         }
@@ -90,12 +89,14 @@
             {:else}
                 <code aria-busy="true"></code>
             {/if}
+            {#if messages.length > 0}
             <h3>Log</h3>
-            <code>
-            {#each messages as message}
-                {message}
-            {/each}
-            </code>
+                <code>
+                {#each messages as message}
+                    {message.text} [{message.timestamp}]
+                {/each}
+                </code>
+            {/if}
 
             {#if !is_finished }
                 {#if max > 0 }
