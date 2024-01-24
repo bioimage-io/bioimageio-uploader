@@ -45,17 +45,28 @@ def update_status(model_name, status, step=None, num_steps=None):
         access_key=s3_access_key_id,
         secret_key=s3_secret_access_key,
     )
+    s3_path = f"{s3_root_folder}/{model_name}/{filename}"
+
+    try:
+        response = client.get_object(s3_bucket, s3_path)
+        # Read data from response.
+        status_message = json.load(response)
+    except Exception:
+        status_message = {"status": []}
+    finally:
+        response.close()
+        response.release_conn()
+
     found = client.bucket_exists(s3_bucket)
     if not found:
         raise Exception("target bucket does not exist: {s3_bucket}")
 
-    if (step is None) or (num_steps is None):
-        status_message = json.dumps({"status": status}).encode()
-    else:
-        status_message = json.dumps({"status": status, step:step, num_steps:num_steps}).encode()
+    if step is not None:
+        status_message["step"] = step
+    if num_steps is not None:
+        status_message["num_steps"] = num_steps
 
-    status_file_object = io.BytesIO(status_message)
-    s3_path = f"{s3_root_folder}/{model_name}/{filename}"
+    status_file_object = io.BytesIO(json.dumps(status_message).encode())
 
     client.put_object(
         s3_bucket,

@@ -42,7 +42,11 @@
     }
 </script>
 
-<button aria-busy={validating} on:click={validate_with_toast}>Validate</button>
+{#if validating} 
+    <button aria-busy=true> Validating...</button>
+{:else}
+    <button on:click={validate_with_toast}>Validate</button>
+{/if}    
 {#if error}
     <article>
         <p>A validation error occurred!</p>

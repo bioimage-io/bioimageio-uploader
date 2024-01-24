@@ -1,5 +1,9 @@
 import * as imjoyRPC from 'imjoy-rpc';
-import * as imjoyCore from 'imjoy-core'
+import * as imjoyCore from 'imjoy-core';
+import axios from 'axios'; ///dist/browser/axios.cjs';
+
+import { FileFromJSZipZipOject } from "./utils.js";
+//import { fetch_with_progress } from "./utils.js";
 
 import JSZip from "jszip";
 import yaml from "js-yaml";
@@ -12,15 +16,6 @@ const regex_rdf = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml)$/gi ;
 const hostname = `${window.location.protocol}//${window.location.host}`;
 const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
 const notify_ci_url = `${hostname}/.netlify/functions/notify_ci`;
-
-
-
-async function FileFromJSZipZipOject(zipObject){
-    if(zipObject.dir) throw new Error("Zip file must be flat (no internal folders)");
-    const res =  new File([await zipObject.async("blob")], zipObject.name);
-    return res;
-}
-
 
 export default class Uploader{
 
@@ -48,6 +43,7 @@ export default class Uploader{
     }
 
     async init(){
+        window.axios = axios;
         await this.initHypha();
     }
 
@@ -81,11 +77,6 @@ export default class Uploader{
         console.log('ImJoy started');
         this.api = imjoy.api;
 
-        this.api.getPlugin(
-            "https://raw.githubusercontent.com/jmetz/spec-bioimage-io/dev/scripts/bio-rdf-validator.imjoy.html"
-        ).then((plugin)=>{this.validator = plugin});
-
-
         // Init Imjoy-Hypha
         if(this.connection_retry > this.MAX_CONNECTION_RETRIES){
             console.error("Max retries reached. Please try again later or contact support"); 
@@ -100,7 +91,6 @@ export default class Uploader{
             console.log(`    using url: ${this.server_url}`);
             this.token = await imjoyRPC.hyphaWebsocketClient.login({
                 server_url: this.server_url, 
-                //login_callback: this.set_login_url (ctx) => {this.login_url = ctx.login_url},
                 login_callback: this.set_login_url.bind(this),
             });
             window.sessionStorage.setItem('token', this.token);
@@ -148,17 +138,10 @@ export default class Uploader{
     
     async load_from_files(files){
         console.debug("Loading model from files");
-        const file_names = files.map((file) => file.name);
         const candidates = files.filter((file) => file.name.search(regex_rdf) !== -1)
         // Obtain the RDF file
-
-        //if( candidates.length !== 1){
         if( candidates.length > 1){
-            //if(candidates.length === 0){
-                //console.error("Unable to find any RDF files");
-            //}else{
             console.error("Given too many RDF files. Please make sure at most one RDF file is present");
-            //}
             console.debug("Found files:");
             for(const item of files){
                 console.debug(item.name);
@@ -171,14 +154,10 @@ export default class Uploader{
         }else{
             this.rdf = {};
         }
-        console.log('RDF:');
-        console.log(this.rdf);
+        console.debug('RDF:');
+        console.debug(this.rdf);
         // Empty files and repopulate from the zip file
         this.files = files;
-        
-        // files = new_files;
-        console.log("Files:");
-        console.log(this.files);
     }
 
     async load_zip_file(zip_file){
@@ -193,14 +172,7 @@ export default class Uploader{
         await this.load_from_files(files);
     }
 
-
     async load_rdf_file(rdf_file){
-        //const rdf_text = await new Promise((resolve, reject) => {
-            //const reader = new FileReader();
-            //reader.onload = (event) => {resolve(event.target.result);};
-            //reader.onerror = reject;
-            //reader.readAsText(rdf_file);
-        //});
         const rdf_text = await rdf_file.text();
         this.read_model_text(rdf_text);
     }
@@ -210,8 +182,14 @@ export default class Uploader{
     }
 
     async validate(){
+        
+        /* 
+         * Lazy loading of validator
+         */
         if(!this.validator){
-            throw new Error("The validator plugin was not loaded");
+            this.validator = await this.api.getPlugin(
+                "https://raw.githubusercontent.com/jmetz/spec-bioimage-io/dev/scripts/bio-rdf-validator.imjoy.html"
+            );
         }
         const rdf = yaml.load(yaml.dump(this.rdf));
         delete rdf._metadata;
@@ -274,8 +252,6 @@ export default class Uploader{
     async upload_file(file){
         if(!this.model_nickname) return;
         const filename = `${this.model_nickname.name}/${file.name}`; 
-        //status_message = `Uploading ${filename}`;
-
         const url_put = await this.storage.generate_presigned_url(
             this.storage_info.bucket, 
             this.storage_info.prefix + filename,
@@ -296,6 +272,18 @@ export default class Uploader{
 
         try{
             const response = await fetch(url_put, {method:"PUT", body:file});
+            //const response = await fetch_with_progress(
+                    //url_put, 
+                    //{
+                        //method:"PUT", 
+                        //body:file, 
+                        //upload_listener: (evt) => {
+                            //if (evt.lengthComputable) {
+                                //console.log("upload progress:", evt.loaded / evt.total);
+                            //}
+                        //}
+                    //}
+            //);
             console.log("Upload result:", await response.text());
             return {'get': url_get, 'put': url_put};
         }catch(error){
@@ -320,22 +308,9 @@ export default class Uploader{
             this.render();
             throw new Error("Could not find RDF file in file list");
         }
-        //rdf_file = rdf_file[0];
 
         for(const file of this.files){
             zip.file(file.name, file);
-            //if(file.name === "rdf.yaml") continue
-            //console.log(file.name);
-            //this.upload_status = `Uploading ${file.name}`;
-            //this.render();
-            //const result = await this.upload_file(file);
-            //if(!result){
-                //this.is_uploading = false;
-                //this.upload_succeeded = false;
-                //this.upload_status = "Upload failed"; 
-                //this.render();
-                //throw new Error(`File upload failed for ${file.name}`);
-            //}
         }
         
         const blob = await zip.generateAsync({type: "blob"});
@@ -361,71 +336,11 @@ export default class Uploader{
             hostname                : ${hostname}
             generate_name_url       : ${generate_name_url}
             notify_ci_url           : ${notify_ci_url}`);
-        // let workspace = server.config.workspace;
         this.storage = await this.server.get_service("s3-storage");
         this.storage_info = await this.storage.generate_credential();
         this.zip_urls = await this.upload_file(zipfile);
         this.is_uploading = false;
         this.upload_succeeded = true;
-        
-        //this.upload_status = "Uploading status.json";
-        //this.render();
-        //const status_file = new File([
-            //new Blob(
-                //[JSON.stringify({status:'uploaded'}, null, 2)], 
-                //{type: "application/json"})],
-            //"status.json");
-        //this.status_urls = await this.upload_file(status_file);
-        //if(!this.status_urls){
-            //this.is_uploading = false;
-            //this.upload_succeeded = false;
-            //this.upload_status = "Upload failed"; 
-            //this.render();
-            //throw new Error("No status_urls for uploader");
-        //}
-        //console.log("SUCCESS: this.status_urls:");
-        //console.log(this.status_urls);
-        //this.status_url = this.status_urls.get;
-        //let rdf_file = this.files.filter(item => item.name === "rdf.yaml")
-        //if(rdf_file.length !== 1){
-            //this.is_uploading = false;
-            //this.upload_succeeded = false;
-            //this.upload_status = "Upload failed"; 
-            //this.render();
-            //throw new Error("Could not find RDF file in file list");
-        //}
-        //rdf_file = rdf_file[0];
-
-        //// TODO: The following still needs work
-        //this.upload_status = "Uploading zip file...";
-        //const rdf_url = (await this.upload_file(zip)).get;
-        //if(!rdf_url){
-            //this.is_uploading = false;
-            //this.upload_succeeded = false;
-            //this.upload_status = "Upload failed"; 
-            //this.render();
-            //throw new Error("RDF upload did not produce urls");
-        //}
-        //console.log("SUCCESS: rdf_url:" + rdf_url);
-        //console.log("Uploading:");
-        //for(const file of this.files){
-            //if(file.name === "rdf.yaml") continue
-            //console.log(file.name);
-            //this.upload_status = `Uploading ${file.name}`;
-            //this.render();
-            //const result = await this.upload_file(file);
-            //if(!result){
-                //this.is_uploading = false;
-                //this.upload_succeeded = false;
-                //this.upload_status = "Upload failed"; 
-                //this.render();
-                //throw new Error(`File upload failed for ${file.name}`);
-            //}
-        //}
-        //this.is_uploading = false;
-        //this.upload_succeeded = true;
-        //this.upload_status = "Upload complete!"; 
-        //this.render();
         
         try{
             await this.notify_ci_bot();
@@ -473,31 +388,14 @@ export default class Uploader{
                 }else{
                     
                     throw new Error(`😬 bioimage-bot notification ran into an issue [${ci_resp.status}]: ${ci_resp.message}`);
-                    //this.ci_status = `😬 bioimage-bot notification ran into an issue [${ci_resp.status}]: ${ci_resp.message}`;
-                    //console.log(this.ci_status);
-                    //this.ci_failed = true;
-                    //console.error(this.ci_status);
-                    //console.debug("url used:");
-                    //console.debug(notify_ci_url);
                 }
 
             } else {
-
                 const ci_resp = await resp.text();
-                //this.ci_status = `😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: ${ci_resp}`;
                 throw new Error(`😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: ${ci_resp}`);
-                //console.error(this.ci_status);
-                //console.debug("url used:");
-                //console.debug(notify_ci_url);
-                //this.ci_failed = true;
             }
         }catch(err){
-
             throw new Error(`😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`);
-            //this.ci_status = `😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`;
-            //console.error(this.ci_status);
-            //console.debug("url used:");
-            //console.debug(notify_ci_url);
         }
         this.render();
     }
