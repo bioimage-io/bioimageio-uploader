@@ -32,29 +32,22 @@ export default class Uploader{
         this.model_nickname = null;
         this.model_zip_url = null;
         this.rdf = null;
-        this.upload_status = "";
-        this.ci_status = "";
-        this.upload_status = ""
-        this.upload_succeeded = null;
-        this.ci_failed = null;
-        this.is_finished = false;
+        this.status = {message:"", is_finished: false, is_uploading: false};
+        this.ci_status = {message:""};
         this.show_login_window = (url) => {window.open(url, '_blank')};
         this.error_object = null;
 
     }
 
     async init(){
-        window.axios = axios;
         await this.initHypha();
     }
 
     reset(){
         this.model_nickname = null;
         this.rdf = null;
-        this.upload_status = "";
-        this.ci_status = "";
-        this.upload_status = ""
-        this.upload_succeeded = null;
+        this.status = {message:"", is_finished: false, is_uploading: false};
+        this.ci_status = {message:""};
         this.ci_failed = null;
         this.is_finished = false;
     }
@@ -249,8 +242,17 @@ export default class Uploader{
         }    
     }
 
-
-    async upload_file(file){
+    /**  
+     * Uploads a file with PUT to the uploaders storage_bucket
+     *
+     * @method
+     * @name Uploader.upload_file 
+     * @param {File} file: file to be uploaded 
+     * @param {function} progress_callback: function that should take inputs `current` and `total`.
+     * @returns {Promise<Object>} Promise resolving to Object containing the uploaded 
+     *                            files presigned get and put urls or error information  
+     */
+    async upload_file(file, progress_callback){
         if(!this.model_nickname) return;
         const filename = `${this.model_nickname.name}/${file.name}`; 
         const url_put = await this.storage.generate_presigned_url(
@@ -272,7 +274,23 @@ export default class Uploader{
         console.log(url_put);
 
         try{
-            const response = await fetch(url_put, {method:"PUT", body:file});
+            let config = {};
+            if(typeof progress_callback === "function"){
+                config.onUploadProgress = (progressEvent) => {
+                    this.status.value = progressEvent.loaded;
+                    this.status.max = progressEvent.total;
+                    //var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
+                    progress_callback(progressEvent.loaded, progressEvent.total);
+                };
+            }else{
+                config.onUploadProgress = (progressEvent) => {
+                    this.status.value = progressEvent.loaded;
+                    this.status.max = progressEvent.total;
+                };
+            }
+
+            const response = await axios.put(url_put, file, config);
+            //const response = await fetch(url_put, {method:"PUT", body:file});
             //const response = await fetch_with_progress(
                     //url_put, 
                     //{
@@ -285,7 +303,7 @@ export default class Uploader{
                         //}
                     //}
             //);
-            console.log("Upload result:", await response.text());
+            console.log("Upload result:", response.data);
             return {'get': url_get, 'put': url_put};
         }catch(error){
             console.error("Upload failed!");
@@ -325,12 +343,10 @@ export default class Uploader{
     async publish(){
         console.log("Running upload steps (zip, upload, notify CI)");
         this.is_zipping = true;
-        this.upload_status = "Zipping model"; 
+        this.status = {message: "Zipping model", is_uploading: true, is_finished: false}; 
         this.render();
         const zipfile = await this.create_zip();
         this.is_zipping = false;
-
-        this.is_uploading = true;
         this.publish_status = "Uploading"; 
         this.render();
         console.log(`
@@ -339,9 +355,9 @@ export default class Uploader{
             notify_ci_url           : ${notify_ci_url}`);
         this.storage = await this.server.get_service("s3-storage");
         this.storage_info = await this.storage.generate_credential();
-        this.zip_urls = await this.upload_file(zipfile);
-        this.is_uploading = false;
-        this.upload_succeeded = true;
+        this.zip_urls = await this.upload_file(zipfile, null);
+        this.status.is_uploading = false;
+        this.status.succeeded = true;
         
         try{
             await this.notify_ci_bot();
@@ -370,7 +386,7 @@ export default class Uploader{
             console.error("notify_ci_url not set")
             throw new Error("notify_ci_url not set");
         } 
-        this.ci_status = "⌛ Trying to notify bioimage-bot for the new item...";
+        this.ci_status.message = "⌛ Trying to notify bioimage-bot for the new item...";
         console.debug(this.ci_status);
         this.render();
         // trigger CI with the bioimageio bot endpoint
@@ -382,10 +398,10 @@ export default class Uploader{
             if (resp.status === 200) {
                 const ci_resp = (await resp.json());
                 if(ci_resp.status == 200){
-                    this.ci_status = `🎉 bioimage-bot has successfully detected the item: ${ci_resp.message}`;
+                    this.ci_status.message = `🎉 bioimage-bot has successfully detected the item: ${ci_resp.message}`;
                     console.log(ci_resp);
+                    this.ci_status.failed = false;
                     console.log(this.ci_status);
-                    this.ci_failed = false;
                 }else{
                     
                     throw new Error(`😬 bioimage-bot notification ran into an issue [${ci_resp.status}]: ${ci_resp.message}`);

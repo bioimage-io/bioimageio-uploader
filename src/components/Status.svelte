@@ -97,10 +97,10 @@
             {#if !is_finished }
                 {#if max > 0 }
                     <br>
-                    <progress value="{value}" max="{max}">15%</progress>
+                    <progress value="{value}" max="{max}">{value}</progress>
                 {:else}
                     <br>
-                    <progress max="{max}">15%</progress>
+                    <progress max="{max}">Running</progress>
                 {/if}
             {:else}
                 <FullScreenConfetti /> 

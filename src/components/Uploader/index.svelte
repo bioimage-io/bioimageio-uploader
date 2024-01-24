@@ -17,8 +17,7 @@
 
     let uploader = new Uploader();
     uploader.show_login_window = (url) => {
-        console.log("Should be showing the following in a dialog"); 
-        console.log(url);
+        console.debug(url);
         show_modal = true;
     }
     let step = "add";
@@ -43,9 +42,6 @@
 {#key rerender}
 {#if !uploader.token}
     <Notification deletable={false} >
-    <!--{#if router.location.hash === "review" }-->
-        <!--<p>You must now login to publish</p>-->
-    <!--{/if}-->
     {#if uploader.login_url}
         <!--<button on:click={()=>{uploader.init();}}>Login to BioEngine</button>-->
         <Modal show={show_modal}   >

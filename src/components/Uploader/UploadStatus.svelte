@@ -8,7 +8,7 @@
     let error;
     let error_element;
     let last_error_object;
-    let uploading = uploader.is_uploading;
+    let uploading = uploader.status.is_uploading;
     const dispatch = createEventDispatcher();
     
     //let notify_ci_message = "";
@@ -40,12 +40,12 @@
     uploader.add_render_callback(() => {
         uploader = uploader;
         uploading = uploader.is_uploading;
-        if(uploader.ci_failed || (uploader.is_finished && !uploader.upload_succeeded)){
+        if(uploader.ci_failed || (uploader.status.is_finished && !uploader.status.succeeded)){
             last_error_object = uploader.error_object;
-            if(uploader.ci_failed){
-                error = uploader.ci_status;
+            if(uploader.ci_status.failed){
+                error = uploader.ci_status.message;
             }else{
-                error = uploader.upload_status;
+                error = uploader.status.message;
             }
         }
     });
@@ -69,8 +69,8 @@
     </article>
 {/if}
 
-{#key uploader.is_finished}
-{#if uploader.is_finished}
+{#key uploader.status.is_finished}
+{#if uploader.status.is_finished}
     <h4>Almost there,</h4> 
 
     <p><b>There's nothing you need to do right now. Your model is uploaded and the CI-bots have started their work!</b><p>
@@ -81,18 +81,9 @@
 {:else}        
     {#if uploading}
         <p>Uploading</p> 
-        <progress max="100">15%</progress>
+        <!--<progress max="100">15%</progress>-->
+        <progress value="{uploader.status.value}" max="{uploader.status.max}">{uploader.status.value}</progress>
     {/if}
-
-    <!--{#key uploader.upload_status}-->
-    <!--<article>Status: <code>{uploader.upload_status}</code></article> -->
-    <!--{/key}-->
-    <!--{#key uploader.ci_status}-->
-    <!--{#if uploader.ci_status}-->
-        <!--<p>🤖: {uploader.ci_status}</p>-->
-    <!--{/if}-->
-    <!--{/key}-->
-
 {/if} 
 {/key}
 
