@@ -54,12 +54,8 @@
         is_finished = last_message.startsWith("Publishing complete");
         if(step > 0){
             //value = `{status_step}`; 
-            console.log(value);
             value = `${step}`; 
             max = `${num_steps}`; 
-            console.log("value and max");
-            console.log(value);
-            console.log(max);
         }
         if(!is_finished){
             timeout_id = setTimeout(poll_status, 2000);
@@ -93,7 +89,7 @@
             <h3>Log</h3>
                 <code>
                 {#each messages as message}
-                    {message.text} [{message.timestamp}]
+                    <span title="{message.timestamp}" >{message.text} </span><br>
                 {/each}
                 </code>
             {/if}
