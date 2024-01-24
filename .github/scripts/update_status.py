@@ -52,7 +52,7 @@ def update_status(model_name, status, step=None, num_steps=None):
         # Read data from response.
         status_message = json.load(response)
     except Exception:
-        status_message = {"status": []}
+        status_message = {"messages": []}
     finally:
         response.close()
         response.release_conn()
@@ -65,6 +65,8 @@ def update_status(model_name, status, step=None, num_steps=None):
         status_message["step"] = step
     if num_steps is not None:
         status_message["num_steps"] = num_steps
+    status_message["last_message"] = status
+    status_message["messages"].append(status)
 
     status_file_object = io.BytesIO(json.dumps(status_message).encode())
 

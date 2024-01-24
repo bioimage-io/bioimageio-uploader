@@ -8,10 +8,10 @@ export default async (event) => {
         try{
             obj = await resp.json();
         }catch(err){
-            obj = {status: "CI not started yet [ENDPOINT MISSING JSON]"};
+            obj = {last_message: "Status file not present yet", messages:[]};
         }
     }catch(err){
-        obj = {status: "CI not started yet [ENDPOINT NOT FOUND]"}
+        obj = {last_message: "Status file not present yet", messages:[]};
     }
     console.log("Got status for");
     console.log(url);

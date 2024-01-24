@@ -4,11 +4,14 @@
     import SingleLineInputs from './SingleLineInputs.svelte';
     import refresh_status from "../lib/status.js";
     import { Search } from 'lucide-svelte';
+    import { is_string } from '../lib/utils.js';
 
     export let modelName="";
     let step = 0;
-    let message = "";
+    let messages = [];
+    let last_message = "Getting status...";
     let num_steps;
+    let polling_error = false;
     //let error;
     //let error_element;
     //let last_error_object;
@@ -29,18 +32,26 @@
         if(modelName){ 
             try{
                 const resp = await refresh_status(modelName);
-                message = resp.status;
+                last_message = resp.last_message;
+                messages = resp.messages;
+                if((!Array.isArray(messages)) || (!is_string(last_message))){
+                    console.debug(resp);
+                    throw new Error("Unable to get status messages from server response");
+                }
                 step = resp.step;
                 num_steps = resp.num_steps;
-                console.log(status);
+                polling_error = false;
             }catch(err){
-                message = "Error polling status 😬. Please let the dev-team know 🙏";
+                //messages = ["Error polling status 😬. Please let the dev-team know 🙏"];
+                last_message = "Error polling status 😬. Please let the dev-team know 🙏";
+                messages = [];
                 console.error("Error polling status:");
                 console.error(err);
+                polling_error = true;
                 return;
             }
         }
-        is_finished = message.startsWith("Publishing complete");
+        is_finished = last_message.startsWith("Publishing complete");
         if(step > 0){
             //value = `{status_step}`; 
             console.log(value);
@@ -50,6 +61,7 @@
             console.log(value);
             console.log(max);
         }
+        console.debug(messages);
         if(!is_finished){
             timeout_id = setTimeout(poll_status, 2000);
         }
@@ -66,27 +78,40 @@
 
 {#if modelName }
     <h2>Model: <code>{modelName}</code></h2>
-    <article>Status:
-        {#if message}
-            <code>{message}</code>
-        {:else}
-            <code aria-busy="true"></code>
-        {/if}
 
-        {#if !is_finished }
-            {#if max > 0 }
-                <br>
-                <progress value="{value}" max="{max}">15%</progress>
+    {#if polling_error}
+        <article>
+            😬 Opps - an error occurred while getting the status. 
+        </article>
+    {:else}
+        <article>Status:
+            {#if last_message}
+                <code>{last_message}</code>
             {:else}
-                <br>
-                <progress max="{max}">15%</progress>
+                <code aria-busy="true"></code>
             {/if}
-        {:else}
-            <FullScreenConfetti /> 
-        {/if}
-        <!--<progress {value} {max}>15%</progress>-->
+            <h3>Log</h3>
+            <code>
+            {#each messages as message}
+                {message}
+            {/each}
+            </code>
 
-    </article> 
+            {#if !is_finished }
+                {#if max > 0 }
+                    <br>
+                    <progress value="{value}" max="{max}">15%</progress>
+                {:else}
+                    <br>
+                    <progress max="{max}">15%</progress>
+                {/if}
+            {:else}
+                <FullScreenConfetti /> 
+            {/if}
+            <!--<progress {value} {max}>15%</progress>-->
+        </article> 
+    {/if}
+
     <!--{#if notify_ci_message}-->
         <!--<p>🤖: {notify_ci_message}</p>-->
     <!--{/if}-->

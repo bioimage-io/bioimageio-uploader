@@ -7,7 +7,7 @@ export async function FileFromJSZipZipOject(zipObject){
 }
 
 
-
+export const is_string = (value) => typeof value === 'string';
 
 /* 
 Fetch API: Inputs to fetch
