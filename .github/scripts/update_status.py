@@ -54,8 +54,11 @@ def update_status(model_name, status, step=None, num_steps=None):
     except Exception:
         status_message = {"messages": []}
     finally:
-        response.close()
-        response.release_conn()
+        try:
+            response.close()
+            response.release_conn()
+        except Exception:
+            pass
 
     found = client.bucket_exists(s3_bucket)
     if not found:
