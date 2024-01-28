@@ -57,7 +57,7 @@ or you may select / drag and drop the individual files to use.</p>
 
 <Dropzone on:drop={handle_files_select} multiple={true}>
     {#if file_info.length === 0}
-        Click here or drop files
+        Click here to select or drag/drop files
     {:else}
         {#each file_info as line}
             {line}<br>

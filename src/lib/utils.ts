@@ -4,8 +4,26 @@ export async function FileFromJSZipZipOject(zipObject){
     if(zipObject.dir) throw new Error("Zip file must be flat (no internal folders)");
     const res =  new File([await zipObject.async("blob")], zipObject.name);
     return res;
+
 }
 
+
+export function clean_rdf(rdf){
+    delete rdf._metadata;
+    if (rdf?.config?._deposit) delete rdf.config._deposit;
+    // Null or zero-length orcid causes issues 
+    for (let index=0; index < rdf.authors.length; index++){
+        if(!rdf.authors[index].orcid){
+            delete rdf.authors[index].orcid;
+        }
+    }
+    for (let index=0; index < rdf.maintainers.length; index++){
+        if(!rdf.maintainers[index].email){
+            delete rdf.maintainers[index].email;
+        }
+    }
+    return rdf;
+}
 
 export const is_string = (value) => typeof value === 'string';
 

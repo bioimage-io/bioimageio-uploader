@@ -1,21 +1,20 @@
-<script>
+<script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import toast from 'svelte-french-toast';
-    export let uploader;
+    import {Uploader, UploaderStep} from '../../lib/uploader';
+    export let uploader: Uploader;
     //let status;
-    //let status_message = "";
-    //status_message = "Contacting server...";
-    let error;
-    let error_element;
-    let last_error_object;
-    let uploading = uploader.status.is_uploading;
+    let status_message: string = "Contacting server...";
+    let upload_value: string = null;
+    let upload_max: string = null;
+    let error: string;
+    let error_element: Object;
+    let last_error_object: Error;
+    let step: UploaderStep = uploader.status.step;
+    let model_name = uploader.model_nickname.name;
     const dispatch = createEventDispatcher();
     
-    //let notify_ci_message = "";
-    //let notify_ci_failed = false;
-
-
-    function copy_error_to_clipboard(text){
+    function copy_error_to_clipboard(text: string){
         // Copy the text inside the text field
         if(navigator){
             if(navigator.clipboard){
@@ -32,21 +31,19 @@
             }
         }
         console.error("Clipboard unavailable");
-
         toast.error("Clipboard unavailable");
     }
 
-    //uploader.add_render_callback((data) => {
     uploader.add_render_callback(() => {
         uploader = uploader;
-        uploading = uploader.is_uploading;
-        if(uploader.ci_failed || (uploader.status.is_finished && !uploader.status.succeeded)){
+        step = uploader.status.step;
+        status_message = uploader.status.message;
+        upload_value = uploader.status.upload_progress_value;
+        upload_max = uploader.status.upload_progress_max;
+
+        if( step === UploaderStep.FAILED){
             last_error_object = uploader.error_object;
-            if(uploader.ci_status.failed){
-                error = uploader.ci_status.message;
-            }else{
-                error = uploader.status.message;
-            }
+            error = uploader.status.message;
         }
     });
 
@@ -57,6 +54,11 @@
 
 
 </script>
+
+
+{#if model_name}
+    <h2>Model: <a href="#/status/{model_name}"><code>{model_name}</code></a></h2>
+{/if}
 
 {#if error}
     <!-- svelte-ignore a11y-no-noninteractive-element-interactions a11y-click-events-have-key-events -->
@@ -69,8 +71,8 @@
     </article>
 {/if}
 
-{#key uploader.status.is_finished}
-{#if uploader.status.is_finished}
+
+{#if step === UploaderStep.FINISHED }
     <h4>Almost there,</h4> 
 
     <p><b>There's nothing you need to do right now. Your model is uploaded and the CI-bots have started their work!</b><p>
@@ -79,11 +81,15 @@
 
     <button on:click={restart}>Upload another model</button>
 {:else}        
-    {#if uploading}
+    {status_message}
+    {step}
+    {#if step === UploaderStep.UPLOADING }
         <p>Uploading</p> 
-        <!--<progress max="100">15%</progress>-->
-        <progress value="{uploader.status.value}" max="{uploader.status.max}">{uploader.status.value}</progress>
+        {#if upload_value}
+            <progress value="{upload_value}" max="{upload_max}">{upload_value}</progress>
+        {:else}
+            <progress max="100">Progress</progress>
+        {/if}
     {/if}
 {/if} 
-{/key}
 

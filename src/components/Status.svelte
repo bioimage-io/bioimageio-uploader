@@ -2,9 +2,9 @@
     import { onDestroy } from 'svelte';
     import FullScreenConfetti from './FullScreenConfetti.svelte';
     import SingleLineInputs from './SingleLineInputs.svelte';
-    import refresh_status from "../lib/status.js";
+    import refresh_status from "../lib/status.ts";
     import { Search } from 'lucide-svelte';
-    import { is_string } from '../lib/utils.js';
+    import { is_string } from '../lib/utils.ts';
 
     export let modelName="";
     let step = 0;

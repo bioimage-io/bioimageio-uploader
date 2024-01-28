@@ -9,6 +9,9 @@
 
     const dispatch = createEventDispatcher();
 
+    if(!uploader.validator) uploader.load_validator();
+
+
     async function validate(){
         // Perform RDF validation with Imjoy...
         if(validating) return;

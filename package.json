@@ -16,9 +16,10 @@
     "@playwright/test": "^1.40.1",
     "@sveltejs/vite-plugin-svelte": "^3.0.1",
     "@testing-library/svelte": "^4.0.5",
+    "@typescript-eslint/parser": "^6.19.1",
     "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.0.4",
-    "axios": "^1.6.5", 
+    "axios": "^1.6.5",
     "happy-dom": "^12.10.3",
     "imjoy-core": "^0.14.4",
     "imjoy-rpc": "^0.5.44",
@@ -34,6 +35,5 @@
     "vite": "^5.0.8",
     "vitest": "^1.0.4"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }

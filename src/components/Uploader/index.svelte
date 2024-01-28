@@ -1,8 +1,8 @@
-<script>
+<script lang="ts">
     //import toast, { Toaster } from 'svelte-french-toast';
     import { Toaster } from 'svelte-french-toast';
 
-    import Uploader from '../../lib/uploader.js';
+    import { Uploader } from '../../lib/uploader';
 
     import Modal    from '../Modal.svelte';
     //import Nav      from './Nav.svelte';
@@ -32,9 +32,7 @@
         step = "add";
     }
 
-    console.log("Uploader in window for live inspection");
-    window.uploader = uploader;
-    if((uploader.token && !uploader.server)) uploader.init();
+    if((!uploader.token && !uploader.server)) uploader.init();
 
 </script>
 
