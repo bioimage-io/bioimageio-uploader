@@ -16,6 +16,7 @@
     let show_modal = false;
 
     let uploader = new Uploader();
+    if(window) window.uploader = uploader;
     uploader.show_login_window = (url) => {
         console.debug(url);
         show_modal = true;
@@ -32,7 +33,8 @@
         step = "add";
     }
 
-    if((!uploader.token && !uploader.server)) uploader.init();
+    //if((!uploader.token && !uploader.server)) uploader.init();
+    if(!uploader.server) uploader.init();
 
 </script>
 

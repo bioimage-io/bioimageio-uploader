@@ -1,6 +1,6 @@
 
 const STATUS_PREFIX = "https://uk1s3.embassy.ebi.ac.uk/public-datasets/sandbox.bioimage.io/";
-const STATUS_SUFFIX = "/status.tson";
+const STATUS_SUFFIX = "/status.json";
 
 const hostname = `${window.location.protocol}//${window.location.host}`;
 const status_url = `${hostname}/.netlify/functions/get_status`;
