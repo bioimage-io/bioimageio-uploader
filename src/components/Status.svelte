@@ -85,14 +85,6 @@
             {:else}
                 <code aria-busy="true"></code>
             {/if}
-            {#if messages.length > 0}
-            <h3>Log</h3>
-                <code>
-                {#each messages as message}
-                    <span title="{message.timestamp}" >{message.text} </span><br>
-                {/each}
-                </code>
-            {/if}
 
             {#if !is_finished }
                 {#if max > 0 }
@@ -105,6 +97,17 @@
             {:else}
                 <FullScreenConfetti /> 
             {/if}
+
+
+            {#if messages.length > 0}
+            <h3>Log</h3>
+                <code>
+                {#each messages as message}
+                    <span title="{message.timestamp}" >{message.text} </span><br>
+                {/each}
+                </code>
+            {/if}
+
             <!--<progress {value} {max}>15%</progress>-->
         </article> 
     {/if}

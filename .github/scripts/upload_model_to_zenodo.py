@@ -3,15 +3,22 @@ from io import BytesIO
 import logging
 import os
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urljoin, quote_plus
 from typing import Optional
-from datetime import timedelta
+from datetime import timedelta, datetime
 from dataclasses import dataclass, field
 
+
+from packaging.version import parse as parse_version
 import requests  # type: ignore
 from minio import Minio
 from loguru import logger  # type: ignore
+import spdx_license_list
 
+from update_status import update_status
+
+raise NotImplementedError("Need to convert: import spdxLicenseList from 'spdx-license-list/full'")
+spdx_licenses = [item["id"] for item in spdx_license_list.LICENSES]
 
 GOOD_STATUS_CODES = (
     200,  # OK 	Request succeeded. Response included. Usually sent for GET/PUT/PATCH requests.
@@ -30,6 +37,8 @@ ZENODO_URL = os.getenv('ZENODO_HOST')
 
 ROOT_URL='https://sandbox.zenodo.org'
 ROOT_URL='https://zenodo.org'
+MAX_RDF_VERSION = parse_version("0.5.0")
+
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
@@ -81,12 +90,45 @@ def main():
     assert response.status_code in GOOD_STATUS_CODES, "Failed to create deposition"
 
     # Use the bucket link
-    bucket_url = response.json()["links"]["bucket"]
+    deposition_info = response.json()
+    bucket_url = deposition_info["links"]["bucket"]
 
     # PUT files to the deposition
     for file_url in file_urls:
         response = put_file_from_url(file_url, bucket_url, params)
         assert response.status_code in GOOD_STATUS_CODES, f"Failed to PUT file from {file_url}"
+
+    # Report deposition URL
+    deposition_id = deposition_info["id"]
+    deposition_doi = deposition_info["metadata"]["prereserve_doi"]["doi"]
+
+    metadata = {
+        'metadata': {
+            'title': 'My first upload',
+            'upload_type': 'poster',
+            'description': 'This is my first upload',
+            'creators': [{'name': 'Doe, John',
+                          'affiliation': 'Zenodo'}]
+        }
+    }
+    response = requests.put(
+            f'{ROOT_URL}/api/deposit/depositions/%s' % deposition_id,
+            params={'access_token': ACCESS_TOKEN},
+            json=metadata,
+            headers=headers)
+    assert response.status_code in GOOD_STATUS_CODES, "Failed to put metadata"
+
+    response = requests.post(f'{ROOT_URL}/api/deposit/depositions/%s/actions/publish' % deposition_id,
+            params=params)
+
+    assert response.status_code in GOOD_STATUS_CODES, "Failed to publish deposition"
+
+    update_status(
+            args.model_name,
+            f"The deposition DOI is {deposition_doi}",
+            step=None, num_steps=None)
+
+
 
 
 @dataclass
@@ -154,6 +196,135 @@ def put_file(file_object, name, url, params):
         params=params,
     )
     return response
+
+
+def rdf_authors_to_metadata_creators(rdf):
+    if 'authors' not in rdf:
+        return []
+    authors = rdf["authors"]
+
+    creators = []
+    for author in authors:
+        if (isinstance(author, str)):
+            creator = { 'name': author.split(";")[0], 'affiliation': "" }
+        else:
+            creator = {
+                'name': author['name'].split(";")[0],
+                'affiliation': author['affiliation'],
+                'orcid': author['orcid'],
+            }
+        creators.push(creator)
+    return creators
+
+def rdf_to_metadata(
+        rdf:dict,
+        base_url: str,
+        docstring: str,
+        additional_note="(Uploaded via https://bioimage.io)") -> dict:
+
+    validate_rdf(rdf)
+    creators = rdf_authors_to_metadata_creators(rdf)
+    url = quote_plus(rdf['config']['_deposit']['id'])
+    docstring_html = ""
+    if docstring:
+        docstring_html = f"<p>{docstring}</p>"
+    description = f"""<a href="https://bioimage.io/#/p/zenodo:{url}"><span class="label label-success">Download RDF Package</span></a><br><p>{docstring_html}</p>"""
+    keywords = ["bioimage.io", "bioimage.io:" + rdf["type"]]
+    related_identifiers = generate_related_identifiers_from_rdf(rdf, base_url)
+    metadata = {
+        'title': rdf['name'],
+        'description': description,
+        'access_right': "open",
+        'license': rdf['license'],
+        'upload_type': "other",
+        'creators': creators,
+        'publication_date': datetime.now().date().isoformat(),
+        'keywords': keywords + rdf['tags'],
+        'notes': rdf['description']+ additional_note,
+        'related_identifiers': related_identifiers,
+        'communities': [],
+    }
+    return metadata
+
+
+def generate_related_identifiers_from_rdf(rdf, base_url):
+    related_identifiers = []
+    covers = []
+    for cover in rdf.get("covers", ()):
+        if not cover.startswith("http"):
+            cover = urljoin(base_url, cover)
+        covers.push(cover)
+
+        related_identifiers.apend({
+            'relation': "hasPart",  # is part of this upload
+            'identifier': cover,
+            'resource_type': "image-figure",
+            'scheme': "url"
+        })
+
+    for link in rdf.get("links", ()):
+        related_identifiers.append({
+            'identifier': f"https://bioimage.io/#/r/{quote_plus(link)}",
+            'relation': "references",  # // is referenced by this upload
+            'resource_type': "other",
+            'scheme': "url"
+        })
+
+    #  rdf.yaml or model.yaml
+    if rdf["rdf_source"].startswith("http"):
+        rdf_file= rdf["rdf_source"]
+    else:
+        rdf_file = urljoin(base_url, rdf["rdf_source"])
+    # When we update an existing deposit, make sure we save the relative link
+    if rdf_file.startswith("http") and ("api/files" in rdf_file):
+        rdf_file = rdf_file.split("/")
+        rdf_file = rdf_file[-1]
+        rdf_file = urljoin(base_url, rdf_file)
+
+    related_identifiers.push({
+            'identifier': rdf_file,
+            'relation': "isCompiledBy", # // compiled/created this upload
+            'resource_type': "other",
+            'scheme': "url",
+        })
+
+    documentation = rdf.get("documentation")
+    if documentation:
+        if not documentation.startswith("http"):
+            documentation = urljoin(base_url, documentation)
+
+        related_identifiers.push({
+                'identifier': documentation,
+                'relation': "isDocumentedBy", # is referenced by this upload
+                'resource_type': "publication-technicalnote",
+                'scheme': "url"
+        })
+
+
+def validate_rdf(rdf: dict):
+    """Unfortunately, probably some duplicate effort here re the spec lib, but for now 🤷"""
+
+    if (rdf['type'] == "model") and (parse_version(rdf['format_version']) > MAX_RDF_VERSION):
+        raise Exception(f"Unsupported format version {rdf['format_version']} (it must <= {MAX_RDF_VERSION})")
+
+    if rdf['license'] not in spdx_licenses:
+        raise Exception("Invalid license, the license identifier must be one from the SPDX license list (https://spdx.org/licenses/)")
+    if 'type' not in rdf:
+        raise Exception("`type` key is not defined in the RDF.")
+
+    for cover in rdf.get("covers", []):
+        if "access_token=" in cover:
+            raise Exception("Cover URL should not contain access token")
+
+    for link in rdf.get("links", ()):
+        if (link.includes("access_token=")):
+            raise Exception(f"Link should not contain access token: {link}")
+
+    if "rdf_source" not in rdf:
+        raise Exception("`rdf_source` key is not found in the RDF")
+
+    if "access_token=" in rdf.get("documentation", ""):
+        raise Exception("Documentation URL should not contain access token")
 
 
 if __name__ == "__main__":
