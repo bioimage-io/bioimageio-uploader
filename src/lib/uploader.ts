@@ -41,8 +41,8 @@ class UploaderStatus{
     reset(){
         this.message = "";
         this.step=UploaderStep.NOT_STARTED;
-        this.upload_prorgress_value = "";
-        this.upload_prorgress_max = "";
+        this.upload_progress_value = "";
+        this.upload_progress_max = "";
     }
 }
 
@@ -307,8 +307,8 @@ export class Uploader{
             const config : any = {};
             if(typeof progress_callback === "function"){
                 config.onUploadProgress = (progressEvent: any) => {
-                    this.status.upload_prorgress_value = progressEvent.loaded;
-                    this.status.upload_prorgress_max = progressEvent.total;
+                    this.status.upload_progress_value = progressEvent.loaded;
+                    this.status.upload_progress_max = progressEvent.total;
                     console.log("Progress (with callback):", this.status);
                     //var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
                     progress_callback(progressEvent.loaded, progressEvent.total);
@@ -316,8 +316,8 @@ export class Uploader{
                 };
             }else{
                 config.onUploadProgress = (progressEvent: any) => {
-                    this.status.upload_prorgress_value = progressEvent.loaded;
-                    this.status.upload_prorgress_max = progressEvent.total;
+                    this.status.upload_progress_value = progressEvent.loaded;
+                    this.status.upload_progress_max = progressEvent.total;
                     console.log("Progress (no callback):", this.status);
                     this.render();
                 };
