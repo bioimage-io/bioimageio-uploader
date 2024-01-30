@@ -14,6 +14,7 @@ import requests  # type: ignore
 from minio import Minio
 from loguru import logger  # type: ignore
 import spdx_license_list
+import yaml
 
 from update_status import update_status
 
@@ -93,6 +94,9 @@ def main():
     deposition_info = response.json()
     bucket_url = deposition_info["links"]["bucket"]
 
+    rdf_text = load_file_from_S3(S3Settings, "rdf.model")
+    rdf = yaml.safe_load(rdf_text)
+
     # PUT files to the deposition
     for file_url in file_urls:
         response = put_file_from_url(file_url, bucket_url, params)
@@ -102,15 +106,33 @@ def main():
     deposition_id = deposition_info["id"]
     deposition_doi = deposition_info["metadata"]["prereserve_doi"]["doi"]
 
-    metadata = {
-        'metadata': {
-            'title': 'My first upload',
-            'upload_type': 'poster',
-            'description': 'This is my first upload',
-            'creators': [{'name': 'Doe, John',
-                          'affiliation': 'Zenodo'}]
-        }
-    }
+
+    docstring = rdf.get("documentation", "")
+    if (not docstring.startswith("http") and docstring.endswith(".md")):
+        # docstring should point to one of the files present...
+
+        # Get the file URL
+        docstring = docstring.replace("./", "")
+        text = load_file_from_S3(S3Settings, docstring)
+        # Load markdown?
+        docstring = text
+
+        # const file = this.zipPackage.files[
+            # this.rdf.documentation.replace("./", "")
+        # ];
+        # if (file) {
+            # docstring = await file.async("string"); // get markdown
+            # docstring = DOMPurify.sanitize(marked(docstring));
+        # }
+
+    base_url = f"{ZENODO_URL}/record/{deposition_id}/files/"
+
+    metadata = rdf_to_metadata(
+            rdf,
+            base_url,
+            docstring)
+
+
     response = requests.put(
             f'{ROOT_URL}/api/deposit/depositions/%s' % deposition_id,
             params={'access_token': ACCESS_TOKEN},
@@ -166,6 +188,22 @@ def get_file_urls(s3_settings: S3Settings, exclude_files=("status.json")) -> lis
         file_urls.append(url)
         # Option 2: Work with minio.datatypes.Object directly
     return file_urls
+
+
+def load_file_from_S3(s3_settings: S3Settings, filename):
+    client = Minio(
+        s3_settings.host,
+        access_key=s3_settings.access_key,
+        secret_key=s3_settings.secret_key,
+    )
+    url = client.get_presigned_url(
+        "GET",
+        s3_settings.bucket_name,
+        filename,
+        expires=timedelta(minutes=10),
+    )
+    response = requests.get(url)
+    return response.content
 
 
 def put_file_from_url(file_url: str, destination_url: str, params: dict) -> dict:
