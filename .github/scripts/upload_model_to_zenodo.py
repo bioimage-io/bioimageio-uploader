@@ -18,7 +18,7 @@ import yaml  # type: ignore
 
 from update_status import update_status
 
-spdx_licenses = [item.id for item in spdx_license_list.LICENSES]
+spdx_licenses = [item.id for item in spdx_license_list.LICENSES.values()]
 
 GOOD_STATUS_CODES = (
     200,  # OK 	Request succeeded. Response included. Usually sent for GET/PUT/PATCH requests.
