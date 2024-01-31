@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
     import toast from 'svelte-french-toast';
-    import {Uploader, UploaderStep} from '../../lib/uploader';
+    import {Uploader, UploaderStep} from '../../lib/uploader.ts';
     export let uploader: Uploader;
     //let status;
     let status_message: string = "Contacting server...";

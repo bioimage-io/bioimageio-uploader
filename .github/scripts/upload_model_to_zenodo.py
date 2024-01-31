@@ -13,12 +13,11 @@ from packaging.version import parse as parse_version
 import requests  # type: ignore
 from minio import Minio
 from loguru import logger  # type: ignore
-import spdx_license_list
-import yaml
+import spdx_license_list  # type: ignore
+import yaml  # type: ignore
 
 from update_status import update_status
 
-raise NotImplementedError("Need to convert: import spdxLicenseList from 'spdx-license-list/full'")
 spdx_licenses = [item["id"] for item in spdx_license_list.LICENSES]
 
 GOOD_STATUS_CODES = (
@@ -198,7 +197,7 @@ def load_file_from_S3(s3_settings: S3Settings, filename):
     )
     url = client.get_presigned_url(
         "GET",
-        s3_settings.bucket_name,
+        s3_settings.bucket,
         filename,
         expires=timedelta(minutes=10),
     )

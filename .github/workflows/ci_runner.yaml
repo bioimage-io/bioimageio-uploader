@@ -27,7 +27,7 @@ jobs:
             ZENODO_URL: ${{vars.ZENODO_URL}}
             ZENODO_API_ACCESS_TOKEN: ${{secrets.ZENODO_API_ACCESS_TOKEN}}
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v4
 
             - name: Install workflow script dependencies
               run: |
