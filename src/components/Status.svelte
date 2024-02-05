@@ -1,43 +1,65 @@
 <script>
+    import { onDestroy } from 'svelte';
+    import FullScreenConfetti from './FullScreenConfetti.svelte';
     import SingleLineInputs from './SingleLineInputs.svelte';
-    import refresh_status from "../lib/status.js";
+    import refresh_status from "../lib/status.ts";
     import { Search } from 'lucide-svelte';
+    import { is_string } from '../lib/utils.ts';
 
     export let modelName="";
-    let status;
-    let status_step = 0;
-    let status_message = "";
-    let status_num_steps;
-    let error;
-    let error_element;
-    let last_error_object;
+    let step = 0;
+    let messages = [];
+    let last_message = "Getting status...";
+    let num_steps;
+    let polling_error = false;
+    //let error;
+    //let error_element;
+    //let last_error_object;
     let input_value;
     let is_finished = false;
     let value=0;
     let max=0;
+    let timeout_id;
 
-    let notify_ci_message = "";
-    let notify_ci_failed = false;
+    ///
+    /// Clear timeout when navigating away from this page
+    /// 
+    onDestroy(()=>{
+        clearTimeout(timeout_id);
+    });
 
     async function poll_status(){
         if(modelName){ 
-            const resp = await refresh_status(modelName);
-            status_message = resp.status;
-            status_step = resp.step;
-            status_num_steps = resp.num_steps;
-            console.log(status);
+            try{
+                const resp = await refresh_status(modelName);
+                last_message = resp.last_message;
+                messages = resp.messages;
+                if((!Array.isArray(messages)) || (!is_string(last_message))){
+                    console.debug(resp);
+                    throw new Error("Unable to get status messages from server response");
+                }
+                step = resp.step;
+                num_steps = resp.num_steps;
+                polling_error = false;
+            }catch(err){
+                //messages = ["Error polling status 😬. Please let the dev-team know 🙏"];
+                last_message = "Error polling status 😬. Please let the dev-team know 🙏";
+                messages = [];
+                console.error("Error polling status:");
+                console.error(err);
+                polling_error = true;
+                return;
+            }
         }
-        is_finished = status_message.startsWith("Publishing complete");
-        if(status_step > 0){
+        is_finished = last_message.startsWith("Publishing complete");
+        if(step > 0){
             //value = `{status_step}`; 
-            console.log(value);
-            value = `${status_step}`; 
-            max = `${status_num_steps}`; 
-            console.log("value and max");
-            console.log(value);
-            console.log(max);
+            value = `${step}`; 
+            max = `${num_steps}`; 
         }
-        if(!is_finished) setTimeout(poll_status, 2000);
+        if(!is_finished){
+            timeout_id = setTimeout(poll_status, 2000);
+        }
     }
 
     function set_model_name(name){
@@ -51,30 +73,48 @@
 
 {#if modelName }
     <h2>Model: <code>{modelName}</code></h2>
-    <article>Status:
-        {#if status_message}
-            <code>{status_message}</code>
-        {:else}
-            <code aria-busy="true"></code>
-        {/if}
 
-        <!--{@debug value} -->
-        <!--{@debug max} -->
-        {#if !is_finished }
-            {#if max > 0 }
-                <br>
-                <progress value="{value}" max="{max}">15%</progress>
+    {#if polling_error}
+        <article>
+            😬 Opps - an error occurred while getting the status. 
+        </article>
+    {:else}
+        <article>Status:
+            {#if last_message}
+                <code>{last_message}</code>
             {:else}
-                <br>
-                <progress max="{max}">15%</progress>
+                <code aria-busy="true"></code>
             {/if}
-        {/if}
-        <!--<progress {value} {max}>15%</progress>-->
 
-    </article> 
-    {#if notify_ci_message}
-        <p>🤖: {notify_ci_message}</p>
+            {#if !is_finished }
+                {#if max > 0 }
+                    <br>
+                    <progress value="{value}" max="{max}">{value}</progress>
+                {:else}
+                    <br>
+                    <progress max="{max}">Running</progress>
+                {/if}
+            {:else}
+                <FullScreenConfetti /> 
+            {/if}
+
+
+            {#if messages.length > 0}
+            <h3>Log</h3>
+                <code>
+                {#each messages as message}
+                    <span title="{message.timestamp}" >{message.text} </span><br>
+                {/each}
+                </code>
+            {/if}
+
+            <!--<progress {value} {max}>15%</progress>-->
+        </article> 
     {/if}
+
+    <!--{#if notify_ci_message}-->
+        <!--<p>🤖: {notify_ci_message}</p>-->
+    <!--{/if}-->
 {:else}
     <SingleLineInputs>
         <input type="text" bind:value={input_value} placeholder="Enter model name, e.g. affable-shark"/>

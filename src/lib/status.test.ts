@@ -1,5 +1,5 @@
 import { describe, test, expect, vi } from 'vitest';
-import refresh_status from './status.js';
+import refresh_status from './status.ts';
 
 global.fetch = vi.fn();
 

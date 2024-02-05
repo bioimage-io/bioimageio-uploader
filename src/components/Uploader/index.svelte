@@ -1,22 +1,24 @@
-<script>
-    import toast, { Toaster } from 'svelte-french-toast';
+<script lang="ts">
+    //import toast, { Toaster } from 'svelte-french-toast';
+    import { Toaster } from 'svelte-french-toast';
 
-    import Uploader from '../../lib/uploader.js';
+    import { Uploader } from '../../lib/uploader';
 
     import Modal    from '../Modal.svelte';
-    import Nav      from './Nav.svelte';
+    //import Nav      from './Nav.svelte';
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
     import UploadStatus   from './UploadStatus.svelte';
     import Notification from './Notification.svelte';
+    import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
 
     let show_modal = false;
 
     let uploader = new Uploader();
+    if(window) window.uploader = uploader;
     uploader.show_login_window = (url) => {
-        console.log("Should be showing the following in a dialog"); 
-        console.log(url);
+        console.debug(url);
         show_modal = true;
     }
     let step = "add";
@@ -28,11 +30,11 @@
 
     function reset(){
         uploader.reset();
+        step = "add";
     }
 
-    console.log("Uploader in window for live inspection");
-    window.uploader = uploader;
-    if((uploader.token && !uploader.server)) uploader.init();
+    //if((!uploader.token && !uploader.server)) uploader.init();
+    if(!uploader.server) uploader.init();
 
 </script>
 
@@ -40,9 +42,6 @@
 {#key rerender}
 {#if !uploader.token}
     <Notification deletable={false} >
-    <!--{#if router.location.hash === "review" }-->
-        <!--<p>You must now login to publish</p>-->
-    <!--{/if}-->
     {#if uploader.login_url}
         <!--<button on:click={()=>{uploader.init();}}>Login to BioEngine</button>-->
         <Modal show={show_modal}   >
@@ -69,11 +68,19 @@
 {:else if step == "review"}
     <Review {uploader} on:done={()=>{step="uploading"}} />
 {:else if step == "uploading"}
-    <UploadStatus {uploader} on:done={()=>{step="done"}} />
-{:else if step == "done"}
-    <a href="/status/{uploader.model_nickname.name}">Go to status page</a>
+    <UploadStatus {uploader} on:done={()=>{step="add"}} />
+<!--{:else if step == "done"}-->
+    <!--<a href="/status/{uploader.model_nickname.name}">Go to status page</a>-->
 {:else}
     <Notification>
         Opps! something went wrong 😬
     </Notification>
 {/if}
+
+<!--{#if step != "add"}-->
+{#if uploader.rdf && (["add", "edit", "review"].includes(step))}
+    <ButtonWithConfirmation confirm={reset}>
+        Clear model + start again
+    </ButtonWithConfirmation>
+{/if}
+<!--{/if}-->

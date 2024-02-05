@@ -12,7 +12,8 @@
         Click here or drop files
     {:else}
         {#each files as name, index}
-            <FileEntry handleClick={(e)=>{remove_file(e, name, index)}} {name}/>
+            <FileEntry 
+                handleClickDelete={(e)=>{remove_file(e, name, index);}} {name}/>
         {/each}
     {/if}
 </Dropzone>

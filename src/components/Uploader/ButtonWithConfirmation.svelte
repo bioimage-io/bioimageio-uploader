@@ -1,5 +1,5 @@
 <script charset="utf-8">
-    import { Trash, Plus } from 'lucide-svelte'
+    import { Trash } from 'lucide-svelte'
 
     export let confirm;
 
@@ -51,7 +51,7 @@
             <button class="icon delete" on:click={confirmed}><Trash /></button>
             <button on:click={unconfirm}>No</button>
         {:else}
-            <button on:click={ask_confirmation}>
+            <button class="contrast" on:click={ask_confirmation}>
                 <slot/>
             </button>
         {/if}

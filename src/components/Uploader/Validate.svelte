@@ -9,6 +9,9 @@
 
     const dispatch = createEventDispatcher();
 
+    if(!uploader.validator) uploader.load_validator();
+
+
     async function validate(){
         // Perform RDF validation with Imjoy...
         if(validating) return;
@@ -18,12 +21,14 @@
         try {
             await uploader.validate();
         } catch (e) {
+            window.DB_ERR = e;
             error = e.message;
         }
         if(error){
             console.error("VALIDATION FAILED!");
-            console.error(error);
-            console.error("DEBUG|DEV: CONTINUINIG...");
+            console.log(error);
+            validating = false;
+            throw(error);
         }
         dispatch('done', {});
         validating = false;
@@ -40,7 +45,11 @@
     }
 </script>
 
-<button aria-busy={validating} on:click={validate_with_toast}>Validate</button>
+{#if validating} 
+    <button aria-busy=true> Validating...</button>
+{:else}
+    <button on:click={validate_with_toast}>Validate</button>
+{/if}    
 {#if error}
     <article>
         <p>A validation error occurred!</p>

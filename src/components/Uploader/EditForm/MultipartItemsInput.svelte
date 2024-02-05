@@ -7,6 +7,8 @@
     export let fields = [];
     export let entry_name = "item";
 
+    if(!Array.isArray(items)) items = [];
+
     const newentry = ()=>fields.reduce((acc, field) => ({ ...acc, [field.key]: "" }), {});
 
     function delete_at_index(index){
