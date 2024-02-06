@@ -1,5 +1,6 @@
 <script>
-    import "@picocss/pico/css/pico.css"; 
+    // import "@picocss/pico/css/pico.css"; 
+    import "./app.scss";
     import {Route, router} from 'tinro'; 
     //import {Home} from 'lucide-svelte';
     //import {fade} from 'svelte/transition';
@@ -10,10 +11,6 @@
     router.mode.hash();
 </script>
 <style>
-    :global(.icon){
-        width: 64px;
-
-    }
 </style>
 
 <nav class="container-fluid">
