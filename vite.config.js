@@ -1,19 +1,7 @@
-import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vitest/config';
-import { isoImport } from 'vite-plugin-iso-import';
+import { defineConfig } from 'vite'
+import { svelte } from '@sveltejs/vite-plugin-svelte'
 
+// https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [sveltekit(), isoImport()],
-
-	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}']
-	},
-
-	css: {
-		preprocessorOptions: {
-			scss: {
-				additionalData: '@use "src/variables.scss" as *;'
-			}
-		}
-	}
-});
+  plugins: [svelte()]
+})

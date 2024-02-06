@@ -5,6 +5,7 @@ node_modules
 /package
 .env
 .env.*
+__pycache__
 !.env.example
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
@@ -12,3 +13,8 @@ bun.lockb
 
 # Local Netlify folder
 .netlify
+dist/
+coverage/
+tests/__snapshots__/
+functions_off/
+.local/

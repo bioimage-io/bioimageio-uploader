@@ -45,6 +45,7 @@ function generate_name(starts, animals){
 
 
 export default async () => {
+    console.log("Generating nickname from allowed lists...");
     const [adjectives, animals_with_icons, taken_names] = await Promise.all([
         get_adjectives(),
         get_animals(),
@@ -53,6 +54,8 @@ export default async () => {
     while(name in taken_names){
         name = generate_name(adjectives, animals_with_icons);
     }
+    console.log("Name generated:");
+    console.log(name);
     const res = Response.json(name);
     res.headers.set("Access-Control-Allow-Origin", "*");
     res.headers.append("Access-Control-Allow-Headers", "*");
