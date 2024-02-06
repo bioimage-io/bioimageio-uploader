@@ -1,0 +1,392 @@
+import argparse
+from io import BytesIO
+import logging
+import os
+from pathlib import Path
+from urllib.parse import urlparse, urljoin, quote_plus
+from typing import Optional
+from datetime import timedelta, datetime
+from dataclasses import dataclass, field
+import pprint
+
+
+from packaging.version import parse as parse_version
+import requests  # type: ignore
+from minio import Minio
+from loguru import logger  # type: ignore
+import spdx_license_list  # type: ignore
+import yaml  # type: ignore
+
+from update_status import update_status
+
+spdx_licenses = [item.id for item in spdx_license_list.LICENSES.values()]
+
+GOOD_STATUS_CODES = (
+    200,  # OK 	Request succeeded. Response included. Usually sent for GET/PUT/PATCH requests.
+    201,  # Created 	Request succeeded. Response included. Usually sent for POST requests
+    202,  # Accepted 	Request succeeded. Response included. Usually sent for POST requests,
+          # where background processing is needed to fulfill the request.
+    204,  # No Content 	Request succeeded. No response included. Usually sent for DELETE requests.
+)
+ACCESS_TOKEN = os.getenv('ZENODO_API_ACCESS_TOKEN')
+S3_HOST = os.getenv('S3_HOST')
+S3_ACCESS_KEY = os.getenv('S3_ACCESS_KEY_ID')
+S3_SECRET_KEY = os.getenv('S3_SECRET_ACCESS_KEY')
+S3_BUCKET = os.getenv('S3_BUCKET')
+S3_FOLDER = os.getenv('S3_FOLDER')
+ZENODO_URL = os.getenv('ZENODO_URL')
+
+MAX_RDF_VERSION = parse_version("0.5.0")
+
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+requests_log = logging.getLogger("requests.packages.urllib3")
+requests_log.setLevel(logging.DEBUG)
+requests_log.propagate = True
+
+
+def assert_good_response(response, message, info=None):
+    if response.status_code not in GOOD_STATUS_CODES:
+        pprint.pprint(response)
+        pprint.pprint(response.content)
+        if info:
+            pprint.pprint(info)
+        raise Exception(message)
+
+
+def create_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_name", help="Model name", required=True)
+    return parser
+
+
+def get_args(argv: Optional[list] = None):
+    """
+    $Get command-line arguments
+    """
+    parser = create_parser()
+    return parser.parse_args(argv)
+
+
+def main():
+    args = get_args()
+    headers = {"Content-Type": "application/json"}
+    params = {'access_token': ACCESS_TOKEN}
+
+    s3_settings = S3Settings(
+        host=S3_HOST,
+        bucket=S3_BUCKET,
+        prefix=f'{S3_FOLDER}/{args.model_name}',
+        access_key=S3_ACCESS_KEY,
+        secret_key=S3_SECRET_KEY)
+    # List the files at the model URL
+    file_urls = get_file_urls(s3_settings)
+    logger.info("Using file URLs:\n{}", '\n'.join((str(obj) for obj in file_urls)))
+
+    # Create empty deposition
+    response = requests.post(
+            f'{ZENODO_URL}/api/deposit/depositions',
+            params=params,
+            json={},
+            headers=headers)
+    assert_good_response(response, "Failed to create deposition")
+
+
+    # Use the bucket link
+    deposition_info = response.json()
+    bucket_url = deposition_info["links"]["bucket"]
+
+    rdf_text = load_file_from_S3(s3_settings, "rdf.yaml")
+    rdf = yaml.safe_load(rdf_text)
+    if not isinstance(rdf, dict):
+        raise Exception('Failed to load rdf.yaml from S3')
+
+    # PUT files to the deposition
+    for file_url in file_urls:
+        response = put_file_from_url(file_url, bucket_url, params)
+        assert_good_response(response, f"Failed to PUT file from {file_url}")
+
+    # Report deposition URL
+    deposition_id = deposition_info["id"]
+    deposition_doi = deposition_info["metadata"]["prereserve_doi"]["doi"]
+
+
+    docstring = rdf.get("documentation", "")
+    if (not docstring.startswith("http") and docstring.endswith(".md")):
+        # docstring should point to one of the files present...
+
+        # Get the file URL
+        docstring = docstring.replace("./", "")
+        text = load_file_from_S3(s3_settings, docstring)
+        # Load markdown?
+        docstring = text
+
+        # const file = this.zipPackage.files[
+            # this.rdf.documentation.replace("./", "")
+        # ];
+        # if (file) {
+            # docstring = await file.async("string"); // get markdown
+            # docstring = DOMPurify.sanitize(marked(docstring));
+        # }
+
+    base_url = f"{ZENODO_URL}/record/{deposition_id}/files/"
+
+    metadata = rdf_to_metadata(
+            rdf,
+            base_url,
+            deposition_info,
+            docstring)
+
+
+    response = requests.put(
+            f'{ZENODO_URL}/api/deposit/depositions/%s' % deposition_id,
+            params={'access_token': ACCESS_TOKEN},
+            json={'metadata':metadata},
+            headers=headers)
+    assert_good_response(
+            response,
+            "Failed to put metadata",
+            info={'metadata':metadata}
+    )
+
+
+    update_status(
+            args.model_name,
+            "Would be publishing now...(but leaving as draft)",
+            step=None, num_steps=None)
+    return
+
+    response = requests.post(f'{ZENODO_URL}/api/deposit/depositions/%s/actions/publish' % deposition_id,
+            params=params)
+
+    assert_good_response(response, "Failed to publish deposition")
+
+    update_status(
+            args.model_name,
+            f"The deposition DOI is {deposition_doi}",
+            step=None, num_steps=None)
+
+
+
+
+@dataclass
+class S3Settings:
+    host: str
+    bucket: str
+    prefix: str
+    access_key: str = field(repr=False)
+    secret_key: str = field(repr=False)
+
+
+def get_file_urls(s3_settings: S3Settings, exclude_files=("status.json")) -> list[str]:
+    """Checks an S3 'folder' for its list of files"""
+    logger.debug("Getting file list from {}", s3_settings)
+    client = Minio(
+        s3_settings.host,
+        access_key=s3_settings.access_key,
+        secret_key=s3_settings.secret_key,
+    )
+    objects = client.list_objects(s3_settings.bucket, prefix=s3_settings.prefix, recursive=True)
+    file_urls : list[str] = []
+    for obj in objects:
+        if obj.is_dir:
+            continue
+        filename = Path(obj.object_name).name
+        if filename in exclude_files:
+            continue
+        # Option 1:
+        url = client.get_presigned_url(
+            "GET",
+            obj.bucket_name,
+            obj.object_name,
+            expires=timedelta(hours=1),
+        )
+        file_urls.append(url)
+        # Option 2: Work with minio.datatypes.Object directly
+    return file_urls
+
+
+def load_file_from_S3(s3_settings: S3Settings, filename):
+    client = Minio(
+        s3_settings.host,
+        access_key=s3_settings.access_key,
+        secret_key=s3_settings.secret_key,
+    )
+    url = client.get_presigned_url(
+        "GET",
+        s3_settings.bucket,
+        str(Path(s3_settings.prefix, filename)),
+        expires=timedelta(minutes=10),
+    )
+    response = requests.get(url)
+    return response.content
+
+
+def put_file_from_url(file_url: str, destination_url: str, params: dict) -> dict:
+    """Gets a remote file and pushes it up to a destination"""
+    # TODO: Can we use stream=True and pass response.raw into requests.put?
+    filename = Path(urlparse(file_url).path).name
+    response = requests.get(file_url)
+    file_like = BytesIO(response.content)
+    return put_file(file_like, filename, destination_url, params)
+    # response = requests.get(file_url, stream=True)
+    # return put_file(response.raw, filename, destination_url, params)
+
+
+
+def put_file_path(path: str|Path, url: str, params: dict) -> dict:
+    """PUT file to url with params, given a file-path"""
+    path = Path(path)
+    filename = path.name
+    with path.open(mode="rb") as fileobj:
+        response = put_file(fileobj, filename, url, params)
+    return response
+
+
+def put_file(file_object, name, url, params):
+    response = requests.put(
+        "%s/%s" % (url, name),
+        data=file_object,
+        params=params,
+    )
+    return response
+
+
+def rdf_authors_to_metadata_creators(rdf):
+    if 'authors' not in rdf:
+        return []
+    authors = rdf["authors"]
+
+    creators = []
+    for author in authors:
+        if (isinstance(author, str)):
+            creator = { 'name': author.split(";")[0], 'affiliation': "" }
+        else:
+            creator = {
+                'name': author['name'].split(";")[0],
+                'affiliation': author['affiliation'],
+            }
+            if 'orcid' in author:
+                creator['orcid'] = author['orcid']
+        creators.append(creator)
+    return creators
+
+def rdf_to_metadata(
+        rdf:dict,
+        base_url: str,
+        deposition_info: dict,
+        docstring: str,
+        additional_note="(Uploaded via https://bioimage.io)") -> dict:
+
+    validate_rdf(rdf)
+    creators = rdf_authors_to_metadata_creators(rdf)
+    rdf['config']['_deposit'] = deposition_info
+    url = quote_plus(f"{rdf['config']['_deposit']['id']}")
+    docstring_html = ""
+    if docstring:
+        docstring_html = f"<p>{docstring}</p>"
+    description = f"""<a href="https://bioimage.io/#/p/zenodo:{url}"><span class="label label-success">Download RDF Package</span></a><br><p>{docstring_html}</p>"""
+    keywords = ["bioimage.io", "bioimage.io:" + rdf["type"]]
+    related_identifiers = generate_related_identifiers_from_rdf(rdf, base_url)
+    metadata = {
+        'title': rdf['name'],
+        'description': description,
+        'access_right': "open",
+        'license': rdf['license'],
+        'upload_type': "other",
+        'creators': creators,
+        'publication_date': datetime.now().date().isoformat(),
+        'keywords': keywords + rdf['tags'],
+        'notes': rdf['description']+ additional_note,
+        'related_identifiers': related_identifiers,
+        'communities': [],
+    }
+    return metadata
+
+
+def generate_related_identifiers_from_rdf(rdf, base_url):
+    related_identifiers = []
+    covers = []
+    for cover in rdf.get("covers", ()):
+        if not cover.startswith("http"):
+            cover = urljoin(base_url, cover)
+        covers.append(cover)
+
+        related_identifiers.append({
+            'relation': "hasPart",  # is part of this upload
+            'identifier': cover,
+            'resource_type': "image-figure",
+            'scheme': "url"
+        })
+
+    for link in rdf.get("links", ()):
+        related_identifiers.append({
+            'identifier': f"https://bioimage.io/#/r/{quote_plus(link)}",
+            'relation': "references",  # // is referenced by this upload
+            'resource_type': "other",
+            'scheme': "url"
+        })
+
+    #  rdf.yaml or model.yaml
+    if rdf["rdf_source"].startswith("http"):
+        rdf_file= rdf["rdf_source"]
+    else:
+        rdf_file = urljoin(base_url, rdf["rdf_source"])
+    # When we update an existing deposit, make sure we save the relative link
+    if rdf_file.startswith("http") and ("api/files" in rdf_file):
+        rdf_file = rdf_file.split("/")
+        rdf_file = rdf_file[-1]
+        rdf_file = urljoin(base_url, rdf_file)
+
+    related_identifiers.append({
+            'identifier': rdf_file,
+            'relation': "isCompiledBy", # // compiled/created this upload
+            'resource_type': "other",
+            'scheme': "url",
+        })
+
+    documentation = rdf.get("documentation")
+    if documentation:
+        if not documentation.startswith("http"):
+            documentation = urljoin(base_url, documentation)
+
+        related_identifiers.append({
+                'identifier': documentation,
+                'relation': "isDocumentedBy", # is referenced by this upload
+                'resource_type': "publication-technicalnote",
+                'scheme': "url"
+        })
+    return related_identifiers
+
+
+def validate_rdf(rdf: dict):
+    """Unfortunately, probably some duplicate effort here re the spec lib, but for now 🤷"""
+
+    if (rdf['type'] == "model") and (parse_version(rdf['format_version']) > MAX_RDF_VERSION):
+        raise Exception(f"Unsupported format version {rdf['format_version']} (it must <= {MAX_RDF_VERSION})")
+
+    if rdf['license'] not in spdx_licenses:
+        raise Exception("Invalid license, the license identifier must be one from the SPDX license list (https://spdx.org/licenses/)")
+    if 'type' not in rdf:
+        raise Exception("`type` key is not defined in the RDF.")
+
+    for cover in rdf.get("covers", []):
+        if "access_token=" in cover:
+            raise Exception("Cover URL should not contain access token")
+
+    for link in rdf.get("links", ()):
+        if "access_token=" in link:
+            raise Exception(f"Link should not contain access token: {link}")
+
+    if "rdf_source" not in rdf:
+        raise Exception("`rdf_source` key is not found in the RDF")
+
+    if "access_token=" in rdf.get("documentation", ""):
+        raise Exception("Documentation URL should not contain access token")
+
+
+if __name__ == "__main__":
+    main()
+
+
