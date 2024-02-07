@@ -1,14 +1,13 @@
 import argparse
 import io
-import os
 import traceback
 from typing import Optional
 import urllib.request
 import zipfile
 
-from minio import Minio  # type: ignore
 
 from update_status import update_status
+from s3_client import create_client
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -38,22 +37,27 @@ def main():
         update_status(model_name, {'status' : err_message})
         raise
 
+
 def unzip_from_url(model_name, model_zip_url):
     filename = "model.zip"
-    s3_host = os.getenv("S3_HOST")
-    s3_bucket = os.getenv("S3_BUCKET")
-    s3_root_folder = os.getenv("S3_FOLDER")
-    s3_access_key_id = os.getenv("S3_ACCESS_KEY_ID")
-    s3_secret_access_key = os.getenv("S3_SECRET_ACCESS_KEY")
+    client = create_client()
 
-    client = Minio(
-        s3_host,
-        access_key=s3_access_key_id,
-        secret_key=s3_secret_access_key,
-    )
-    found = client.bucket_exists(s3_bucket)
-    if not found:
-        raise Exception("target bucket does not exist: {s3_bucket}")
+    versions = client.check_versions(model_name)
+    if len(versions) == 0:
+        version = "1"
+
+    else:
+        # TODO handle if a staging version exists vs
+        # if only published version exist
+        raise NotImplementedError("Updating/publishing new version not implemented")
+
+    # TODO: Need to make sure status is staging
+    status = client.get_status(model_name, version)
+    status_str = status.get("status", "missing-status")
+    if status_str != "staging":
+        raise ValueError(
+                "Model {} at version {} is status: {}",
+                model_name, version, status_str)
 
     # Download the model zip file
     remotezip = urllib.request.urlopen(model_zip_url)
@@ -63,17 +67,11 @@ def unzip_from_url(model_name, model_zip_url):
     for filename in zipobj.namelist():
         # file_object = io.BytesIO(zipobj)
         file_object = zipobj.open(filename)
-        s3_path = f"{s3_root_folder}/{model_name}/{filename}"
+        path = f"{model_name}/{version}/{filename}"
 
-        # For unknown length (ie without reading file into mem) give `part_size`
-        client.put_object(
-            s3_bucket,
-            s3_path,
+        client.put(
+            path,
             file_object,
-            length=-1,
-            part_size=10*1024*1024,
-            # length=len(status_message),
-            # content_type="application/json",
         )
 
 
