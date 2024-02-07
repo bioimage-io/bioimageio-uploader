@@ -38,9 +38,9 @@ def test_dynamically(
         try:
             from bioimageio.core.resource_tests import test_resource
         except Exception as e:
-            summary = test_summary_from_exception(
+            summaries = [test_summary_from_exception(
                 "import test_resource from test environment", e
-            )
+            )]
         else:
             try:
                 rdf = yaml.load(source)
@@ -51,15 +51,15 @@ def test_dynamically(
                     .get(weight_format, {})
                 )
             except Exception as e:
-                summary = test_summary_from_exception("check for test kwargs", e)
+                summaries = [test_summary_from_exception("check for test kwargs", e)]
             else:
                 try:
                     rd = load_raw_resource_description(source)
-                    summary = test_resource(
+                    summaries = test_resource(
                         rd, weight_format=weight_format, **test_kwargs
                     )
                 except Exception as e:
-                    summary = test_summary_from_exception("call 'test_resource'", e)
+                    summaries = [test_summary_from_exception("call 'test_resource'", e)]
 
     else:
         env_path = Path(f"conda_env_{weight_format}.yaml")
@@ -68,13 +68,9 @@ def test_dynamically(
         else:
             error = f"Conda environment yaml file not found: {env_path}"
 
-        summary = dict(name="install test environment", status="failed", error=error)
+        summaries = [dict(name="install test environment", status="failed", error=error)]
 
-    add_log_entry(descr_id, "validation_summary")
-    with Path(f"validation_summary_{weight_format}.json").open(
-        "w", encoding="utf-8"
-    ) as f:
-        json.dump(summary, f)
+    add_log_entry(descr_id, "validation_summaries", summaries)
 
 
 if __name__ == "__main__":

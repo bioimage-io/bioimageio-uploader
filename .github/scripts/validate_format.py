@@ -254,11 +254,10 @@ def prepare_dynamic_test_cases(descr_id: str, rd: RDF_Base) -> List[Dict[str, st
 def validate_format(descr_id: str, source: str):
     dynamic_test_cases: List[Dict[str, str]] = []
 
-    summary = validate(source)
+    summaries = [validate(source)]
 
-    add_log_entry(descr_id, "validation_summary", summary)
 
-    if summary["status"] == "passed":
+    if summaries[0]["status"] == "passed":
         # validate rdf using the latest format version
         latest_static_summary = validate(source, update_format=True)
         if latest_static_summary["status"] == "passed":
@@ -270,8 +269,9 @@ def validate_format(descr_id: str, source: str):
             latest_static_summary["name"] = (
                 "bioimageio.spec static validation with auto-conversion to latest format"
             )
+        summaries.append(latest_static_summary)
 
-        add_log_entry(descr_id, "validation_summary_latest", latest_static_summary)
+    add_log_entry(descr_id, "validation_summaries", summaries)
 
     set_multiple_gh_actions_outputs(
         dict(
