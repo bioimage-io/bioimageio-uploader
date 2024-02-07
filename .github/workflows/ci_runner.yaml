@@ -1,93 +1,93 @@
 name: CI Runner
 
 on:
-  workflow_dispatch:
-    inputs:
-      model_nickname:
-        description: 'Nickname of the model - to be used to access the model data on S3'
-        required: true
-        type: string
-      model_zip_url:
-        description: 'Presigned url for the model zip-file'
-        required: true
-        type: string
+    workflow_dispatch:
+        inputs:
+            model_nickname:
+                description: 'Nickname of the model - to be used to access the model data on S3'
+                required: true
+                type: string
+            model_zip_url:
+                description: 'Presigned url for the model zip-file'
+                required: true
+                type: string
 
 
 env:
-  S3_HOST: ${{vars.S3_HOST}}
-  S3_BUCKET: ${{vars.S3_BUCKET}}
-  S3_FOLDER: ${{vars.S3_FOLDER}}
-  S3_ACCESS_KEY_ID: ${{secrets.S3_ACCESS_KEY_ID}}
-  S3_SECRET_ACCESS_KEY: ${{secrets.S3_SECRET_ACCESS_KEY}}
+    S3_HOST: ${{vars.S3_HOST}}
+    S3_BUCKET: ${{vars.S3_BUCKET}}
+    S3_FOLDER: ${{vars.S3_FOLDER}}
+    S3_ACCESS_KEY_ID: ${{secrets.S3_ACCESS_KEY_ID}}
+    S3_SECRET_ACCESS_KEY: ${{secrets.S3_SECRET_ACCESS_KEY}}
 
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-    outputs:
-      dynamic_test_cases: ${{ steps.validate.outputs.dynamic_test_cases }}
-      has_dynamic_test_cases: ${{ steps.validate.outputs.has_dynamic_test_cases }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install workflow script dependencies
-        run: |
-          echo "Installing workflow script dependencies"
-          python -m pip install --upgrade pip
-          python -m pip install "minio==7.2.3" "ruamel.yaml==0.18.5" "bioimageio.spec==0.4.9.post5" "typer"
-      - name: Unzip model file
-        run: |
-          python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Unzipping package" "1" "6"
-          python .github/scripts/unzip_model.py "${{inputs.model_nickname}}" "${{inputs.model_zip_url}}"
+    validate:
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+        outputs:
+            dynamic_test_cases: ${{ steps.validate.outputs.dynamic_test_cases }}
+            has_dynamic_test_cases: ${{ steps.validate.outputs.has_dynamic_test_cases }}
+        steps:
+          - uses: actions/checkout@v4
+          - name: Install workflow script dependencies
+            run: |
+                    echo "Installing workflow script dependencies"
+                    python -m pip install --upgrade pip
+                    python -m pip install "minio==7.2.3" "ruamel.yaml==0.18.5" "bioimageio.spec==0.4.9.post5" "typer"
+          - name: Unzip model file
+            run: |
+                python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Unzipping package" "1" "6"
+                python .github/scripts/unzip_model.py "${{inputs.model_nickname}}" "${{inputs.model_zip_url}}"
 
-      - name: Validate format
-        id: validate
-        run: |
-          python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Starting validation" "2" "6"
-          python .github/scripts/validate_format.py  "${{ inputs.model_nickname }}" "${{inputs.model_zip_url}}"
-      - run: |
-          python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Starting additional tests" "3" "6"
-        if: steps.validate.outputs.has_dynamic_test_cases == 'yes'
-      - run: |
-          python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Validation done" "3" "6"
-        if: steps.validate.outputs.has_dynamic_test_cases == 'no'
+          - name: Validate format
+            id: validate
+            run: |
+                python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Starting validation" "2" "6"
+                python .github/scripts/validate_format.py    "${{ inputs.model_nickname }}" "${{inputs.model_zip_url}}"
+          - run: |
+              python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Starting additional tests" "3" "6"
+            if: steps.validate.outputs.has_dynamic_test_cases == 'yes'
+          - run: |
+                python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Validation done" "3" "6"
+            if: steps.validate.outputs.has_dynamic_test_cases == 'no'
 
 
-  test:
-    needs: validate
-    if: needs.validate.outputs.has_dynamic_test_cases == 'yes'
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix: ${{ fromJson(needs.static-validation.outputs.dynamic_test_cases) }}  # [{env_name: ..., weight_format: ...}, ...]
-    steps:
-      - uses: actions/checkout@v4
-      - name: install validation dependencies
-        id: create_env
-        uses: mamba-org/setup-micromamba@v1
-        with:
-          cache-downloads: true
-          environment-name: ${{ matrix.env_name }}
-          environment-file: conda_env_${{ matrix.weight_format }}.yaml
-          create-args: >-  # script dependencies
-            typer
-            conda-forge::bioimageio.spec
-        continue-on-error: true  # we inspect this step's outcome in test_dynamically.py
-        timeout-minutes: 60
-      - name: install minimal script dependencies if val env failed
-        if: ${{ steps.create_env.outcome != 'success' }}
-        run: pip install typer bioimageio.spec
-      - name: dynamic validation
-        shell: bash -l {0}
-        run: python scripts/test_dynamically.py "${{inputs.model_zip_url}}" ${{ matrix.weight_format }} --create-env-outcome ${{ steps.create_env.outcome }} --${{ contains(inputs.deploy_to, 'gh-pages') && 'no-ignore' || 'ignore' }}-rdf-source-field-in-validation
-        timeout-minutes: 60
+    test:
+        needs: validate
+        if: needs.validate.outputs.has_dynamic_test_cases == 'yes'
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix: ${{ fromJson(needs.static-validation.outputs.dynamic_test_cases) }}    # [{env_name: ..., weight_format: ...}, ...]
+        steps:
+          - uses: actions/checkout@v4
+          - name: install validation dependencies
+            id: create_env
+            uses: mamba-org/setup-micromamba@v1
+            with:
+                cache-downloads: true
+                environment-name: ${{ matrix.env_name }}
+                environment-file: conda_env_${{ matrix.weight_format }}.yaml
+                create-args: >-    # script dependencies
+                    typer
+                    conda-forge::bioimageio.spec
+            continue-on-error: true    # we inspect this step's outcome in test_dynamically.py
+            timeout-minutes: 60
+          - name: install minimal script dependencies if val env failed
+            if: ${{ steps.create_env.outcome != 'success' }}
+            run: pip install typer bioimageio.spec
+          - name: dynamic validation
+            shell: bash -l {0}
+            run: python scripts/test_dynamically.py "${{inputs.model_zip_url}}" ${{ matrix.weight_format }} --create-env-outcome ${{ steps.create_env.outcome }} --${{ contains(inputs.deploy_to, 'gh-pages') && 'no-ignore' || 'ignore' }}-rdf-source-field-in-validation
+            timeout-minutes: 60
 
-  conclude:
-    needs: test
-    if: always() # run even if test job fails
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Awaiting review" "4" "6"
+    conclude:
+        needs: test
+        if: always() # run even if test job fails
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - run: |
+                  python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Awaiting review" "4" "6"
