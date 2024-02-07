@@ -5,19 +5,18 @@ import os
 from pathlib import Path
 from urllib.parse import urlparse, urljoin, quote_plus
 from typing import Optional
-from datetime import timedelta, datetime
-from dataclasses import dataclass, field
+from datetime import datetime
 import pprint
 
 
 from packaging.version import parse as parse_version
 import requests  # type: ignore
-from minio import Minio
 from loguru import logger  # type: ignore
 import spdx_license_list  # type: ignore
 import yaml  # type: ignore
 
 from update_status import update_status
+from s3_client import create_client
 
 spdx_licenses = [item.id for item in spdx_license_list.LICENSES.values()]
 
@@ -58,6 +57,7 @@ def assert_good_response(response, message, info=None):
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--model_name", help="Model name", required=True)
+    parser.add_argument("--version", help="Version", nargs="?", default=None)
     return parser
 
 
@@ -74,14 +74,19 @@ def main():
     headers = {"Content-Type": "application/json"}
     params = {'access_token': ACCESS_TOKEN}
 
-    s3_settings = S3Settings(
-        host=S3_HOST,
-        bucket=S3_BUCKET,
-        prefix=f'{S3_FOLDER}/{args.model_name}',
-        access_key=S3_ACCESS_KEY,
-        secret_key=S3_SECRET_KEY)
+    client = create_client()
+
+
+    # TODO: GET THE CURRENT VERSION
+    if args.version is None:
+        version = client.get_unpublished_version(args.model_name)
+
+
+    s3_path = Path(args.model_name, version)
+
+
     # List the files at the model URL
-    file_urls = get_file_urls(s3_settings)
+    file_urls = client.get_file_urls(path=s3_path)
     logger.info("Using file URLs:\n{}", '\n'.join((str(obj) for obj in file_urls)))
 
     # Create empty deposition
@@ -97,7 +102,7 @@ def main():
     deposition_info = response.json()
     bucket_url = deposition_info["links"]["bucket"]
 
-    rdf_text = load_file_from_S3(s3_settings, "rdf.yaml")
+    rdf_text = client.load_file(Path(s3_path, "rdf.yaml"))
     rdf = yaml.safe_load(rdf_text)
     if not isinstance(rdf, dict):
         raise Exception('Failed to load rdf.yaml from S3')
@@ -118,7 +123,7 @@ def main():
 
         # Get the file URL
         docstring = docstring.replace("./", "")
-        text = load_file_from_S3(s3_settings, docstring)
+        text = client.load_file(Path(s3_path, docstring))
         # Load markdown?
         docstring = text
 
@@ -170,57 +175,6 @@ def main():
 
 
 
-@dataclass
-class S3Settings:
-    host: str
-    bucket: str
-    prefix: str
-    access_key: str = field(repr=False)
-    secret_key: str = field(repr=False)
-
-
-def get_file_urls(s3_settings: S3Settings, exclude_files=("status.json")) -> list[str]:
-    """Checks an S3 'folder' for its list of files"""
-    logger.debug("Getting file list from {}", s3_settings)
-    client = Minio(
-        s3_settings.host,
-        access_key=s3_settings.access_key,
-        secret_key=s3_settings.secret_key,
-    )
-    objects = client.list_objects(s3_settings.bucket, prefix=s3_settings.prefix, recursive=True)
-    file_urls : list[str] = []
-    for obj in objects:
-        if obj.is_dir:
-            continue
-        filename = Path(obj.object_name).name
-        if filename in exclude_files:
-            continue
-        # Option 1:
-        url = client.get_presigned_url(
-            "GET",
-            obj.bucket_name,
-            obj.object_name,
-            expires=timedelta(hours=1),
-        )
-        file_urls.append(url)
-        # Option 2: Work with minio.datatypes.Object directly
-    return file_urls
-
-
-def load_file_from_S3(s3_settings: S3Settings, filename):
-    client = Minio(
-        s3_settings.host,
-        access_key=s3_settings.access_key,
-        secret_key=s3_settings.secret_key,
-    )
-    url = client.get_presigned_url(
-        "GET",
-        s3_settings.bucket,
-        str(Path(s3_settings.prefix, filename)),
-        expires=timedelta(minutes=10),
-    )
-    response = requests.get(url)
-    return response.content
 
 
 def put_file_from_url(file_url: str, destination_url: str, params: dict) -> dict:
