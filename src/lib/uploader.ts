@@ -62,7 +62,7 @@ export class Uploader {
     error_object: Error | null = null;
     files: File[] = [];
     login_url: string | null = null;
-    resource_id: ResourceId | null = null;
+    resource_path: ResourceId | null = null;
     package_url: string | null = null;
     rdf: any = null;
     render_callbacks: (() => void)[] = [];
@@ -92,7 +92,7 @@ export class Uploader {
     }
 
     reset() {
-        this.resource_id = null;
+        this.resource_path = null;
         this.rdf = null;
         this.status.reset();
     }
@@ -251,7 +251,7 @@ export class Uploader {
 
     ready_to_publish() {
         if (!this.ready_for_review()) return false;
-        if (!this.resource_id) return false;
+        if (!this.resource_path) return false;
         return true;
     }
 
@@ -266,7 +266,7 @@ export class Uploader {
             const model_name = Object.assign(new ResourceId, await (await fetch(generate_name_url)).json());
             console.log("Generated name:", model_name);
             const error = "";
-            this.resource_id = model_name;
+            this.resource_path = model_name;
             this.rdf.nickname = model_name.name;
             return { model_name, error };
         } catch (err) {
@@ -278,13 +278,13 @@ export class Uploader {
     }
 
     async upload_file(file: File, progress_callback: null | ((val: string, tot: string) => null)) {
-        if (!this.resource_id) {
-            throw new Error("Unable to upload, resource_id not set");
+        if (!this.resource_path) {
+            throw new Error("Unable to upload, resource_path not set");
         };
         this.status.message = "Uploading";
         this.status.step = UploaderStep.UPLOADING;
         this.render();
-        const filename = `${this.resource_id.id}/${file.name}`;
+        const filename = `${this.resource_path.id}/${file.name}`;
         const url_put = await this.storage.generate_presigned_url(
             this.storage_info.bucket,
             this.storage_info.prefix + filename,
@@ -422,7 +422,7 @@ export class Uploader {
             const resp = await fetch(notify_ci_url, {
                 method: 'POST',
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 'resource_id': this.resource_id!.id, 'package_url': this.zip_urls!.get })
+                body: JSON.stringify({ 'resource_path': this.resource_path!.id, 'package_url': this.zip_urls!.get })
             });
             if (resp.status === 200) {
                 const ci_resp = (await resp.json());

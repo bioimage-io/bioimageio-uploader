@@ -3,7 +3,7 @@ name: publish
 on:
     workflow_dispatch:
         inputs:
-            resource_id:
+            resource_path:
                 description: 'Bioimageio ID of the resource - to be used to access the resource on S3'
                 required: true
                 type: string
@@ -33,6 +33,6 @@ jobs:
                 python -m pip install "minio==7.2.3" "loguru==0.7.2" "packaging==23.2" "spdx-license-list==3.22" "ruamel.yaml==0.18.5" "typer"
           - name: Publish to Zenodo
             run: |
-                python .github/scripts/update_status.py "${{ inputs.resource_id }}" "Publishing to Zenodo" "5"
-                python .github/scripts/upload_model_to_zenodo.py --resource_id "${{inputs.resource_id}}"
-                python .github/scripts/update_status.py "${{ inputs.resource_id }}" "Publishing complete" "6"
+                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Publishing to Zenodo" "5"
+                python .github/scripts/upload_model_to_zenodo.py --resource_path "${{inputs.resource_path}}"
+                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Publishing complete" "6"

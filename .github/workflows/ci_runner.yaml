@@ -3,8 +3,8 @@ name: CI Runner
 on:
     workflow_dispatch:
         inputs:
-            resource_id:
-                description: 'Bioimageio ID - to be used to access the resource on S3'
+            resource_path:
+                description: 'Bioimageio wide, version specific resource identifier "resource_path/version"'
                 required: true
                 type: string
             package_url:
@@ -38,19 +38,19 @@ jobs:
                 python -m pip install "minio==7.2.3" "ruamel.yaml==0.18.5" "bioimageio.spec==0.4.9.post5" "typer"
           - name: Unzip model file
             run: |
-                python .github/scripts/update_status.py    "${{ inputs.resource_id }}" "Unzipping package" "1"
-                python .github/scripts/unzip_model.py "${{inputs.resource_id}}" "${{inputs.package_url}}"
+                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Unzipping package" "1"
+                python .github/scripts/unzip_model.py "${{inputs.resource_path}}" "${{inputs.package_url}}"
 
           - name: Validate format
             id: validate
             run: |
-                python .github/scripts/update_status.py    "${{ inputs.resource_id }}" "Starting validation" "2"
-                python .github/scripts/validate_format.py    "${{ inputs.resource_id }}" "${{inputs.package_url}}"
+                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Starting validation" "2"
+                python .github/scripts/validate_format.py    "${{ inputs.resource_path }}" "${{inputs.package_url}}"
           - run: |
-              python .github/scripts/update_status.py    "${{ inputs.resource_id }}" "Starting additional tests" "3"
+              python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Starting additional tests" "3"
             if: steps.validate.outputs.has_dynamic_test_cases == 'yes'
           - run: |
-                python .github/scripts/update_status.py    "${{ inputs.resource_id }}" "Validation done" "3"
+                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Validation done" "3"
             if: steps.validate.outputs.has_dynamic_test_cases == 'no'
 
 
@@ -90,4 +90,4 @@ jobs:
         steps:
           - uses: actions/checkout@v4
           - run: |
-                python .github/scripts/update_status.py    "${{ inputs.resource_id }}" "Awaiting review" "4"
+                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Awaiting review" "4"

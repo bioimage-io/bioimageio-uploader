@@ -57,7 +57,7 @@ def assert_good_response(response, message, info=None):
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--resource_id", help="Model name", required=True)
+    parser.add_argument("--resource_path", help="Model name", required=True)
     parser.add_argument("--version", help="Version", nargs="?", default=None)
     return parser
 
@@ -79,9 +79,9 @@ def main():
 
     # TODO: GET THE CURRENT VERSION
     if args.version is None:
-        version = client.get_unpublished_version(args.resource_id)
+        version = client.get_unpublished_version(args.resource_path)
 
-    s3_path = Path(args.resource_id, version)
+    s3_path = Path(args.resource_path, version)
 
     # List the files at the model URL
     file_urls = client.get_file_urls(path=s3_path)
@@ -144,7 +144,7 @@ def main():
     )
 
     update_status(
-        args.resource_id,
+        args.resource_path,
         "Would be publishing now...(but leaving as draft)",
         step=None,
         num_steps=None,
@@ -159,7 +159,7 @@ def main():
     assert_good_response(response, "Failed to publish deposition")
 
     update_status(
-        args.resource_id,
+        args.resource_path,
         f"The deposition DOI is {deposition_doi}",
         step=None,
         num_steps=None,

@@ -5,15 +5,15 @@
 # S3_FOLDER
 # S3_ACCESS_KEY_ID
 # S3_SECRET_ACCESS_KEY
-# First arg is now resource_id
+# First arg is now resource_path
 
 FILENAME=status.json
 
-RESOURCE_ID=$1
+resource_path=$1
 STATUS=$2
 
-if [ -z "$RESOURCE_ID" ]; then
-    printf '%s\n' "RESOURCE_ID is unset or empty" >&2;
+if [ -z "$resource_path" ]; then
+    printf '%s\n' "resource_path is unset or empty" >&2;
     exit 1
 fi
 if [ -z "$S3_HOST" ]; then
@@ -40,7 +40,7 @@ fi
 
 #curl -X PUT -H 'Content-Type: application/json' -d '{"status": "'"$2"'"}' "$1"
 
-RESOURCE="/${S3_BUCKET}/${S3_FOLDER}/${RESOURCE_ID}/${FILENAME}"
+RESOURCE="/${S3_BUCKET}/${S3_FOLDER}/${resource_path}/${FILENAME}"
 CONTENT_TYPE="application/json"
 DATE=`date -R`
 _SIGNATURE="PUT\n\n${CONTENT_TYPE}\n${DATE}\n${RESOURCE}"

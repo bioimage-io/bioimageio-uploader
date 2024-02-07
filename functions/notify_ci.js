@@ -12,8 +12,8 @@ const headers = {
 
 export default async (event, context) => {
     const data = await event.json();
-    if (!data.resource_id) {
-        const error_message = "Failed: resource_id not found in request json";
+    if (!data.resource_path) {
+        const error_message = "Failed: resource_path not found in request json";
         console.error()
         const res = Response.json({ 'message': error_message, 'status': 500 });
         res.headers.set("Access-Control-Allow-Origin", "*");
@@ -38,7 +38,7 @@ export default async (event, context) => {
         body: JSON.stringify({
             'ref': GITHUB_BRANCH,
             'inputs': {
-                'resource_id': data.resource_id,
+                'resource_path': data.resource_path,
                 'package_url': data.package_url,
             }
         })

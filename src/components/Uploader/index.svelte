@@ -70,7 +70,7 @@
 {:else if step == "uploading"}
     <UploadStatus {uploader} on:done={()=>{step="add"}} />
 <!--{:else if step == "done"}-->
-    <!--<a href="/status/{uploader.resource_id.name}">Go to status page</a>-->
+    <!--<a href="/status/{uploader.resource_path.name}">Go to status page</a>-->
 {:else}
     <Notification>
         Opps! something went wrong 😬

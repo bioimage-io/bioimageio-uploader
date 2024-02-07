@@ -8,7 +8,7 @@ from s3_client import create_client
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("resource_id", help="Model name")
+    parser.add_argument("resource_path", help="Model name")
     parser.add_argument("status", help="Status")
     parser.add_argument("--version", help="Version")
     parser.add_argument("--step", help="Step", default=0, type=int)
@@ -26,32 +26,32 @@ def get_args(argv: Optional[list] = None):
 
 def main():
     args = get_args()
-    resource_id = args.resource_id
+    resource_path = args.resource_path
     version = args.version
     step = args.step
     num_steps = args.num_steps
     status = args.status
-    update_status(resource_id, status, version=version, step=step, num_steps=num_steps)
+    update_status(resource_path, status, version=version, step=step, num_steps=num_steps)
 
 
-def update_status(resource_id: str, status_text: str, version: Optional[str] = None, step: Optional[int], num_steps: int = 6):
+def update_status(resource_path: str, status_text: str, version: Optional[str] = None, step: Optional[int], num_steps: int = 6):
     assert step is None or step <= num_steps
     timenow = datetime.datetime.now().isoformat()
     client = create_client()
     logger.info(
         "Updating status for {} with text {} [steps={}, num_steps={}]",
-        resource_id,
+        resource_path,
         status_text,
         step,
         num_steps,
     )
 
     if version is None:
-        version = client.get_unpublished_version(resource_id)
+        version = client.get_unpublished_version(resource_path)
         logger.info("Version detected: {}", version)
     else:
         logger.info("Version requested: {}", version)
-    status = client.get_status(resource_id, version)
+    status = client.get_status(resource_path, version)
 
     if "messages" not in status:
         status["messages"] = []
@@ -61,7 +61,7 @@ def update_status(resource_id: str, status_text: str, version: Optional[str] = N
         status["num_steps"] = num_steps
     status["last_message"] = status_text
     status["messages"].append({"timestamp": timenow, "text": status_text})
-    client.put_status(resource_id, version, status)
+    client.put_status(resource_path, version, status)
 
 
 if __name__ == "__main__":

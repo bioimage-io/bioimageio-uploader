@@ -19,7 +19,7 @@ export default async (event, context) => {
     //'ref': 'main',
     //'inputs':{
     //'status_url': data.status_url,
-    //'resource_id': data.resource_id,
+    //'resource_path': data.resource_path,
     //}
     //})
     //};
