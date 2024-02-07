@@ -193,6 +193,27 @@ class Client:
             content_type="application/json",
         )
 
+    def get_log(self, model_name: str, version: str) -> dict:
+        version_path = f"{model_name}/{version}"
+        logger.debug("model_name: {}, version: {}", model_name, version)
+        path = f"{version_path}/log.json"
+        logger.debug("Getting log using path {}", path)
+        log = self.load_file(path)
+        log = json.loads(log)
+        return log
+
+    def put_log(self, model_name: str, version: str, log: dict):
+        logger.debug("Updating log for {}-{}, with {}", model_name, version, log)
+        contents = json.dumps(log).encode()
+        file_object = io.BytesIO(contents)
+
+        self.put(
+            f"{model_name}/{version}/log.json",
+            file_object,
+            length=len(contents),
+            content_type="application/json",
+        )
+
 
 def create_client() -> Client:
     """
