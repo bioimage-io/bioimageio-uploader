@@ -36,11 +36,11 @@ jobs:
                     python -m pip install "minio==7.2.3" "loguru==0.7.2" "packaging==23.2"  "spdx-license-list==3.22"  "PyYAML==6.0.1" 
             - name: Unzip model file
               run: |
-                    python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Unzipping model-file of ${{inputs.model_nickname}}" "1" "6"  
+                    python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Unzipping model-file of ${{inputs.model_nickname}}" --step "1"  --num_steps "6"  
                     python .github/scripts/unzip_model.py "${{inputs.model_nickname}}" "${{inputs.model_zip_url}}" 
             - name: Install dependencies
               run: |
-                    python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Installing dependencies of ${{inputs.model_nickname}}" "2" "6"  
+                    python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Installing dependencies of ${{inputs.model_nickname}}" --step "2"  --num_steps "6"  
                     echo "Installing dependencies"
                     python -m pip install --upgrade pip
                     python -m pip install flake8 pytest
@@ -56,13 +56,13 @@ jobs:
 
             - name: Main testing
               run: |
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "WARNING: Skipping testing ${{inputs.model_nickname}}" "3" "6"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "WARNING: Skipping testing ${{inputs.model_nickname}}" --step "3"  --num_steps "6"  
                   #python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "WARNING: Skipping Running main testing of ${{inputs.model_nickname}}" "5" "8"  
                   sleep 5
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Testing complete of ${{inputs.model_nickname}}" "4" "6"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Testing complete of ${{inputs.model_nickname}}" --step "4" --num_steps "6"  
 
             - name: Publish within to Zenodo
               run: |
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running publishing of ${{inputs.model_nickname}} to Zenodo" "5" "6"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Running publishing of ${{inputs.model_nickname}} to Zenodo" --step "5" --num_steps "6"  
                   python .github/scripts/upload_model_to_zenodo.py --model_name "${{inputs.model_nickname}}" 
-                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Publishing complete" "6" "6"  
+                  python .github/scripts/update_status.py  "${{ inputs.model_nickname }}" "Publishing complete" --step "6" --num_steps "6"  
