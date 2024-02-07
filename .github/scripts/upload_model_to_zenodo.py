@@ -160,6 +160,7 @@ def main():
             args.model_name,
             "Would be publishing now...(but leaving as draft)",
             step=None, num_steps=None)
+        num_steps=None,
     return
 
     response = requests.post(f'{ZENODO_URL}/api/deposit/depositions/%s/actions/publish' % deposition_id,

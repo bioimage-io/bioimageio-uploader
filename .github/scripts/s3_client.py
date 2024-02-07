@@ -1,14 +1,14 @@
-import os
 import io
-from pathlib import Path
+import json
+import os
 from dataclasses import dataclass, field
 from datetime import timedelta
+from pathlib import Path
 from typing import Iterator
-import json
 
-from minio import Minio  # type: ignore
 # import requests  # type: ignore
 from loguru import logger  # type: ignore
+from minio import Minio  # type: ignore
 
 
 @dataclass
@@ -113,7 +113,7 @@ class Client:
             yield Path(obj.object_name).name
 
 
-    def load_file(self, path):
+    def load_file(self, path) -> str:
         """Load file from S3"""
         path = f"{self.prefix}/{path}"
         try:
