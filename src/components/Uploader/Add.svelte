@@ -53,7 +53,7 @@
 <p>Upload models file. This may be a single zip-archive containing all required files, 
 or you may select / drag and drop the individual files to use.</p>
 
-<p>A <code>bioimageio.yaml</code> file is optional; you can create this in the next step.</p>
+<p>An <code>rdf.yaml</code> will be required for the upload. You can create this in the next step.</p>
 
 <Dropzone on:drop={handle_files_select} multiple={true}>
     {#if file_info.length === 0}
