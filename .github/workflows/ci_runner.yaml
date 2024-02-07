@@ -39,7 +39,7 @@ jobs:
           - name: Unzip model file
             run: |
                 python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Unzipping package" "1"
-                python .github/scripts/unzip_model.py "${{inputs.resource_path}}" "${{inputs.package_url}}"
+                python .github/scripts/unzip_package.py "${{inputs.resource_path}}" "${{inputs.package_url}}"
 
           - name: Validate format
             id: validate
