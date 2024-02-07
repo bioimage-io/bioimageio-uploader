@@ -25,14 +25,14 @@ jobs:
             dynamic_test_cases: ${{ steps.validate.outputs.dynamic_test_cases }}
             has_dynamic_test_cases: ${{ steps.validate.outputs.has_dynamic_test_cases }}
         steps:
-            - uses: actions/checkout@v4
-            - name: Install workflow script dependencies
-              run: |
-                  echo "Installing workflow script dependencies"
-                  python -m pip install --upgrade pip
-                  python -m pip install "minio==7.2.3" "loguru==0.7.2" "packaging==23.2" "spdx-license-list==3.22" "ruamel.yaml==0.18.5" "typer"
-            - name: Publish to Zenodo
-              run: |
-                      python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Publishing to Zenodo" "5" "6"
-                      python .github/scripts/upload_model_to_zenodo.py --model_name "${{inputs.model_nickname}}"
-                      python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Publishing complete" "6" "6"
+          - uses: actions/checkout@v4
+          - name: Install workflow script dependencies
+            run: |
+                echo "Installing workflow script dependencies"
+                python -m pip install --upgrade pip
+                python -m pip install "minio==7.2.3" "loguru==0.7.2" "packaging==23.2" "spdx-license-list==3.22" "ruamel.yaml==0.18.5" "typer"
+          - name: Publish to Zenodo
+            run: |
+                python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Publishing to Zenodo" "5" "6"
+                python .github/scripts/upload_model_to_zenodo.py --model_name "${{inputs.model_nickname}}"
+                python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Publishing complete" "6" "6"
