@@ -23,9 +23,9 @@
     }
     let step = "add";
     let rerender = false;
-    
+
     uploader.add_render_callback(() => {
-        rerender = !rerender; 
+        rerender = !rerender;
     });
 
     function reset(){
@@ -70,7 +70,7 @@
 {:else if step == "uploading"}
     <UploadStatus {uploader} on:done={()=>{step="add"}} />
 <!--{:else if step == "done"}-->
-    <!--<a href="/status/{uploader.model_nickname.name}">Go to status page</a>-->
+    <!--<a href="/status/{uploader.resource_id.name}">Go to status page</a>-->
 {:else}
     <Notification>
         Opps! something went wrong 😬

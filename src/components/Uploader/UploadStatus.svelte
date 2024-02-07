@@ -11,23 +11,23 @@
     let error_element: Object;
     let last_error_object: Error;
     let step: UploaderStep = uploader.status.step;
-    let model_name = uploader.model_nickname.name;
+    let model_name = uploader.resource_id.name;
     const dispatch = createEventDispatcher();
-    
+
     function copy_error_to_clipboard(text: string){
         // Copy the text inside the text field
         if(navigator){
             if(navigator.clipboard){
                 const error_log = {
                     text: text,
-                    message:  last_error_object.message, 
-                    stack: last_error_object.stack, 
+                    message:  last_error_object.message,
+                    stack: last_error_object.stack,
                     name: last_error_object.name,
-                    cause: last_error_object.cause 
+                    cause: last_error_object.cause
                 };
                 navigator.clipboard.writeText(JSON.stringify(error_log));
                 toast.success("Copied error to clipboard");
-                return 
+                return
             }
         }
         console.error("Clipboard unavailable");
@@ -73,23 +73,23 @@
 
 
 {#if step === UploaderStep.FINISHED }
-    <h4>Almost there,</h4> 
+    <h4>Almost there,</h4>
 
     <p><b>There's nothing you need to do right now. Your model is uploaded and the CI-bots have started their work!</b><p>
-    <p>You can check the status of the CI at any point from <a href="#/status/{uploader.model_nickname.name}">here</a></p>
+    <p>You can check the status of the CI at any point from <a href="#/status/{uploader.resource_id.name}">here</a></p>
 
 
     <button on:click={restart}>Upload another model</button>
-{:else}        
+{:else}
     {status_message}
     {step}
     {#if step === UploaderStep.UPLOADING }
-        <p>Uploading</p> 
+        <p>Uploading</p>
         {#if upload_value}
             <progress value="{upload_value}" max="{upload_max}">{upload_value}</progress>
         {:else}
             <progress max="100">Progress</progress>
         {/if}
     {/if}
-{/if} 
+{/if}
 
