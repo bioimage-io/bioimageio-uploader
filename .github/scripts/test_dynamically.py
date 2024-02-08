@@ -6,10 +6,14 @@ from typing import Optional
 import typer
 from bioimageio.spec import load_raw_resource_description
 from bioimageio.spec.shared import yaml
-from tqdm import tqdm
 from update_log import add_log_entry
 
-tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)  # silence tqdm
+try:
+    from tqdm import tqdm
+except ImportError:
+    pass
+else:
+    tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)  # silence tqdm
 
 
 def test_summary_from_exception(name: str, exception: Exception):
@@ -37,9 +41,11 @@ def test_dynamically(
         try:
             from bioimageio.core.resource_tests import test_resource
         except Exception as e:
-            summaries = [test_summary_from_exception(
-                "import test_resource from test environment", e
-            )]
+            summaries = [
+                test_summary_from_exception(
+                    "import test_resource from test environment", e
+                )
+            ]
         else:
             try:
                 rdf = yaml.load(source)
@@ -67,7 +73,9 @@ def test_dynamically(
         else:
             error = f"Conda environment yaml file not found: {env_path}"
 
-        summaries = [dict(name="install test environment", status="failed", error=error)]
+        summaries = [
+            dict(name="install test environment", status="failed", error=error)
+        ]
 
     add_log_entry(descr_id, "validation_summaries", summaries)
 
