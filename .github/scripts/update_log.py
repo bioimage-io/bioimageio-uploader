@@ -1,36 +1,16 @@
-import argparse
 import datetime
-from typing import Optional
+from typing import Annotated
 
 from loguru import logger
 from s3_client import create_client, version_from_resource_path_or_s3
+from typer import Argument, run
 
 
-def create_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("resource_path", help="Resource name")
-    parser.add_argument("category", help="Log category")
-    parser.add_argument("summary", help="Log summary")
-    return parser
-
-
-def get_args(argv: Optional[list] = None):
-    """
-    Get command-line arguments
-    """
-    parser = create_parser()
-    return parser.parse_args(argv)
-
-
-def main():
-    args = get_args()
-    resource_path = args.resource_path
-    category = args.category
-    summary = args.summary
-    add_log_entry(resource_path, category, summary)
-
-
-def add_log_entry(resource_path, category, summary):
+def add_log_entry(
+    resource_path: Annotated[str, Argument(help="resource_id/version")],
+    category: Annotated[str, Argument(help="log category")],
+    summary: Annotated[str, Argument(help="log message")],
+):
     timenow = datetime.datetime.now().isoformat()
     client = create_client()
     logger.info(
@@ -50,4 +30,4 @@ def add_log_entry(resource_path, category, summary):
 
 
 if __name__ == "__main__":
-    main()
+    run(add_log_entry)
