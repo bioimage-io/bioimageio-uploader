@@ -7,12 +7,12 @@
 
     import JSONTree from 'svelte-json-tree';
     let model_name_message = "";
-    let model_nickname = uploader.model_nickname;
+    let resource_path = uploader.resource_path;
     let rdf = uploader.rdf;
     let ready_to_publish = uploader.ready_to_publish();
 
     const dispatch = createEventDispatcher();
-    
+
     function is_done() {
         dispatch('done');
     }
@@ -24,29 +24,29 @@
 
     async function regenerate_nickname(){
         await uploader.regenerate_nickname();
-        model_nickname = uploader.model_nickname;
+        resource_path = uploader.resource_path;
         ready_to_publish = uploader.ready_to_publish();
         console.log("Ready to publish?", ready_to_publish);
         rdf = uploader.rdf;
         //rerender = !rerender;
     }
 
-    if(!model_nickname) regenerate_nickname();
-    
+    if(!resource_path) regenerate_nickname();
+
 </script>
 
 {#if !uploader.logged_in()}
     <Notification deletable={false} >
-        Please login to the BioEngine to complete upload 
+        Please login to the BioEngine to complete upload
     </Notification>
 {/if}
 
 <!--{#key rerender}-->
 <p class="level">
     {#if model_name_message }({model_name_message}){/if}
-    {#if model_nickname}
-        Your model nickname is: 
-        <code style="min-width:10em;">{model_nickname.name} {model_nickname.icon}&nbsp;</code>
+    {#if resource_path}
+        Your model nickname is:
+        <code style="min-width:10em;">{resource_path.name} {resource_path.icon}&nbsp;</code>
     {/if}
     <button on:click={regenerate_nickname}>Regenerate nickname</button>
 </p>

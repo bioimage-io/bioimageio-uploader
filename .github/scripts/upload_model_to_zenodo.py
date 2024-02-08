@@ -1,22 +1,24 @@
 import argparse
-from io import BytesIO
 import logging
 import os
-from pathlib import Path
-from urllib.parse import urlparse, urljoin, quote_plus
-from typing import Optional
-from datetime import datetime
 import pprint
+from datetime import datetime
+from io import BytesIO
+from pathlib import Path
+from typing import Optional
+from urllib.parse import quote_plus, urljoin, urlparse
 
-
-from packaging.version import parse as parse_version
 import requests  # type: ignore
-from loguru import logger  # type: ignore
 import spdx_license_list  # type: ignore
-from ruyaml import YAML  # type: ignore
 
-from update_status import update_status
+from loguru import logger  # type: ignore
+from packaging.version import parse as parse_version
+from ruyaml import YAML  # type: ignore
 from s3_client import create_client
+from update_status import update_status
+
+yaml = YAML(typ="safe")
+
 
 yaml=YAML(typ='safe')
 
@@ -26,16 +28,16 @@ GOOD_STATUS_CODES = (
     200,  # OK 	Request succeeded. Response included. Usually sent for GET/PUT/PATCH requests.
     201,  # Created 	Request succeeded. Response included. Usually sent for POST requests
     202,  # Accepted 	Request succeeded. Response included. Usually sent for POST requests,
-          # where background processing is needed to fulfill the request.
+    # where background processing is needed to fulfill the request.
     204,  # No Content 	Request succeeded. No response included. Usually sent for DELETE requests.
 )
-ACCESS_TOKEN = os.getenv('ZENODO_API_ACCESS_TOKEN')
-S3_HOST = os.getenv('S3_HOST')
-S3_ACCESS_KEY = os.getenv('S3_ACCESS_KEY_ID')
-S3_SECRET_KEY = os.getenv('S3_SECRET_ACCESS_KEY')
-S3_BUCKET = os.getenv('S3_BUCKET')
-S3_FOLDER = os.getenv('S3_FOLDER')
-ZENODO_URL = os.getenv('ZENODO_URL')
+ACCESS_TOKEN = os.getenv("ZENODO_API_ACCESS_TOKEN")
+S3_HOST = os.getenv("S3_HOST")
+S3_ACCESS_KEY = os.getenv("S3_ACCESS_KEY_ID")
+S3_SECRET_KEY = os.getenv("S3_SECRET_ACCESS_KEY")
+S3_BUCKET = os.getenv("S3_BUCKET")
+S3_FOLDER = os.getenv("S3_FOLDER")
+ZENODO_URL = os.getenv("ZENODO_URL")
 
 MAX_RDF_VERSION = parse_version("0.5.0")
 
@@ -58,7 +60,7 @@ def assert_good_response(response, message, info=None):
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_name", help="Model name", required=True)
+    parser.add_argument("--resource_path", help="Model name", required=True)
     parser.add_argument("--version", help="Version", nargs="?", default=None)
     return parser
 
@@ -74,31 +76,25 @@ def get_args(argv: Optional[list] = None):
 def main():
     args = get_args()
     headers = {"Content-Type": "application/json"}
-    params = {'access_token': ACCESS_TOKEN}
+    params = {"access_token": ACCESS_TOKEN}
 
     client = create_client()
 
-
     # TODO: GET THE CURRENT VERSION
     if args.version is None:
-        version = client.get_unpublished_version(args.model_name)
+        version = client.get_unpublished_version(args.resource_path)
 
-
-    s3_path = Path(args.model_name, version)
-
+    s3_path = f"{args.resource_path}/{version}/files"
 
     # List the files at the model URL
     file_urls = client.get_file_urls(path=s3_path)
-    logger.info("Using file URLs:\n{}", '\n'.join((str(obj) for obj in file_urls)))
+    logger.info("Using file URLs:\n{}", "\n".join((str(obj) for obj in file_urls)))
 
     # Create empty deposition
     response = requests.post(
-            f'{ZENODO_URL}/api/deposit/depositions',
-            params=params,
-            json={},
-            headers=headers)
+        f"{ZENODO_URL}/api/deposit/depositions", params=params, json={}, headers=headers
+    )
     assert_good_response(response, "Failed to create deposition")
-
 
     # Use the bucket link
     deposition_info = response.json()
@@ -107,7 +103,7 @@ def main():
     rdf_text = client.load_file(Path(s3_path, "rdf.yaml"))
     rdf = yaml.load(rdf_text)
     if not isinstance(rdf, dict):
-        raise Exception('Failed to load rdf.yaml from S3')
+        raise Exception("Failed to load rdf.yaml from S3")
 
     # PUT files to the deposition
     for file_url in file_urls:
@@ -118,9 +114,8 @@ def main():
     deposition_id = deposition_info["id"]
     deposition_doi = deposition_info["metadata"]["prereserve_doi"]["doi"]
 
-
     docstring = rdf.get("documentation", "")
-    if (not docstring.startswith("http") and docstring.endswith(".md")):
+    if not docstring.startswith("http") and docstring.endswith(".md"):
         # docstring should point to one of the files present...
 
         # Get the file URL
@@ -130,53 +125,48 @@ def main():
         docstring = text
 
         # const file = this.zipPackage.files[
-            # this.rdf.documentation.replace("./", "")
+        # this.rdf.documentation.replace("./", "")
         # ];
         # if (file) {
-            # docstring = await file.async("string"); // get markdown
-            # docstring = DOMPurify.sanitize(marked(docstring));
+        # docstring = await file.async("string"); // get markdown
+        # docstring = DOMPurify.sanitize(marked(docstring));
         # }
 
     base_url = f"{ZENODO_URL}/record/{deposition_id}/files/"
 
-    metadata = rdf_to_metadata(
-            rdf,
-            base_url,
-            deposition_info,
-            docstring)
-
+    metadata = rdf_to_metadata(rdf, base_url, deposition_info, docstring)
 
     response = requests.put(
-            f'{ZENODO_URL}/api/deposit/depositions/%s' % deposition_id,
-            params={'access_token': ACCESS_TOKEN},
-            json={'metadata':metadata},
-            headers=headers)
+        f"{ZENODO_URL}/api/deposit/depositions/%s" % deposition_id,
+        params={"access_token": ACCESS_TOKEN},
+        json={"metadata": metadata},
+        headers=headers,
+    )
     assert_good_response(
-            response,
-            "Failed to put metadata",
-            info={'metadata':metadata}
+        response, "Failed to put metadata", info={"metadata": metadata}
     )
 
-
     update_status(
-            args.model_name,
-            "Would be publishing now...(but leaving as draft)",
-            step=None, num_steps=None)
+        args.resource_path,
+        "Would be publishing now...(but leaving as draft)",
+        step=None,
+        num_steps=None,
+    )
     return
 
-    response = requests.post(f'{ZENODO_URL}/api/deposit/depositions/%s/actions/publish' % deposition_id,
-            params=params)
+    response = requests.post(
+        f"{ZENODO_URL}/api/deposit/depositions/%s/actions/publish" % deposition_id,
+        params=params,
+    )
 
     assert_good_response(response, "Failed to publish deposition")
 
     update_status(
-            args.model_name,
-            f"The deposition DOI is {deposition_doi}",
-            step=None, num_steps=None)
-
-
-
-
+        args.resource_path,
+        f"The deposition DOI is {deposition_doi}",
+        step=None,
+        num_steps=None,
+    )
 
 
 def put_file_from_url(file_url: str, destination_url: str, params: dict) -> dict:
@@ -190,8 +180,7 @@ def put_file_from_url(file_url: str, destination_url: str, params: dict) -> dict
     # return put_file(response.raw, filename, destination_url, params)
 
 
-
-def put_file_path(path: str|Path, url: str, params: dict) -> dict:
+def put_file_path(path: str | Path, url: str, params: dict) -> dict:
     """PUT file to url with params, given a file-path"""
     path = Path(path)
     filename = path.name
@@ -210,34 +199,35 @@ def put_file(file_object, name, url, params):
 
 
 def rdf_authors_to_metadata_creators(rdf):
-    if 'authors' not in rdf:
+    if "authors" not in rdf:
         return []
     authors = rdf["authors"]
 
     creators = []
     for author in authors:
-        if (isinstance(author, str)):
-            creator = { 'name': author.split(";")[0], 'affiliation': "" }
+        if isinstance(author, str):
+            creator = {"name": author.split(";")[0], "affiliation": ""}
         else:
             creator = {
-                'name': author['name'].split(";")[0],
-                'affiliation': author['affiliation'],
+                "name": author["name"].split(";")[0],
+                "affiliation": author["affiliation"],
             }
-            if 'orcid' in author:
-                creator['orcid'] = author['orcid']
+            if "orcid" in author:
+                creator["orcid"] = author["orcid"]
         creators.append(creator)
     return creators
 
-def rdf_to_metadata(
-        rdf:dict,
-        base_url: str,
-        deposition_info: dict,
-        docstring: str,
-        additional_note="(Uploaded via https://bioimage.io)") -> dict:
 
-    validate_rdf(rdf)
+def rdf_to_metadata(
+    rdf: dict,
+    base_url: str,
+    deposition_info: dict,
+    docstring: str,
+    additional_note="(Uploaded via https://bioimage.io)",
+) -> dict:
+
     creators = rdf_authors_to_metadata_creators(rdf)
-    rdf['config']['_deposit'] = deposition_info
+    rdf["config"]["_deposit"] = deposition_info
     url = quote_plus(f"{rdf['config']['_deposit']['id']}")
     docstring_html = ""
     if docstring:
@@ -246,17 +236,17 @@ def rdf_to_metadata(
     keywords = ["bioimage.io", "bioimage.io:" + rdf["type"]]
     related_identifiers = generate_related_identifiers_from_rdf(rdf, base_url)
     metadata = {
-        'title': rdf['name'],
-        'description': description,
-        'access_right': "open",
-        'license': rdf['license'],
-        'upload_type': "other",
-        'creators': creators,
-        'publication_date': datetime.now().date().isoformat(),
-        'keywords': keywords + rdf['tags'],
-        'notes': rdf['description']+ additional_note,
-        'related_identifiers': related_identifiers,
-        'communities': [],
+        "title": rdf["name"],
+        "description": description,
+        "access_right": "open",
+        "license": rdf["license"],
+        "upload_type": "other",
+        "creators": creators,
+        "publication_date": datetime.now().date().isoformat(),
+        "keywords": keywords + rdf["tags"],
+        "notes": rdf["description"] + additional_note,
+        "related_identifiers": related_identifiers,
+        "communities": [],
     }
     return metadata
 
@@ -269,24 +259,28 @@ def generate_related_identifiers_from_rdf(rdf, base_url):
             cover = urljoin(base_url, cover)
         covers.append(cover)
 
-        related_identifiers.append({
-            'relation': "hasPart",  # is part of this upload
-            'identifier': cover,
-            'resource_type': "image-figure",
-            'scheme': "url"
-        })
+        related_identifiers.append(
+            {
+                "relation": "hasPart",  # is part of this upload
+                "identifier": cover,
+                "resource_type": "image-figure",
+                "scheme": "url",
+            }
+        )
 
     for link in rdf.get("links", ()):
-        related_identifiers.append({
-            'identifier': f"https://bioimage.io/#/r/{quote_plus(link)}",
-            'relation': "references",  # // is referenced by this upload
-            'resource_type': "other",
-            'scheme': "url"
-        })
+        related_identifiers.append(
+            {
+                "identifier": f"https://bioimage.io/#/r/{quote_plus(link)}",
+                "relation": "references",  # // is referenced by this upload
+                "resource_type": "other",
+                "scheme": "url",
+            }
+        )
 
     #  rdf.yaml or model.yaml
     if rdf["rdf_source"].startswith("http"):
-        rdf_file= rdf["rdf_source"]
+        rdf_file = rdf["rdf_source"]
     else:
         rdf_file = urljoin(base_url, rdf["rdf_source"])
     # When we update an existing deposit, make sure we save the relative link
@@ -295,54 +289,30 @@ def generate_related_identifiers_from_rdf(rdf, base_url):
         rdf_file = rdf_file[-1]
         rdf_file = urljoin(base_url, rdf_file)
 
-    related_identifiers.append({
-            'identifier': rdf_file,
-            'relation': "isCompiledBy", # // compiled/created this upload
-            'resource_type': "other",
-            'scheme': "url",
-        })
+    related_identifiers.append(
+        {
+            "identifier": rdf_file,
+            "relation": "isCompiledBy",  # // compiled/created this upload
+            "resource_type": "other",
+            "scheme": "url",
+        }
+    )
 
     documentation = rdf.get("documentation")
     if documentation:
         if not documentation.startswith("http"):
             documentation = urljoin(base_url, documentation)
 
-        related_identifiers.append({
-                'identifier': documentation,
-                'relation': "isDocumentedBy", # is referenced by this upload
-                'resource_type': "publication-technicalnote",
-                'scheme': "url"
-        })
+        related_identifiers.append(
+            {
+                "identifier": documentation,
+                "relation": "isDocumentedBy",  # is referenced by this upload
+                "resource_type": "publication-technicalnote",
+                "scheme": "url",
+            }
+        )
     return related_identifiers
-
-
-def validate_rdf(rdf: dict):
-    """Unfortunately, probably some duplicate effort here re the spec lib, but for now 🤷"""
-
-    if (rdf['type'] == "model") and (parse_version(rdf['format_version']) > MAX_RDF_VERSION):
-        raise Exception(f"Unsupported format version {rdf['format_version']} (it must <= {MAX_RDF_VERSION})")
-
-    if rdf['license'] not in spdx_licenses:
-        raise Exception("Invalid license, the license identifier must be one from the SPDX license list (https://spdx.org/licenses/)")
-    if 'type' not in rdf:
-        raise Exception("`type` key is not defined in the RDF.")
-
-    for cover in rdf.get("covers", []):
-        if "access_token=" in cover:
-            raise Exception("Cover URL should not contain access token")
-
-    for link in rdf.get("links", ()):
-        if "access_token=" in link:
-            raise Exception(f"Link should not contain access token: {link}")
-
-    if "rdf_source" not in rdf:
-        raise Exception("`rdf_source` key is not found in the RDF")
-
-    if "access_token=" in rdf.get("documentation", ""):
-        raise Exception("Documentation URL should not contain access token")
 
 
 if __name__ == "__main__":
     main()
-
-

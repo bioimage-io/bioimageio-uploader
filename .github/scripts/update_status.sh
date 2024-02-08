@@ -1,46 +1,46 @@
-#!/bin/sh 
+#!/bin/sh
 # Updated to use S3 creds:
 # S3_HOST
 # S3_BUCKET
 # S3_FOLDER
 # S3_ACCESS_KEY_ID
 # S3_SECRET_ACCESS_KEY
-# First arg is now model_nickname
+# First arg is now resource_path
 
 FILENAME=status.json
 
-MODEL_NAME=$1
+resource_path=$1
 STATUS=$2
 
-if [ -z "$MODEL_NAME" ]; then 
-    printf '%s\n' "MODEL_NAME is unset or empty" >&2;
+if [ -z "$resource_path" ]; then
+    printf '%s\n' "resource_path is unset or empty" >&2;
     exit 1
 fi
-if [ -z "$S3_HOST" ]; then 
+if [ -z "$S3_HOST" ]; then
     printf '%s\n' "S3_HOST is unset or empty" >&2;
     exit 1
 fi
-if [ -z "$S3_BUCKET" ]; then 
+if [ -z "$S3_BUCKET" ]; then
     printf '%s\n' "S3_BUCKET is unset or empty" >&2;
     exit 1
 fi
-if [ -z "$S3_FOLDER" ]; then 
+if [ -z "$S3_FOLDER" ]; then
     printf '%s\n' "S3_FOLDER is unset or empty" >&2;
     exit 1
 fi
-if [ -z "$S3_ACCESS_KEY_ID" ]; then 
+if [ -z "$S3_ACCESS_KEY_ID" ]; then
     printf '%s\n' "S3_ACCESS_KEY_ID is unset or empty" >&2;
     exit 1
 fi
-if [ -z "$S3_SECRET_ACCESS_KEY" ]; then 
+if [ -z "$S3_SECRET_ACCESS_KEY" ]; then
     printf '%s\n' "S3_SECRET_ACCESS_KEY is unset or empty" >&2;
     exit 1
 fi
 
 
-#curl -X PUT -H 'Content-Type: application/json' -d '{"status": "'"$2"'"}' "$1"  
+#curl -X PUT -H 'Content-Type: application/json' -d '{"status": "'"$2"'"}' "$1"
 
-RESOURCE="/${S3_BUCKET}/${S3_FOLDER}/${MODEL_NAME}/${FILENAME}"
+RESOURCE="/${S3_BUCKET}/${S3_FOLDER}/${resource_path}/${FILENAME}"
 CONTENT_TYPE="application/json"
 DATE=`date -R`
 _SIGNATURE="PUT\n\n${CONTENT_TYPE}\n${DATE}\n${RESOURCE}"
