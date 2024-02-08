@@ -1,13 +1,14 @@
 import argparse
-from typing import Optional
 import datetime
-from loguru import logger
+from typing import Optional
 
+from loguru import logger
 from s3_client import create_client
+
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("model_name", help="Model name")
+    parser.add_argument("resource_path", help="Model name")
     parser.add_argument("category", help="Log category")
     parser.add_argument("summary", help="Log summary")
     parser.add_argument("--version", help="Version")
@@ -24,31 +25,34 @@ def get_args(argv: Optional[list] = None):
 
 def main():
     args = get_args()
-    model_name = args.model_name
+    resource_path = args.resource_path
     category = args.category
     summary = args.summary
     version = args.version
-    add_log_entry(model_name, category, summary, version=version)
+    add_log_entry(resource_path, category, summary, version=version)
 
-def add_log_entry(model_name, category, summary, version=None):
+
+def add_log_entry(resource_path, category, summary, version=None):
     timenow = datetime.datetime.now().isoformat()
     client = create_client()
-    logger.info("Updating log for {} with category {} and summary",
-                model_name,
-                category,
-                summary)
+    logger.info(
+        "Updating log for {} with category {} and summary",
+        resource_path,
+        category,
+        summary,
+    )
 
     if version is None:
-        version = client.get_unpublished_version(model_name)
+        version = client.get_unpublished_version(resource_path)
         logger.info("Version detected: {}", version)
     else:
         logger.info("Version requested: {}", version)
-    log = client.get_log(model_name, version)
+    log = client.get_log(resource_path, version)
 
     if category not in log:
         log[category] = []
     log[category].append({"timestamp": timenow, "log": summary})
-    client.put_log(model_name, version, log)
+    client.put_log(resource_path, version, log)
 
 
 if __name__ == "__main__":

@@ -1,27 +1,27 @@
-import { S3Client, ListBucketsCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-const { S3_ENDPOINT,  S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY } = process.env;
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+const { S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY } = process.env;
 
 
 export default async (event, context) => {
-    
+
 
     console.log(S3_ENDPOINT);
     console.log(S3_ACCESS_KEY_ID);
     console.log(S3_SECRET_ACCESS_KEY);
     console.log(`Connecting to S3: ${S3_ENDPOINT}`);
-    
+
     const data = await event.json();
     console.log(data);
-    //const options = {     
-        //method: "POST",
-        //headers: headers, 
-        //body: JSON.stringify({
-            //'ref': 'main',
-            //'inputs':{
-                //'status_url': data.status_url,
-                //'model_nickname': data.model_nickname,
-            //}
-        //})
+    //const options = {
+    //method: "POST",
+    //headers: headers,
+    //body: JSON.stringify({
+    //'ref': 'main',
+    //'inputs':{
+    //'status_url': data.status_url,
+    //'resource_path': data.resource_path,
+    //}
+    //})
     //};
 
     //const data = await JSON.parse(event.body)
@@ -46,54 +46,54 @@ export default async (event, context) => {
     const command = new PutObjectCommand({
         Bucket: "public-datasets",
         Key: `${root_folder}/${folder}/${filename}`,
-        Body: JSON.stringify({"status": "This works too"}),
+        Body: JSON.stringify({ "status": "This works too" }),
     });
     const resp = await client.send(command);
     console.log(resp);
 
     //const data = await event.json();
-    //const options = {     
-        //method: "POST",
-        //headers: headers, 
-        //body: JSON.stringify({
-            //'ref': 'main',
-            //'inputs':{'status_url': data.status_url}
-        //})
+    //const options = {
+    //method: "POST",
+    //headers: headers,
+    //body: JSON.stringify({
+    //'ref': 'main',
+    //'inputs':{'status_url': data.status_url}
+    //})
     //};
 
     //if(!data.status_url){
-        //const res = Response.json({'message': "Failed: status_url not found in request json"});
-        //res.status = 500;
-        //res.headers.set("Access-Control-Allow-Origin", "*");
-        //res.headers.append("Access-Control-Allow-Headers", "*");
-        //res.headers.append("Access-Control-Allow-Methods", "*");
-        //return res;
-        
-    //}else{
-        //try{
-            //let resp = await fetch(GITHUB_URL, options);
-            //try{
-                //console.log(await resp.json());
-            //}catch(err){
-                //console.log("No JSON in response");
-            //}
+    //const res = Response.json({'message': "Failed: status_url not found in request json"});
+    //res.status = 500;
+    //res.headers.set("Access-Control-Allow-Origin", "*");
+    //res.headers.append("Access-Control-Allow-Headers", "*");
+    //res.headers.append("Access-Control-Allow-Methods", "*");
+    //return res;
 
-        //}catch(err){
-            //console.error("Failed to fetch:");
-            //console.error(err);
-            //const res = Response.json(
-                //{'message': `Failed: ${err.message}`},
-                //{status: 500});
-            //res.headers.set("Access-Control-Allow-Origin", "*");
-            //res.headers.append("Access-Control-Allow-Headers", "*");
-            //res.headers.append("Access-Control-Allow-Methods", "*");
-            //return res;
-        //}
-        // const res = new Response("Success");
-        const res = Response.json({"message":"Success"});
-        res.headers.set("Access-Control-Allow-Origin", "*");
-        res.headers.append("Access-Control-Allow-Headers", "*");
-        res.headers.append("Access-Control-Allow-Methods", "*");
-        return res;
+    //}else{
+    //try{
+    //let resp = await fetch(GITHUB_URL, options);
+    //try{
+    //console.log(await resp.json());
+    //}catch(err){
+    //console.log("No JSON in response");
+    //}
+
+    //}catch(err){
+    //console.error("Failed to fetch:");
+    //console.error(err);
+    //const res = Response.json(
+    //{'message': `Failed: ${err.message}`},
+    //{status: 500});
+    //res.headers.set("Access-Control-Allow-Origin", "*");
+    //res.headers.append("Access-Control-Allow-Headers", "*");
+    //res.headers.append("Access-Control-Allow-Methods", "*");
+    //return res;
+    //}
+    // const res = new Response("Success");
+    const res = Response.json({ "message": "Success" });
+    res.headers.set("Access-Control-Allow-Origin", "*");
+    res.headers.append("Access-Control-Allow-Headers", "*");
+    res.headers.append("Access-Control-Allow-Methods", "*");
+    return res;
     //}
 }

@@ -3,12 +3,12 @@ name: CI Runner
 on:
     workflow_dispatch:
         inputs:
-            model_nickname:
-                description: 'Nickname of the model - to be used to access the model data on S3'
+            resource_path:
+                description: 'Bioimageio wide, version specific resource identifier "resource_path/version"'
                 required: true
                 type: string
-            model_zip_url:
-                description: 'Presigned url for the model zip-file'
+            package_url:
+                description: 'Presigned url for the package zip-file'
                 required: true
                 type: string
 
@@ -38,19 +38,19 @@ jobs:
                 python -m pip install "minio==7.2.3" "ruamel.yaml==0.18.5" "bioimageio.spec==0.4.9.post5" "typer"
           - name: Unzip model file
             run: |
-                python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Unzipping package" "1" "6"
-                python .github/scripts/unzip_model.py "${{inputs.model_nickname}}" "${{inputs.model_zip_url}}"
+                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Unzip and upload to ${{env.S3_HOST}}/${{env.S3_BUCKET}}/${{env.S3_FOLDER}}/${{inputs.resource_path}}/files" "1"
+                python .github/scripts/unzip_package.py "${{inputs.resource_path}}" "${{inputs.package_url}}"
 
           - name: Validate format
             id: validate
             run: |
-                python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Starting validation" "2" "6"
-                python .github/scripts/validate_format.py    "${{ inputs.model_nickname }}" "${{inputs.model_zip_url}}"
+                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Starting validation" "2"
+                python .github/scripts/validate_format.py    "${{ inputs.resource_path }}" "${{env.S3_HOST}}/${{env.S3_BUCKET}}/${{env.S3_FOLDER}}/${{inputs.resource_path}}/files/rdf.yaml"
           - run: |
-              python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Starting additional tests" "3" "6"
+              python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Starting additional tests" "3"
             if: steps.validate.outputs.has_dynamic_test_cases == 'yes'
           - run: |
-                python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Validation done" "3" "6"
+                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Validation done" "3"
             if: steps.validate.outputs.has_dynamic_test_cases == 'no'
 
 
@@ -80,7 +80,7 @@ jobs:
             run: pip install typer bioimageio.spec
           - name: dynamic validation
             shell: bash -l {0}
-            run: python scripts/test_dynamically.py "${{inputs.model_zip_url}}" ${{ matrix.weight_format }} --create-env-outcome ${{ steps.create_env.outcome }} --${{ contains(inputs.deploy_to, 'gh-pages') && 'no-ignore' || 'ignore' }}-rdf-source-field-in-validation
+            run: python scripts/test_dynamically.py "${{env.S3_HOST}}/${{env.S3_BUCKET}}/${{env.S3_FOLDER}}/${{inputs.resource_path}}/files/rdf.yaml" ${{ matrix.weight_format }} --create-env-outcome ${{ steps.create_env.outcome }} --${{ contains(inputs.deploy_to, 'gh-pages') && 'no-ignore' || 'ignore' }}-rdf-source-field-in-validation
             timeout-minutes: 60
 
     conclude:
@@ -90,4 +90,4 @@ jobs:
         steps:
           - uses: actions/checkout@v4
           - run: |
-                python .github/scripts/update_status.py    "${{ inputs.model_nickname }}" "Awaiting review" "4" "6"
+                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Awaiting review" "4"
