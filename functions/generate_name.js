@@ -40,7 +40,7 @@ function sample(array){
 
 function generate_name(starts, animals){
     const animal = sample(animals);
-    return {name: `${sample(starts)}-${animal[0]}`, icon: animal[1]};
+    return {id: `${sample(starts)}-${animal[0]}`, icon: animal[1]};
 }
 
 
