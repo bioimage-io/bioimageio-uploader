@@ -13,10 +13,12 @@ from packaging.version import parse as parse_version
 import requests  # type: ignore
 from loguru import logger  # type: ignore
 import spdx_license_list  # type: ignore
-import yaml  # type: ignore
+from ruyaml import YAML  # type: ignore
 
 from update_status import update_status
 from s3_client import create_client
+
+yaml=YAML(typ='safe')
 
 spdx_licenses = [item.id for item in spdx_license_list.LICENSES.values()]
 
@@ -103,7 +105,7 @@ def main():
     bucket_url = deposition_info["links"]["bucket"]
 
     rdf_text = client.load_file(Path(s3_path, "rdf.yaml"))
-    rdf = yaml.safe_load(rdf_text)
+    rdf = yaml.load(rdf_text)
     if not isinstance(rdf, dict):
         raise Exception('Failed to load rdf.yaml from S3')
 
