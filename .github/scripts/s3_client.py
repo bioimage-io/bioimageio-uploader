@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass, field
 from datetime import timedelta
 from pathlib import Path
-from typing import Iterator
+from typing import Iterator, Optional
 
 # import requests  # type: ignore
 from loguru import logger  # type: ignore
@@ -39,12 +39,12 @@ class Client:
             raise Exception("target bucket does not exist: {self.bucket}")
         logger.debug("Created S3-Client: {}", self)
 
-    def bucket_exists(self, bucket):
+    def bucket_exists(self, bucket) -> bool:
         return self._client.bucket_exists(bucket)
 
     def put(
         self, path, file_object, length=-1, content_type="application/octet-stream"
-    ):
+    ) -> None:
         # For unknown length (ie without reading file into mem) give `part_size`
         part_size = 0
         if length == -1:
@@ -171,7 +171,7 @@ class Client:
         status = json.loads(status_str)
         return status
 
-    def put_status(self, resource_path: str, version: str, status: dict):
+    def put_status(self, resource_path: str, version: str, status: dict) -> None:
         logger.debug(
             "Updating status for {}-{}, with {}", resource_path, version, status
         )
@@ -197,7 +197,7 @@ class Client:
             log = {}
         return log
 
-    def put_log(self, resource_path: str, version: str, log: dict):
+    def put_log(self, resource_path: str, version: str, log: dict) -> None:
         logger.debug("Updating log for {}-{}, with {}", resource_path, version, log)
         contents = json.dumps(log).encode()
         file_object = io.BytesIO(contents)
@@ -208,6 +208,11 @@ class Client:
             length=len(contents),
             content_type="application/json",
         )
+
+    def get_url_for_file(self, resource_path: str, filename: str, version: Optional[str] = None) -> str:
+        if version is None:
+            resource_path, version = version_from_resource_path_or_s3(resource_path, self)
+        return f"https://{self.host}/{self.bucket}/{self.prefix}/{resource_path}/{version}/files/{filename}"
 
 
 def create_client() -> Client:
@@ -234,3 +239,21 @@ def create_client() -> Client:
         secret_key=secret_access_key,
     )
     return client
+
+
+def version_from_resource_path_or_s3(resource_path, client : Optional[Client] = None) -> tuple[str, str]:
+    """
+    Extract version from resource_path if present
+    Otherwise try and determine from model folder
+    """
+    parts = resource_path.split("/")
+    if len(parts) == 2:
+        resource_path = parts[0]
+        version = parts[1]
+        logger.info("Version: {}", version)
+    else:
+        if client is None:
+            client = create_client()
+        version = client.get_unpublished_version(resource_path)
+        logger.info("Version detected: {}", version)
+    return resource_path, version

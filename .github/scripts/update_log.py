@@ -3,7 +3,7 @@ import datetime
 from typing import Optional
 
 from loguru import logger
-from s3_client import create_client
+from s3_client import create_client, version_from_resource_path_or_s3
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -11,7 +11,6 @@ def create_parser() -> argparse.ArgumentParser:
     parser.add_argument("resource_path", help="Resource name")
     parser.add_argument("category", help="Log category")
     parser.add_argument("summary", help="Log summary")
-    parser.add_argument("--version", help="Version")
     return parser
 
 
@@ -28,11 +27,10 @@ def main():
     resource_path = args.resource_path
     category = args.category
     summary = args.summary
-    version = args.version
-    add_log_entry(resource_path, category, summary, version=version)
+    add_log_entry(resource_path, category, summary)
 
 
-def add_log_entry(resource_path, category, summary, version=None):
+def add_log_entry(resource_path, category, summary):
     timenow = datetime.datetime.now().isoformat()
     client = create_client()
     logger.info(
@@ -42,11 +40,7 @@ def add_log_entry(resource_path, category, summary, version=None):
         summary,
     )
 
-    if version is None:
-        version = client.get_unpublished_version(resource_path)
-        logger.info("Version detected: {}", version)
-    else:
-        logger.info("Version requested: {}", version)
+    resource_path, version = version_from_resource_path_or_s3(resource_path)
     log = client.get_log(resource_path, version)
 
     if category not in log:

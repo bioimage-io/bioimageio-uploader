@@ -45,7 +45,7 @@ jobs:
             id: validate
             run: |
                 python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Starting validation" "2"
-                python .github/scripts/validate_format.py    "${{ inputs.resource_path }}" "${{env.S3_HOST}}/${{env.S3_BUCKET}}/${{env.S3_FOLDER}}/${{inputs.resource_path}}/files/rdf.yaml"
+                python .github/scripts/validate_format.py "${{ inputs.resource_path }}" 
           - run: |
               python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Starting additional tests" "3"
             if: steps.validate.outputs.has_dynamic_test_cases == 'yes'
@@ -80,7 +80,7 @@ jobs:
             run: pip install typer bioimageio.spec
           - name: dynamic validation
             shell: bash -l {0}
-            run: python scripts/test_dynamically.py "${{env.S3_HOST}}/${{env.S3_BUCKET}}/${{env.S3_FOLDER}}/${{inputs.resource_path}}/files/rdf.yaml" ${{ matrix.weight_format }} --create-env-outcome ${{ steps.create_env.outcome }} --${{ contains(inputs.deploy_to, 'gh-pages') && 'no-ignore' || 'ignore' }}-rdf-source-field-in-validation
+            run: python scripts/test_dynamically.py "https://${{env.S3_HOST}}/${{env.S3_BUCKET}}/${{env.S3_FOLDER}}/${{inputs.resource_path}}/files/rdf.yaml" ${{ matrix.weight_format }} --create-env-outcome ${{ steps.create_env.outcome }} --${{ contains(inputs.deploy_to, 'gh-pages') && 'no-ignore' || 'ignore' }}-rdf-source-field-in-validation
             timeout-minutes: 60
 
     conclude:

@@ -14,7 +14,7 @@ import spdx_license_list  # type: ignore
 from loguru import logger  # type: ignore
 from packaging.version import parse as parse_version
 from ruyaml import YAML  # type: ignore
-from s3_client import create_client
+from s3_client import create_client, version_from_resource_path_or_s3
 from update_status import update_status
 
 yaml = YAML(typ="safe")
@@ -57,8 +57,7 @@ def assert_good_response(response, message, info=None):
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--resource_path", help="Model name", required=True)
-    parser.add_argument("--version", help="Version", nargs="?", default=None)
+    parser.add_argument("resource_path", help="Resource path")
     return parser
 
 
@@ -76,12 +75,9 @@ def main():
     params = {"access_token": ACCESS_TOKEN}
 
     client = create_client()
+    resource_path, version = version_from_resource_path_or_s3(args.resource_path, client)
 
-    # TODO: GET THE CURRENT VERSION
-    if args.version is None:
-        version = client.get_unpublished_version(args.resource_path)
-
-    s3_path = f"{args.resource_path}/{version}/files"
+    s3_path = f"{resource_path}/{version}/files"
 
     # List the files at the model URL
     file_urls = client.get_file_urls(path=s3_path)
