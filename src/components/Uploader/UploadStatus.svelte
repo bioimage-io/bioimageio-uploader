@@ -11,7 +11,7 @@
     let error_element: Object;
     let last_error_object: Error;
     let step: UploaderStep = uploader.status.step;
-    let model_name = uploader.resource_path.name;
+    let model_name = uploader.resource_path.id;
     const dispatch = createEventDispatcher();
 
     function copy_error_to_clipboard(text: string){
@@ -76,7 +76,7 @@
     <h4>Almost there,</h4>
 
     <p><b>There's nothing you need to do right now. Your model is uploaded and the CI-bots have started their work!</b><p>
-    <p>You can check the status of the CI at any point from <a href="#/status/{uploader.resource_path.name}">here</a></p>
+    <p>You can check the status of the CI at any point from <a href="#/status/{uploader.resource_path.id}">here</a></p>
 
 
     <button on:click={restart}>Upload another model</button>
