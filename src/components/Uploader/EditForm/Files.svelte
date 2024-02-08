@@ -1,5 +1,5 @@
 <script charset="utf-8">
-    import Dropzone from "svelte-file-dropzone/Dropzone.svelte";
+    import Dropzone from "svelte-file-dropzone";
     import FileEntry from './FileEntry.svelte';
     export let files = [];
     export let handle_files_select = () => {};

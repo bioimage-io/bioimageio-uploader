@@ -1,5 +1,5 @@
 <script>
-    import Dropzone from "svelte-file-dropzone/Dropzone.svelte";
+    import Dropzone from "svelte-file-dropzone";
     import toast  from 'svelte-french-toast';
     import { createEventDispatcher } from 'svelte';
     
