@@ -6,22 +6,23 @@ from functools import partialmethod
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-import requests
-import typer
-from bioimageio.spec import load_raw_resource_description, validate
-from bioimageio.spec.model.raw_nodes import Model, WeightsFormat
-from bioimageio.spec.rdf.raw_nodes import RDF_Base
-from bioimageio.spec.shared import yaml
-from bioimageio.spec.shared.raw_nodes import URI, Dependencies
+import requests  # type: ignore
+import typer  # type: ignore
+from bioimageio.spec import load_raw_resource_description, validate  # type: ignore
+from bioimageio.spec.model.raw_nodes import Model, WeightsFormat  # type: ignore
+from bioimageio.spec.rdf.raw_nodes import RDF_Base  # type: ignore
+from bioimageio.spec.shared import yaml  # type: ignore
+from bioimageio.spec.shared.raw_nodes import URI, Dependencies  # type: ignore
 from marshmallow import missing
 from marshmallow.utils import _Missing
 from packaging.version import Version
-from tqdm import tqdm
+from tqdm import tqdm  # type: ignore
+from update_log import add_log_entry
+from s3_client import create_client, version_from_resource_path_or_s3
 
 tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)  # silence tqdm
 
 
-from update_log import add_log_entry
 
 
 def set_multiple_gh_actions_outputs(outputs: Dict[str, Union[str, Any]]):
@@ -250,7 +251,12 @@ def prepare_dynamic_test_cases(descr_id: str, rd: RDF_Base) -> List[Dict[str, st
     return validation_cases
 
 
-def validate_format(descr_id: str, source: str):
+def validate_format(descr_id: str):
+
+    client = create_client()
+    resource_path, version = version_from_resource_path_or_s3(descr_id, client)
+    source = client.get_url_for_file(resource_path, "rdf.yaml", version=version)
+
     dynamic_test_cases: List[Dict[str, str]] = []
 
     summaries = [validate(source)]

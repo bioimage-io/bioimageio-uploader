@@ -3,14 +3,12 @@ import datetime
 from typing import Optional
 
 from loguru import logger
-from s3_client import create_client
-
+from s3_client import create_client, version_from_resource_path_or_s3
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("resource_path", help="Model name")
     parser.add_argument("status", help="Status")
-    parser.add_argument("--version", help="Version")
     parser.add_argument("--step", help="Step", default=0, type=int)
     parser.add_argument("--num_steps", help="Status", default=0, type=int)
     return parser
@@ -27,14 +25,13 @@ def get_args(argv: Optional[list] = None):
 def main():
     args = get_args()
     resource_path = args.resource_path
-    version = args.version
     step = args.step
     num_steps = args.num_steps
     status = args.status
-    update_status(resource_path, status, version=version, step=step, num_steps=num_steps)
+    update_status(resource_path, status, step=step, num_steps=num_steps)
 
 
-def update_status(resource_path: str, status_text: str, version: Optional[str] = None, step: Optional[int], num_steps: int = 6):
+def update_status(resource_path: str, status_text: str, step: Optional[int]=None, num_steps: int = 6):
     assert step is None or step <= num_steps
     timenow = datetime.datetime.now().isoformat()
     client = create_client()
@@ -46,11 +43,7 @@ def update_status(resource_path: str, status_text: str, version: Optional[str] =
         num_steps,
     )
 
-    if version is None:
-        version = client.get_unpublished_version(resource_path)
-        logger.info("Version detected: {}", version)
-    else:
-        logger.info("Version requested: {}", version)
+    resource_path, version = version_from_resource_path_or_s3(resource_path, client)
     status = client.get_status(resource_path, version)
 
     if "messages" not in status:
