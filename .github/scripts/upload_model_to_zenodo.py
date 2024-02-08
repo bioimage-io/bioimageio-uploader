@@ -81,7 +81,7 @@ def main():
     if args.version is None:
         version = client.get_unpublished_version(args.resource_path)
 
-    s3_path = Path(args.resource_path, version)
+    s3_path = f"{args.resource_path}/{version}/files"
 
     # List the files at the model URL
     file_urls = client.get_file_urls(path=s3_path)

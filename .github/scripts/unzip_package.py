@@ -69,7 +69,7 @@ def unzip_from_url(resource_path, package_url):
     for filename in zipobj.namelist():
         # file_object = io.BytesIO(zipobj)
         file_object = zipobj.open(filename)
-        path = f"{resource_path}/{version}/{filename}"
+        path = f"{resource_path}/{version}/files/{filename}"
 
         client.put(
             path,
