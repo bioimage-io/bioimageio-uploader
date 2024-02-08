@@ -9,6 +9,7 @@ from typing import Iterator
 # import requests  # type: ignore
 from loguru import logger  # type: ignore
 from minio import Minio  # type: ignore
+import minio.error
 
 
 @dataclass
@@ -102,7 +103,7 @@ class Client:
                 continue
             yield Path(obj.object_name).name
 
-    def load_file(self, path) -> str:
+    def load_file(self, path) -> bytes:
         """Load file from S3"""
         path = f"{self.prefix}/{path}"
         try:
@@ -166,8 +167,8 @@ class Client:
         logger.debug("resource_path: {}, version: {}", resource_path, version)
         status_path = f"{version_path}/status.json"
         logger.debug("Getting status using path {}", status_path)
-        status = self.load_file(status_path)
-        status = json.loads(status)
+        status_str = self.load_file(status_path)
+        status = json.loads(status_str)
         return status
 
     def put_status(self, resource_path: str, version: str, status: dict):
@@ -189,8 +190,11 @@ class Client:
         logger.debug("resource_path: {}, version: {}", resource_path, version)
         path = f"{version_path}/log.json"
         logger.debug("Getting log using path {}", path)
-        log = self.load_file(path)
-        log = json.loads(log)
+        try:
+            log_str = self.load_file(path)
+            log = json.loads(log_str)
+        except minio.error.S3Error:
+            log = {}
         return log
 
     def put_log(self, resource_path: str, version: str, log: dict):

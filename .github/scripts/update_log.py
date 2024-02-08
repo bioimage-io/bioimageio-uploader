@@ -8,7 +8,7 @@ from s3_client import create_client
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("resource_path", help="Model name")
+    parser.add_argument("resource_path", help="Resource name")
     parser.add_argument("category", help="Log category")
     parser.add_argument("summary", help="Log summary")
     parser.add_argument("--version", help="Version")
