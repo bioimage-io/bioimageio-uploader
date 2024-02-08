@@ -9,7 +9,7 @@ def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("resource_path", help="Model name")
     parser.add_argument("status", help="Status")
-    parser.add_argument("--step", help="Step", default=0, type=int)
+    parser.add_argument("step", help="Step", default=0, type=int, nargs="?")
     parser.add_argument("--num_steps", help="Status", default=0, type=int)
     return parser
 
