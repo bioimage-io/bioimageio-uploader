@@ -17,4 +17,4 @@ dist/
 coverage/
 tests/__snapshots__/
 functions_off/
-.local/
+.local/.env
