@@ -34,7 +34,7 @@ def main():
     update_status(resource_path, status, version=version, step=step, num_steps=num_steps)
 
 
-def update_status(resource_path: str, status_text: str, version: Optional[str] = None, step: Optional[int], num_steps: int = 6):
+def update_status(resource_path: str, status_text: str, version: Optional[str] = None, step: Optional[int]=None, num_steps: int = 6):
     assert step is None or step <= num_steps
     timenow = datetime.datetime.now().isoformat()
     client = create_client()
