@@ -19,9 +19,6 @@ from update_status import update_status
 
 yaml = YAML(typ="safe")
 
-
-yaml=YAML(typ='safe')
-
 spdx_licenses = [item.id for item in spdx_license_list.LICENSES.values()]
 
 GOOD_STATUS_CODES = (
