@@ -46,7 +46,7 @@
     {#if model_name_message }({model_name_message}){/if}
     {#if resource_path}
         Your model nickname is:
-        <code style="min-width:10em;">{resource_path.name} {resource_path.icon}&nbsp;</code>
+        <code style="min-width:10em;">{resource_path.id} {resource_path.icon}&nbsp;</code>
     {/if}
     <button on:click={regenerate_nickname}>Regenerate nickname</button>
 </p>
