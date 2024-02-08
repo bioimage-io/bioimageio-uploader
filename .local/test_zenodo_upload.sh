@@ -5,4 +5,4 @@ set -o allexport
 source $SCRIPT_DIR/.env 
 set +o allexport
 
-python $SCRIPT_DIR/../.github/scripts/upload_model_to_zenodo.py --help --resource_name=willing-pig 
+python $SCRIPT_DIR/../.github/scripts/upload_model_to_zenodo.py --resource_path=willing-pig
