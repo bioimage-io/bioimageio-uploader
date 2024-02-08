@@ -8,6 +8,7 @@ on:
                 required: true
                 type: string
 
+concurrency: "publish-${{inputs.resource_path}}"
 
 env:
     S3_HOST: ${{vars.S3_HOST}}
