@@ -10,14 +10,14 @@ from urllib.parse import quote_plus, urljoin, urlparse
 
 import requests  # type: ignore
 import spdx_license_list  # type: ignore
+
 from loguru import logger  # type: ignore
 from packaging.version import parse as parse_version
-from ruamel.yaml import YAML
+from ruyaml import YAML  # type: ignore
 from s3_client import create_client
 from update_status import update_status
 
 yaml = YAML(typ="safe")
-
 
 spdx_licenses = [item.id for item in spdx_license_list.LICENSES.values()]
 
