@@ -35,7 +35,7 @@ jobs:
             run: |
                 echo "Installing workflow script dependencies"
                 python -m pip install --upgrade pip
-                python -m pip install "minio==7.2.3" "ruyaml==0.91.0" "bioimageio.spec==0.4.9.post5" "typer"
+                python -m pip install "minio==7.2.3" "loguru==0.7.2" "ruyaml==0.91.0" "bioimageio.spec==0.4.9.post5" "typer"
           - name: Unzip model file
             run: |
                 python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Unzip and upload to ${{env.S3_HOST}}/${{env.S3_BUCKET}}/${{env.S3_FOLDER}}/${{inputs.resource_path}}/files" "1"
@@ -89,5 +89,10 @@ jobs:
         runs-on: ubuntu-latest
         steps:
           - uses: actions/checkout@v4
+          - name: Install workflow script dependencies
+            run: |
+                echo "Installing workflow script dependencies"
+                python -m pip install --upgrade pip
+                python -m pip install "minio==7.2.3" "loguru==0.7.2"
           - run: |
                 python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Awaiting review" "4"
