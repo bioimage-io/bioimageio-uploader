@@ -6,10 +6,11 @@ from datetime import timedelta
 from pathlib import Path
 from typing import Iterator, Optional
 
+import minio.error
+
 # import requests  # type: ignore
 from loguru import logger  # type: ignore
 from minio import Minio  # type: ignore
-import minio.error
 
 
 @dataclass
@@ -209,9 +210,13 @@ class Client:
             content_type="application/json",
         )
 
-    def get_url_for_file(self, resource_path: str, filename: str, version: Optional[str] = None) -> str:
+    def get_url_for_file(
+        self, resource_path: str, filename: str, version: Optional[str] = None
+    ) -> str:
         if version is None:
-            resource_path, version = version_from_resource_path_or_s3(resource_path, self)
+            resource_path, version = version_from_resource_path_or_s3(
+                resource_path, self
+            )
         return f"https://{self.host}/{self.bucket}/{self.prefix}/{resource_path}/{version}/files/{filename}"
 
 
@@ -241,7 +246,9 @@ def create_client() -> Client:
     return client
 
 
-def version_from_resource_path_or_s3(resource_path, client : Optional[Client] = None) -> tuple[str, str]:
+def version_from_resource_path_or_s3(
+    resource_path: str, client: Optional[Client] = None
+) -> tuple[str, str]:
     """
     Extract version from resource_path if present
     Otherwise try and determine from model folder

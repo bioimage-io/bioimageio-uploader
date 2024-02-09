@@ -1,38 +1,39 @@
 name: publish
 
 on:
-    workflow_dispatch:
-        inputs:
-            resource_path:
-                description: 'Bioimageio ID of the resource - to be used to access the resource on S3'
-                required: true
-                type: string
+  workflow_dispatch:
+    inputs:
+      resource_path:
+        description: "Bioimageio ID of the resource - to be used to access the resource on S3"
+        required: true
+        type: string
 
+concurrency: "publish-${{inputs.resource_path}}"
 
 env:
-    S3_HOST: ${{vars.S3_HOST}}
-    S3_BUCKET: ${{vars.S3_BUCKET}}
-    S3_FOLDER: ${{vars.S3_FOLDER}}
-    S3_ACCESS_KEY_ID: ${{secrets.S3_ACCESS_KEY_ID}}
-    S3_SECRET_ACCESS_KEY: ${{secrets.S3_SECRET_ACCESS_KEY}}
-    ZENODO_URL: ${{vars.ZENODO_URL}}
-    ZENODO_API_ACCESS_TOKEN: ${{secrets.ZENODO_API_ACCESS_TOKEN}}
+  S3_HOST: ${{vars.S3_HOST}}
+  S3_BUCKET: ${{vars.S3_BUCKET}}
+  S3_FOLDER: ${{vars.S3_FOLDER}}
+  S3_ACCESS_KEY_ID: ${{secrets.S3_ACCESS_KEY_ID}}
+  S3_SECRET_ACCESS_KEY: ${{secrets.S3_SECRET_ACCESS_KEY}}
+  ZENODO_URL: ${{vars.ZENODO_URL}}
+  ZENODO_API_ACCESS_TOKEN: ${{secrets.ZENODO_API_ACCESS_TOKEN}}
 
 jobs:
-    publish:
-        runs-on: ubuntu-latest
-        outputs:
-            dynamic_test_cases: ${{ steps.validate.outputs.dynamic_test_cases }}
-            has_dynamic_test_cases: ${{ steps.validate.outputs.has_dynamic_test_cases }}
-        steps:
-          - uses: actions/checkout@v4
-          - name: Install workflow script dependencies
-            run: |
-                echo "Installing workflow script dependencies"
-                python -m pip install --upgrade pip
-                python -m pip install "minio==7.2.3" "loguru==0.7.2" "packaging==23.2" "spdx-license-list==3.22" "ruyaml==0.91.0" "typer"
-          - name: Publish to Zenodo
-            run: |
-                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Publishing to Zenodo" "5"
-                python .github/scripts/upload_model_to_zenodo.py --resource_path "${{inputs.resource_path}}"
-                python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Publishing complete" "6"
+  publish:
+    runs-on: ubuntu-latest
+    outputs:
+      dynamic_test_cases: ${{ steps.validate.outputs.dynamic_test_cases }}
+      has_dynamic_test_cases: ${{ steps.validate.outputs.has_dynamic_test_cases }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip" # caching pip dependencies
+      - run: pip install -r .github/scripts/requirements.txt
+      - name: Publish to Zenodo
+        run: |
+          python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Publishing to Zenodo" "5"
+          python .github/scripts/upload_model_to_zenodo.py --resource_path "${{inputs.resource_path}}"
+          python .github/scripts/update_status.py "${{ inputs.resource_path }}" "Publishing complete" "6"

@@ -29,7 +29,7 @@
     "sass": "^1.70.0",
     "spdx-license-list": "^6.8.0",
     "svelte": "^4.2.8",
-    "svelte-file-dropzone": "^2.0.2",
+    "svelte-file-dropzone": "^2.0.4",
     "svelte-french-toast": "^1.2.0",
     "svelte-json-tree": "^2.2.0",
     "tinro": "^0.6.12",

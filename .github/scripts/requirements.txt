@@ -1,0 +1,7 @@
+bioimageio.spec==0.4.9.post5
+loguru==0.7.2
+minio==7.2.3
+packaging==23.2
+ruyaml==0.91.0
+spdx-license-list==3.22
+typer==0.9.0
