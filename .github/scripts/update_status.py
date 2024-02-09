@@ -9,7 +9,7 @@ from typing_extensions import Annotated
 
 def update_status(
     resource_path: Annotated[str, Argument(help="resource_id/version")],
-    status: Annotated[str, Argument(help="status message")],
+    message: Annotated[str, Argument(help="status message")],
     step: Annotated[
         Optional[int], Argument(help="optional step in multi-step process")
     ] = None,
@@ -21,7 +21,7 @@ def update_status(
     logger.info(
         "Updating status for {} with text {} [steps={}, num_steps={}]",
         resource_path,
-        status,
+        message,
         step,
         num_steps,
     )
@@ -35,8 +35,8 @@ def update_status(
         status["step"] = step
     if num_steps is not None:
         status["num_steps"] = num_steps
-    status["last_message"] = status_text
-    status["messages"].append({"timestamp": timenow, "text": status_text})
+    status["last_message"] = message
+    status["messages"].append({"timestamp": timenow, "text": message})
     client.put_status(resource_path, version, status)
 
 
