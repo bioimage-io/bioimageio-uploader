@@ -168,8 +168,11 @@ class Client:
         logger.debug("resource_path: {}, version: {}", resource_path, version)
         status_path = f"{version_path}/status.json"
         logger.debug("Getting status using path {}", status_path)
-        status_str = self.load_file(status_path)
-        status = json.loads(status_str)
+        try:
+            status_str = self.load_file(status_path)
+            status = json.loads(status_str)
+        except minio.error.S3Error:
+            status = {}
         return status
 
     def put_status(self, resource_path: str, version: str, status: dict) -> None:
