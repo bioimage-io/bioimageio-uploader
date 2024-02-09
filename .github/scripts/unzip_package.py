@@ -44,7 +44,7 @@ def unzip_from_url(resource_path, package_url):
     filename = "model.zip"
     client = create_client()
 
-    versions = client.check_versions(resource_path)
+    versions = list(client.check_versions(resource_path))
     if len(versions) == 0:
         version = "1"
 
