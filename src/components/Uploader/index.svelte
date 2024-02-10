@@ -14,6 +14,7 @@
     import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
 
     let show_modal = false;
+    let agree_email = false;
 
     let uploader = new Uploader();
     if(window) window.uploader = uploader;
@@ -46,7 +47,15 @@
         <!--<button on:click={()=>{uploader.init();}}>Login to BioEngine</button>-->
         <Modal show={show_modal}   >
             <h1>Login</h1>
+            <p>
+                <input bind:checked={agree_email} type="checkbox" />
+                I agree that the email address I use to login will be <br> 
+                added to my upload and published as the "uploader" field 
+            </p>
+
+            {#if agree_email}
             <iframe title="Login" src="{uploader.login_url}" width="400" height="400"></iframe>
+            {/if}
         </Modal>
 
     {:else}

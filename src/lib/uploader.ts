@@ -62,6 +62,7 @@ export class Uploader {
     error_object: Error | null = null;
     files: File[] = [];
     login_url: string | null = null;
+    user_email: string | null  = ''; 
     resource_path: ResourceId | null = null;
     package_url: string | null = null;
     rdf: any = null;
@@ -130,6 +131,7 @@ export class Uploader {
             this.token = await imjoyRPC.hyphaWebsocketClient.login({
                 server_url: Uploader.server_url,
                 login_callback: this.set_login_url.bind(this),
+
             });
             window.sessionStorage.setItem('token', this.token!);
             console.log('    token saved');
@@ -144,6 +146,14 @@ export class Uploader {
                 server_url: Uploader.server_url,
                 token: this.token,
             });
+            let login_info = await this.server.get_connection_info();
+            
+            // .user_info.email;
+            if(login_info){
+                this.user_email = (login_info.user_info || {}).email; 
+            }
+
+
             this.render();
         } catch (error) {
             console.error("Connection to Hypha failed:");
@@ -155,8 +165,6 @@ export class Uploader {
         }
         this.connection_retry = 0;
         console.log("Hypha connected");
-        console.log("this instance:");
-        console.log(this);
     }
 
     show_login_message(context: any) {
@@ -172,6 +180,7 @@ export class Uploader {
         } else {
             throw Error("Invalid file given");
         }
+        this.rdf.uploader.email = this.user_email;
     }
 
     async load_from_files(files: File[]) {
@@ -192,6 +201,7 @@ export class Uploader {
         } else {
             this.rdf = {};
         }
+        this.rdf.uploader = {'email': this.user_email};
         console.debug('RDF:');
         console.debug(this.rdf);
         // Empty files and repopulate from the zip file

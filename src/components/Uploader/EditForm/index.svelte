@@ -112,6 +112,11 @@
     <InputLabel label="Description" required>
         <Input placeholder="description" bind:value={uploader.rdf.description} /> 
     </InputLabel>    
+
+    <InputLabel label="Uploader">
+        <Input placeholder="name" bind:value={uploader.rdf.uploader.name} />
+        <Input readonly value={uploader.rdf.uploader.email}/>
+    </InputLabel>
     
     <InputLabel label="Authors" required>
         <svelte:fragment slot="help">The authors who contributed to this resource item</svelte:fragment>
