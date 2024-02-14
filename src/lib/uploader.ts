@@ -17,6 +17,9 @@ const regex_rdf = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml)$/gi;
 const hostname = `${window.location.protocol}//${window.location.host}`;
 const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
 const notify_ci_url = `${hostname}/.netlify/functions/notify_ci`;
+const validator_url = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/main/scripts/bio-rdf-validator.imjoy.html"
+//const validator_url = `${hostname}/static/bio-rdf-validator.imjoy.html`
+
 
 
 export enum UploaderStep {
@@ -232,7 +235,7 @@ export class Uploader {
     load_validator() {
         if (this.validator) return this.validator;
         this.validator = this.api.getPlugin(
-            "https://raw.githubusercontent.com/jmetz/spec-bioimage-io/dev/scripts/bio-rdf-validator.imjoy.html"
+            validator_url
         );
         return this.validator;
     }
@@ -245,8 +248,14 @@ export class Uploader {
         const validator = await this.load_validator();
         let rdf = yaml.load(yaml.dump(this.rdf));
         rdf = clean_rdf(rdf);
+
         console.log("RDF after cleaning: ", rdf);
-        const results = await validator.validate(rdf);
+
+        console.warn("STRIPPING UNSUPPORTED FIELDS IN RDF: TODO - THIS SHOULD BE A TEMPORARY FIX");
+        const rdf_copy = { ...rdf }
+        delete rdf_copy.uploader;
+
+        const results = await validator.validate(rdf_copy);
         if (results.error) {
             throw new Error(results.error);
         }
@@ -277,7 +286,7 @@ export class Uploader {
             console.log("Generated name:", model_name);
             const error = "";
             this.resource_path = model_name;
-            this.rdf.nickname = model_name.name;
+            this.rdf.nickname = model_name.id;
             return { model_name, error };
         } catch (err) {
             console.error("Failed to generate name:")
@@ -401,8 +410,8 @@ export class Uploader {
             console.error("Nofiying the ci-bot failed:");
             console.error(err);
             this.error_object = err;
-            this.status.message = err.message,
-                this.status.step = UploaderStep.FAILED;
+            this.status.message = err.message;
+            this.status.step = UploaderStep.FAILED;
             this.render();
             return
         }
@@ -424,15 +433,18 @@ export class Uploader {
             console.error("notify_ci_url not set")
             throw new Error("notify_ci_url not set");
         }
+        const payload = { 'resource_path': this.resource_path!.id, 'package_url': this.zip_urls!.get};
         this.status.message = "⌛ Trying to notify bioimage-bot for the new item...";
         this.status.step = UploaderStep.NOTIFYING_CI;
         this.render();
+        console.debug("Notifying CI bot using:");
+        console.debug(payload)
         // trigger CI with the bioimageio bot endpoint
         try {
             const resp = await fetch(notify_ci_url, {
                 method: 'POST',
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 'resource_path': this.resource_path!.id, 'package_url': this.zip_urls!.get })
+                body: JSON.stringify(payload)
             });
             if (resp.status === 200) {
                 const ci_resp = (await resp.json());

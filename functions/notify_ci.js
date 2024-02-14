@@ -72,7 +72,7 @@ export default async (event, context) => {
         console.error(GITHUB_URL);
         console.error(err);
         const res = Response.json(
-            { 'message': `Failed: ${err.message}` },
+            { 'message': `Failed to fetch from CI endpoint: ${err.message}` },
             { status: 500 });
         res.headers.set("Access-Control-Allow-Origin", "*");
         res.headers.append("Access-Control-Allow-Headers", "*");
