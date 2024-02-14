@@ -62,11 +62,10 @@
 {#key uploader.server}
     {#if !uploader.server}
         <Notification deletable={false} >
-            Please login to the BioEngine to complete upload
-            <HyphaLogin {uploader} />
+            Login to the BioEngine to enable Upload 
+            <HyphaLogin {uploader} modal={false} />
         </Notification>
     {:else}
-
         {#key uploader.user_email }
             {#if uploader.user_email}
                 <p class="level">
