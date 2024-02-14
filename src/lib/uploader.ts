@@ -1,7 +1,7 @@
 import * as imjoyCore from 'imjoy-core';
 import * as imjoyRPC from 'imjoy-rpc';
 // import axios from 'axios'; ///dist/browser/axios.cjs';
-import { default as axios } from 'axios';
+import { default as axios, AxiosProgressEvent } from 'axios';
 
 import { FileFromJSZipZipOject, clean_rdf } from "./utils.ts";
 //import { fetch_with_progress } from "./utils.ts";
@@ -88,11 +88,12 @@ export class Uploader {
         this.token = window.sessionStorage.getItem('token');
         //this.status = {message:"", is_finished: false, is_uploading: false, ci_failed: false};
         this.status = new UploaderStatus();
-        this.show_login_window = (url) => { window.open(url, '_blank') };
+        this.show_login_window = (url) => { globalThis.open(url, '_blank') };
+        globalThis.uploader = this;
     }
 
     async init() {
-        await this.initHypha();
+        await this.initImjoy();
     }
 
     reset() {
@@ -107,8 +108,8 @@ export class Uploader {
     }
 
 
-    async initHypha() {
-
+    async initImjoy() {
+        console.log("Starting Imjoy...");
         // Init Imjoy-Core
         const imjoy = new imjoyCore.ImJoy({
             imjoy_api: {},
@@ -119,13 +120,16 @@ export class Uploader {
         console.log('ImJoy started');
         this.api = imjoy.api;
 
+    }
+
+    async loginHypha(){
+        console.log(`Connecting to ${Uploader.server_url}`);
+
         // Init Imjoy-Hypha
         if (this.connection_retry > Uploader.MAX_CONNECTION_RETRIES) {
             console.error("Max retries reached. Please try again later or contact support");
-            return this;
+            return
         }
-        console.log("Initializing Hypha...");
-        console.log(`  connecting to ${Uploader.server_url}`);
         if (!this.token) {
             console.log("    Getting token...");
             console.log("    from:");
@@ -138,7 +142,6 @@ export class Uploader {
             });
             window.sessionStorage.setItem('token', this.token!);
             console.log('    token saved');
-            console.log('    🥳🥳🥳🥳');
         }
         console.log(`Token: ${this.token!.slice(0, 5)}...`);
 
@@ -149,11 +152,18 @@ export class Uploader {
                 server_url: Uploader.server_url,
                 token: this.token,
             });
-            let login_info = await this.server.get_connection_info();
+            const login_info = await this.server.get_connection_info();
             
             // .user_info.email;
             if(login_info){
-                this.user_email = (login_info.user_info || {}).email; 
+                this.user_email = ((login_info.user_info || {}).email || ""); 
+                if(this.rdf){
+                    if(this.rdf.uploader){
+                        this.rdf.uploader.email = this.user_email;
+                    }else{
+                        this.rdf.uploader = {"email": this.user_email}
+                    }
+                }
             }
 
 
@@ -164,7 +174,7 @@ export class Uploader {
             this.connection_retry = this.connection_retry + 1;
             this.token = null;
             window.sessionStorage.setItem('token', '');
-            this.initHypha();
+            this.loginHypha();
         }
         this.connection_retry = 0;
         console.log("Hypha connected");
@@ -268,14 +278,14 @@ export class Uploader {
         return true;
     }
 
-    ready_to_publish() {
+    ready_to_publish(): boolean{
         if (!this.ready_for_review()) return false;
         if (!this.resource_path) return false;
+        if (!this.user_email) return false;
         return true;
     }
 
-    logged_in() {
-
+    logged_in(): boolean{
         if (!this.server) return false;
         return true;
     }
@@ -323,39 +333,27 @@ export class Uploader {
         console.log(url_put);
 
         try {
-            const config: any = {};
+            //const config: object {onUploadProgress: ((arg: AxiosProgressEvent) => void }) = {};
+            const config : {'onUploadProgress': null | ((progressEvent: AxiosProgressEvent) => void) }= {onUploadProgress: null};
             if (typeof progress_callback === "function") {
-                config.onUploadProgress = (progressEvent: any) => {
-                    this.status.upload_progress_value = progressEvent.loaded;
-                    this.status.upload_progress_max = progressEvent.total;
+                config.onUploadProgress = (progressEvent: AxiosProgressEvent) => {
+                    this.status.upload_progress_value = `${progressEvent.loaded}`;
+                    this.status.upload_progress_max = `${progressEvent.total}`;
                     console.log("Progress (with callback):", this.status);
                     //var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
-                    progress_callback(progressEvent.loaded, progressEvent.total);
+                    progress_callback(`{progressEvent.loaded}`, `{progressEvent.total}`);
                     this.render();
                 };
             } else {
-                config.onUploadProgress = (progressEvent: any) => {
-                    this.status.upload_progress_value = progressEvent.loaded;
-                    this.status.upload_progress_max = progressEvent.total;
+                config.onUploadProgress = (progressEvent: AxiosProgressEvent) => {
+                    this.status.upload_progress_value = `${progressEvent.loaded}`;
+                    this.status.upload_progress_max = `${progressEvent.total}`;
                     console.log("Progress (no callback):", this.status);
                     this.render();
                 };
             }
 
             const response = await axios.put(url_put, file, config);
-            //const response = await fetch(url_put, {method:"PUT", body:file});
-            //const response = await fetch_with_progress(
-            //url_put,
-            //{
-            //method:"PUT",
-            //body:file,
-            //upload_listener: (evt) => {
-            //if (evt.lengthComputable) {
-            //console.log("upload progress:", evt.loaded / evt.total);
-            //}
-            //}
-            //}
-            //);
             console.log("Upload result:", response.data);
             return { 'get': url_get, 'put': url_put };
         } catch (error) {
@@ -426,6 +424,10 @@ export class Uploader {
 
     add_render_callback(callback: () => void) {
         this.render_callbacks.push(callback);
+    }
+    
+    clear_render_callback() {
+        this.render_callbacks = []; 
     }
 
     async notify_ci_bot() {

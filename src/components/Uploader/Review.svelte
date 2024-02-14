@@ -1,62 +1,104 @@
-<script>
+<script lang="ts">
+	import { onDestroy } from 'svelte';
     import { createEventDispatcher } from 'svelte';
     //import toast from 'svelte-french-toast';
     import Notification from './Notification.svelte';
+    import HyphaLogin from './HyphaLogin.svelte';
+    import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
+    import { Uploader } from '../../lib/uploader';
 
-    export let uploader;
+    export let uploader : Uploader;
 
     import JSONTree from 'svelte-json-tree';
     let model_name_message = "";
+    let rerender = false;
     let resource_path = uploader.resource_path;
     let rdf = uploader.rdf;
     let ready_to_publish = uploader.ready_to_publish();
-
     const dispatch = createEventDispatcher();
+
+    onDestroy(() => {
+        uploader.clear_render_callback();
+	});
 
     function is_done() {
         dispatch('done');
     }
 
-    function publish(){
+    function reset(){
+        dispatch('reset');
+    }
+
+    async function publish(){
         uploader.publish();
         is_done();
     }
 
-    async function regenerate_nickname(){
-        await uploader.regenerate_nickname();
+    function toggle_rerender(){
         resource_path = uploader.resource_path;
         ready_to_publish = uploader.ready_to_publish();
+        rerender = !rerender;
+    }
+
+    async function regenerate_nickname(){
+        await uploader.regenerate_nickname();
         console.log("Ready to publish?", ready_to_publish);
         rdf = uploader.rdf;
-        //rerender = !rerender;
+        toggle_rerender();
     }
 
     if(!resource_path) regenerate_nickname();
+    if(uploader){
+        uploader.add_render_callback(toggle_rerender);
+        if(!uploader.server){
+            uploader.loginHypha()
+        }
+    }
 
 </script>
 
-{#if !uploader.logged_in()}
-    <Notification deletable={false} >
-        Please login to the BioEngine to complete upload
-    </Notification>
-{/if}
+{#key rerender}
 
-<!--{#key rerender}-->
-<p class="level">
-    {#if model_name_message }({model_name_message}){/if}
-    {#if resource_path}
-        Your model nickname is:
-        <code style="min-width:10em;">{resource_path.id} {resource_path.icon}&nbsp;</code>
+{#key uploader.server}
+    {#if !uploader.server}
+        <Notification deletable={false} >
+            Please login to the BioEngine to complete upload
+            <HyphaLogin {uploader} />
+        </Notification>
+    {:else}
+
+        {#key uploader.user_email }
+            {#if uploader.user_email}
+                <p class="level">
+                    {#if model_name_message }({model_name_message}){/if}
+                    {#if resource_path}
+                        Your model nickname is:
+                        <code style="min-width:10em;">{resource_path.id} {resource_path.emoji}&nbsp;</code>
+                    {/if}
+                    <button on:click={regenerate_nickname}>Regenerate nickname</button>
+                </p>
+                <p>Please review your submission carefully, then press Upload</p>
+                
+                {#if ready_to_publish}
+                    <button class="button is-primary" on:click={publish}>Upload</button>
+                {/if}
+
+
+            {:else}
+                <article>Populating RDF with user-email</article>
+            {/if}
+        {/key}
     {/if}
-    <button on:click={regenerate_nickname}>Regenerate nickname</button>
-</p>
-<!--{/key}-->
-<p>Please review your submission carefully, then press Upload</p>
+{/key}
+
+<ButtonWithConfirmation confirm={reset}>
+    Clear model + start again
+</ButtonWithConfirmation>
 
 <article class="contrast" style="--card-background-color: var(--contrast)">
+    {#key uploader.user_email }
     <JSONTree defaultExpandedLevel={1} value={rdf}/>
+    {/key}
 </article>
 
-{#if ready_to_publish}
-    <button class="button is-primary" on:click={publish}>Upload</button>
-{/if}
+{/key}
