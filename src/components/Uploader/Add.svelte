@@ -2,6 +2,7 @@
     import Dropzone from "svelte-file-dropzone";
     import toast  from 'svelte-french-toast';
     import { createEventDispatcher } from 'svelte';
+	import { onDestroy } from 'svelte';
     
     export let uploader;
 
@@ -11,10 +12,13 @@
 
     const dispatch = createEventDispatcher();
 
+    onDestroy(() => {
+        uploader.clear_render_callback();
+	});
+
     function completed_step() {
         dispatch('done', {});
     }
-
 
     async function handle_files_select(evt){
         console.log("handle_files_select"); 
