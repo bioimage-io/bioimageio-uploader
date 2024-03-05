@@ -25,7 +25,7 @@
     "imjoy-rpc": "^0.5.44",
     "jszip": "^3.10.1",
     "lucide-svelte": "^0.294.0",
-    "netlify-cli": "^17.16.2",
+    "netlify-cli": "^17.17.1",
     "playwright": "^1.40.1",
     "sass": "^1.70.0",
     "spdx-license-list": "^6.8.0",
