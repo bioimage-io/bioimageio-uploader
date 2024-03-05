@@ -9,18 +9,14 @@ import { FileFromJSZipZipOject, clean_rdf } from "./utils.ts";
 import yaml from "js-yaml";
 import { default as JSZip } from "jszip";
 
-
 const regex_zip = /\.zip$/gi;
 const regex_rdf = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml)$/gi;
-
 
 const hostname = `${window.location.protocol}//${window.location.host}`;
 const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
 const notify_ci_url = `${hostname}/.netlify/functions/notify_ci`;
 const validator_url = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/main/scripts/bio-rdf-validator.imjoy.html"
 //const validator_url = `${hostname}/static/bio-rdf-validator.imjoy.html`
-
-
 
 export enum UploaderStep {
     NOT_STARTED = "not-started",
@@ -30,7 +26,6 @@ export enum UploaderStep {
     FINISHED = "finished",
     FAILED = "failed",
 }
-
 
 class UploaderStatus {
     message = "";
@@ -185,19 +180,17 @@ export class Uploader {
     }
 
 
-    async load_from_file(input_file: File) {
-        if (input_file.name.search(regex_zip) !== -1) {
-            await this.load_zip_file(input_file);
-        } else if (input_file.name.search(regex_rdf) !== -1) {
-            await this.load_rdf_file(input_file);
-        } else {
-            throw Error("Invalid file given");
+    async load(files: File[]) {
+        console.debug("Loading model");
+        
+        if( files.length === 1){
+            const input_file = files[0];
+            if (input_file.name.search(regex_zip) !== -1) {
+                await this.load_zip_file(input_file);
+                return
+            } 
         }
-        this.rdf.uploader.email = this.user_email;
-    }
-
-    async load_from_files(files: File[]) {
-        console.debug("Loading model from files");
+    
         const candidates = files.filter((file) => file.name.search(regex_rdf) !== -1)
         // Obtain the RDF file
         if (candidates.length > 1) {
@@ -217,8 +210,10 @@ export class Uploader {
         this.rdf.uploader = {'email': this.user_email};
         console.debug('RDF:');
         console.debug(this.rdf);
-        // Empty files and repopulate from the zip file
-        this.files = files;
+        // Empty files and repopulate from the zip file, except for the RDF file
+
+        // Set files to all files other than the RDF file
+        this.files = files.filter((file) => file.name.search(regex_rdf) === -1);
     }
 
     async load_zip_file(zip_file: File) {
@@ -230,7 +225,7 @@ export class Uploader {
         for (const item of Object.values(zip_package.files)) {
             files.push(await FileFromJSZipZipOject(item));
         };
-        await this.load_from_files(files);
+        await this.load(files);
     }
 
     async load_rdf_file(rdf_file: File) {
@@ -297,6 +292,7 @@ export class Uploader {
             const error = "";
             this.resource_path = model_name;
             this.rdf.nickname = model_name.id;
+            this.rdf.id_emoji = model_name.emoji;
             return { model_name, error };
         } catch (err) {
             console.error("Failed to generate name:")
@@ -368,15 +364,19 @@ export class Uploader {
         this.status.message = "Zipping model";
         this.status.step = UploaderStep.ZIPPING;
         this.render();
-        console.debug("Finding yaml file...");
+
+        console.debug("Creating updated yaml file...");
         const rdf_file = this.files.filter(item => item.name === "rdf.yaml")
-        if (rdf_file.length !== 1) {
-            this.status.message = "Publishing failed - unable to find rdf.yaml";
+        if (rdf_file.length > 0) {
+            this.status.message = "Publishing failed - rdf.yaml file should have been purged";
             this.status.step = UploaderStep.FAILED;
             this.render();
-            throw new Error("Could not find RDF file in file list");
-        }
+            throw new Error("Found existing RDF file in file list before creating the new one");
+        } 
+
         const zip = new JSZip();
+        
+        zip.file("rdf.yaml", yaml.dump(this.rdf));
 
         for (const file of this.files) {
             zip.file(file.name, file);
