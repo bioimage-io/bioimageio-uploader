@@ -59,15 +59,15 @@
 
 {#key rerender}
 
-{#key uploader.server}
-    {#if !uploader.server}
+{#key uploader.hypha.server}
+    {#if !uploader.hypha.server}
         <Notification deletable={false} >
             Login to the BioEngine to enable Upload 
             <HyphaLogin {uploader} modal={false} />
         </Notification>
     {:else}
-        {#key uploader.user_email }
-            {#if uploader.user_email}
+        {#key uploader.hypha.user_email }
+            {#if uploader.hypha.user_email}
                 <p class="level">
                     {#if model_name_message }({model_name_message}){/if}
                     {#if resource_path}
@@ -95,7 +95,7 @@
 </ButtonWithConfirmation>
 
 <article class="contrast" style="--card-background-color: var(--contrast)">
-    {#key uploader.user_email }
+    {#key uploader.hypha.user_email }
     <JSONTree defaultExpandedLevel={1} value={rdf}/>
     {/key}
 </article>

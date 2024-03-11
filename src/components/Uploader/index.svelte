@@ -2,6 +2,7 @@
     import { Toaster } from 'svelte-french-toast';
     import semver from 'semver';
     import { Uploader } from '../../lib/uploader';
+    import Hypha from '../../lib/hypha';
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
@@ -10,7 +11,9 @@
     import Notification from './Notification.svelte';
     import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
 
-    let uploader = new Uploader();
+
+    export let hypha: Hypha;
+    let uploader = new Uploader(hypha);
     let step = "add";
 
     function reset(){

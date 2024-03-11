@@ -7,7 +7,9 @@
     import Uploader from './components/Uploader/index.svelte';
     import Status from './components/Status.svelte';
     import Transition from './components/Transition.svelte';
+    import Hypha from './lib/hypha.ts';
 
+    const hypha = new Hypha();
     router.mode.hash();
 </script>
 <style>
@@ -25,12 +27,12 @@
 
 <Transition> 
     <Route path="/">
-        <Uploader />
+        <Uploader {hypha}/>
     </Route>
     <Route path="/status">
-        <Status />
+        <Status {hypha}/>
     </Route>
-    <Route path="/status/:model_name" let:meta>
-        <Status modelName={meta.params.model_name} />
+    <Route path="/status/:resource_id" let:meta>
+        <Status resource_id={meta.params.resource_id} {hypha}/>
     </Route>
 </Transition>
