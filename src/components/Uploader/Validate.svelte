@@ -9,9 +9,6 @@
 
     const dispatch = createEventDispatcher();
 
-    if(!uploader.validator) uploader.load_validator();
-
-
     async function validate(){
         // Perform RDF validation with Imjoy...
         if(validating) return;
@@ -19,7 +16,7 @@
         console.log("Validating RDF:");
 
         try {
-            await uploader.validate();
+            await uploader.validate_json_schema();
         } catch (e) {
             window.DB_ERR = e;
             error = e.message;
@@ -45,8 +42,12 @@
     }
 </script>
 
+<h2>Validation</h2>
+
+<p>You are using a schema-version that will be checked with JSON-Schema</p>
+
 {#if validating} 
-    <button aria-busy=true> Validating...</button>
+    <button aria-busy=true>Validating</button>
 {:else}
     <button on:click={validate_with_toast}>Validate</button>
 {/if}    

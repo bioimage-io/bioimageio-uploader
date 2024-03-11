@@ -21,6 +21,10 @@
     let max=0;
     let timeout_id;
 
+
+    // Get the reviewer status
+    let reviewer = true;
+
     ///
     /// Clear timeout when navigating away from this page
     /// 
@@ -110,6 +114,10 @@
 
             <!--<progress {value} {max}>15%</progress>-->
         </article> 
+    {/if}
+
+    {#if reviewer}
+        <Review {resource_id} /> 
     {/if}
 
     <!--{#if notify_ci_message}-->

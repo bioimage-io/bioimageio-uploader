@@ -2,6 +2,8 @@ import * as imjoyCore from 'imjoy-core';
 import * as imjoyRPC from 'imjoy-rpc';
 // import axios from 'axios'; ///dist/browser/axios.cjs';
 import { default as axios, AxiosProgressEvent } from 'axios';
+//import { Draft, JsonError } from "json-schema-library";
+import { Validator } from '@cfworker/json-schema';
 
 import { FileFromJSZipZipOject, clean_rdf } from "./utils.ts";
 //import { fetch_with_progress } from "./utils.ts";
@@ -16,6 +18,7 @@ const hostname = `${window.location.protocol}//${window.location.host}`;
 const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
 const notify_ci_url = `${hostname}/.netlify/functions/notify_ci`;
 const validator_url = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/main/scripts/bio-rdf-validator.imjoy.html"
+const url_json_schema_latest = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/gh-pages/bioimageio_schema_latest.json"; 
 //const validator_url = `${hostname}/static/bio-rdf-validator.imjoy.html`
 
 export enum UploaderStep {
@@ -243,6 +246,23 @@ export class Uploader {
             validator_url
         );
         return this.validator;
+    }
+
+    /**
+     * Alternative validator using JSON-schema
+     */
+    async validate_json_schema(){
+        console.log("Validating using JSON Schema:");
+        let schema = await (await fetch(url_json_schema_latest)).json();
+        console.debug(schema);
+
+        console.debug("Creating json-schema validator...");
+        const validator = new Validator(schema);
+        console.debug(validator);
+        
+        const result = validator.validate(this.rdf);
+        console.log(result);
+        
     }
 
     async validate() {
