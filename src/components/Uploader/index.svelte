@@ -6,14 +6,15 @@
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
-    import Validate from './Validate.svelte';
+    import ValidateJson from './ValidateJson.svelte';
     import UploadStatus   from './UploadStatus.svelte';
-    import Notification from './Notification.svelte';
+    import Notification from '../Notification.svelte';
     import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
 
 
     export let hypha: Hypha;
     let uploader = new Uploader(hypha);
+
     let step = "add";
 
     function reset(){
@@ -23,17 +24,21 @@
 
     function handle_add(data){
         // Handle 
-        if((uploader.rdf.type === "model") &&
-           (semver.lt(uploader.rdf.format_version, "0.5.0"))){
+        if(((uploader.rdf.type === "model") &&
+           (semver.lt(uploader.rdf.format_version, "0.5.0")))
+            || !uploader.rdf.type
+          )
+            {
             step="edit";
         }else{
             console.debug("Falling back to JSON-Schema validation");
-            step="validate";
+            step="validate-json";
         }
     }
 
-    if(!uploader.api) uploader.init();
-
+    if(!uploader.hypha.api) uploader.init();
+    window.uploader = uploader;
+    
 </script>
 
 <Toaster />
@@ -41,8 +46,8 @@
     <Add {uploader} on:done={handle_add} />
 {:else if step == "edit"}
     <Edit {uploader} on:done={()=>{step="review"}} />
-{:else if step == "validate"}
-    <Validate {uploader} on:done={()=>{step="review"}} />
+{:else if step == "validate-json"}
+    <ValidateJson {uploader} on:done={()=>{step="review"}} />
 {:else if step == "review"}
     <Review {uploader} on:done={()=>{step="uploading"}} on:reset={()=>{reset();}}/>
 {:else if step == "uploading"}

@@ -2,10 +2,14 @@
 	import { onDestroy } from 'svelte';
     import { createEventDispatcher } from 'svelte';
     //import toast from 'svelte-french-toast';
-    import Notification from './Notification.svelte';
-    import HyphaLogin from './HyphaLogin.svelte';
+    import Notification from '../Notification.svelte';
+    import HyphaLogin from '../HyphaLogin.svelte';
     import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
     import { Uploader } from '../../lib/uploader';
+    import yaml from "js-yaml";
+    import Highlight from "svelte-highlight";
+    import {yaml as yamlsyntax} from "svelte-highlight/languages/yaml";
+    import atlas from "svelte-highlight/styles/atlas";
 
     export let uploader : Uploader;
 
@@ -57,13 +61,17 @@
 
 </script>
 
+<svelte:head>
+    {@html atlas}
+</svelte:head>
+
 {#key rerender}
 
 {#key uploader.hypha.server}
-    {#if !uploader.hypha.server}
+    {#if !uploader.hypha.token}
         <Notification deletable={false} >
             Login to the BioEngine to enable Upload 
-            <HyphaLogin {uploader} modal={false} />
+            <HyphaLogin bind:hypha={uploader.hypha} modal={false} />
         </Notification>
     {:else}
         {#key uploader.hypha.user_email }
@@ -96,7 +104,8 @@
 
 <article class="contrast" style="--card-background-color: var(--contrast)">
     {#key uploader.hypha.user_email }
-    <JSONTree defaultExpandedLevel={1} value={rdf}/>
+    <!--JSONTree defaultExpandedLevel={1} value={rdf}/-->
+        <Highlight language={yamlsyntax} code={yaml.dump(rdf)} /> 
     {/key}
 </article>
 

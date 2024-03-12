@@ -51,14 +51,14 @@
         if(resource_id){ 
             try{
                 const resp = await refresh_status(resource_id);
-                last_message = resp.last_message;
+                last_message = resp.status.name;
                 messages = resp.messages;
                 if((!Array.isArray(messages)) || (!is_string(last_message))){
                     console.debug(resp);
                     throw new Error("Unable to get status messages from server response");
                 }
-                step = resp.step;
-                num_steps = resp.num_steps;
+                step = resp.status.step;
+                num_steps = resp.status.num_steps;
                 polling_error = false;
             }catch(err){
                 //messages = ["Error polling status 😬. Please let the dev-team know 🙏"];
@@ -76,9 +76,12 @@
             value = `${step}`; 
             max = `${num_steps}`; 
         }
+
         if(!is_finished){
             timeout_id = setTimeout(poll_status, 2000);
         }
+
+        console.log(`Value ${value}, max ${max}`);
     }
 
     function set_resource_id(text){
@@ -139,7 +142,6 @@
     {#if reviewer}
         <Review {resource_id} {hypha} /> 
     {/if}
-
     <!--{#if notify_ci_message}-->
         <!--<p>🤖: {notify_ci_message}</p>-->
     <!--{/if}-->

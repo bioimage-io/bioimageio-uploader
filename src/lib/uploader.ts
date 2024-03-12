@@ -3,6 +3,8 @@ import Hypha from './hypha.ts';
 import { default as axios, AxiosProgressEvent } from 'axios';
 //import { Draft, JsonError } from "json-schema-library";
 import { Validator } from '@cfworker/json-schema';
+import Ajv from 'ajv';
+
 
 import { FileFromJSZipZipOject, clean_rdf } from "./utils.ts";
 //import { fetch_with_progress } from "./utils.ts";
@@ -12,6 +14,7 @@ import { default as JSZip } from "jszip";
 
 const regex_zip = /\.zip$/gi;
 const regex_rdf = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml)$/gi;
+const ajv = new Ajv({allErrors: true, strict: false});
 
 const hostname = `${window.location.protocol}//${window.location.host}`;
 const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
@@ -45,6 +48,14 @@ class UploaderStatus {
         this.upload_progress_max = "";
     }
 }
+
+
+function load_yaml(text){
+    // Need the schema here to avoid loading Date objects
+    const schema = yaml.Schema.create(yaml.CORE_SCHEMA, []);
+    return yaml.load(text, {schema: schema});
+}
+
 
 class ResourceId {
     id = "";
@@ -173,7 +184,7 @@ export class Uploader {
     }
 
     read_model_text(rdf_text: string) {
-        this.rdf = yaml.load(rdf_text);
+        this.rdf = load_yaml(rdf_text);
     }
 
     load_validator() {
@@ -190,14 +201,28 @@ export class Uploader {
     async validate_json_schema(){
         console.log("Validating using JSON Schema:");
         let schema = await (await fetch(url_json_schema_latest)).json();
+        //const draft = "2020-12";
+        //const shortCircuit = false;
+        console.debug(this.rdf);
         console.debug(schema);
 
         console.debug("Creating json-schema validator...");
         const validator = new Validator(schema);
+        //const validator = new Validator(schema, draft, shortCircuit);
         console.debug(validator);
+
+        let valid = ajv.validate(schema, this.rdf);
         
         const result = validator.validate(this.rdf);
         console.log(result);
+        console.log(valid);
+        //if (!result.valid) {
+        if (!valid) {
+            console.error("Validation errors:");
+            console.error(ajv.errors);
+            const error_string = JSON.stringify(ajv.errors);
+            throw new Error(error_string);
+        }
         
     }
 
@@ -207,7 +232,7 @@ export class Uploader {
          * Lazy loading of validator
          */
         const validator = await this.load_validator();
-        let rdf = yaml.load(yaml.dump(this.rdf));
+        let rdf = load_yaml(yaml.dump(this.rdf));
         rdf = clean_rdf(rdf);
 
         console.log("RDF after cleaning: ", rdf);
@@ -230,6 +255,7 @@ export class Uploader {
     }
 
     ready_to_publish(): boolean{
+        console.log("Checking ready to publish");
         if (!this.ready_for_review()) return false;
         if (!this.resource_path) return false;
         if (!this.hypha.user_email) return false;

@@ -13,10 +13,6 @@ export default async (event) => {
     }catch(err){
         obj = {last_message: "Status file not present yet", messages:[]};
     }
-    console.log("Got status for");
-    console.log(url);
-    console.log("Answer:");
-    console.log(obj);
     const res = Response.json(obj);
     res.headers.set("Access-Control-Allow-Origin", "*");
     res.headers.append("Access-Control-Allow-Headers", "*");
