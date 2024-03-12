@@ -7,6 +7,7 @@
     import { is_string } from '../lib/utils.ts';
     import Hypha from '../lib/hypha.ts';
 
+    import Chat from './Chat.svelte';
     import Review from './Review.svelte';
 
     export let resource_id="";
@@ -78,7 +79,7 @@
         }
 
         if(!is_finished){
-            timeout_id = setTimeout(poll_status, 2000);
+            timeout_id = setTimeout(poll_status, 5000);
         }
 
         console.log(`Value ${value}, max ${max}`);
@@ -139,6 +140,7 @@
     {/if}
 
 
+    <Chat {resource_id} {hypha} /> 
     {#if reviewer}
         <Review {resource_id} {hypha} /> 
     {/if}
