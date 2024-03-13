@@ -38,7 +38,7 @@ export async function get_chats(resource_id: string){
  * Get chats for a resource
  * @param resource_id
  */
-export async function update_chat(resource_id: string, text){
+export async function update_chat(resource_id: string, text: string){
     const url = `${STATUS_PREFIX}${resource_id}${STATUS_SUFFIX}`;
     try{
         // Using netlify middle-man
