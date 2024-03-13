@@ -40,19 +40,19 @@ function sample(array){
 
 function generate_name(starts, animals){
     const animal = sample(animals);
-    return {id: `${sample(starts)}-${animal[0]}`, icon: animal[1]};
+    return {id: `${sample(starts)}-${animal[0]}`, emoji: animal[1]};
 }
 
 
 export default async () => {
     console.log("Generating nickname from allowed lists...");
-    const [adjectives, animals_with_icons, taken_names] = await Promise.all([
+    const [adjectives, animals_with_emojis, taken_names] = await Promise.all([
         get_adjectives(),
         get_animals(),
         get_taken_names()]);
-    let name = generate_name(adjectives, animals_with_icons);
+    let name = generate_name(adjectives, animals_with_emojis);
     while(name in taken_names){
-        name = generate_name(adjectives, animals_with_icons);
+        name = generate_name(adjectives, animals_with_emojis);
     }
     console.log("Name generated:");
     console.log(name);

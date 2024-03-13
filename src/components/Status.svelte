@@ -1,12 +1,18 @@
-<script>
-    import { onDestroy } from 'svelte';
+<script lang="ts">
+    import { onMount, onDestroy } from 'svelte';
     import FullScreenConfetti from './FullScreenConfetti.svelte';
     import SingleLineInputs from './SingleLineInputs.svelte';
     import refresh_status from "../lib/status.ts";
     import { Search } from 'lucide-svelte';
     import { is_string } from '../lib/utils.ts';
+    import Hypha from '../lib/hypha.ts';
 
-    export let modelName="";
+    import Chat from './Chat.svelte';
+    import Review from './Review.svelte';
+
+    export let resource_id="";
+    export let hypha: Hypha; 
+
     let step = 0;
     let messages = [];
     let last_message = "Getting status...";
@@ -21,6 +27,20 @@
     let max=0;
     let timeout_id;
 
+    // Get the reviewer status
+    let reviewer: bool;
+    let logged_in: bool;
+
+    onMount(async() => {
+        if(hypha !== null){
+
+            await hypha.login(); 
+            reviewer = hypha.is_reviewer();
+            logged_in = hypha.is_logged_in();
+                
+            console.log("Logged in :", logged_in);
+        } 
+    });
     ///
     /// Clear timeout when navigating away from this page
     /// 
@@ -29,17 +49,17 @@
     });
 
     async function poll_status(){
-        if(modelName){ 
+        if(resource_id){ 
             try{
-                const resp = await refresh_status(modelName);
-                last_message = resp.last_message;
+                const resp = await refresh_status(resource_id);
+                last_message = resp.status.name;
                 messages = resp.messages;
                 if((!Array.isArray(messages)) || (!is_string(last_message))){
                     console.debug(resp);
                     throw new Error("Unable to get status messages from server response");
                 }
-                step = resp.step;
-                num_steps = resp.num_steps;
+                step = resp.status.step;
+                num_steps = resp.status.num_steps;
                 polling_error = false;
             }catch(err){
                 //messages = ["Error polling status 😬. Please let the dev-team know 🙏"];
@@ -57,22 +77,29 @@
             value = `${step}`; 
             max = `${num_steps}`; 
         }
+
         if(!is_finished){
-            timeout_id = setTimeout(poll_status, 2000);
+            timeout_id = setTimeout(poll_status, 5000);
         }
+
+        console.log(`Value ${value}, max ${max}`);
     }
 
-    function set_model_name(name){
-        modelName = name;
+    function set_resource_id(text){
+        resource_id = text;
         poll_status();
     }
     
-    if(modelName) poll_status();
+    if(resource_id) poll_status();
 
 </script>
 
-{#if modelName }
-    <h2>Model: <code>{modelName}</code></h2>
+{#if !logged_in}
+    <button>Login to access Reviewer tools</button>
+{/if}
+
+{#if resource_id }
+    <h2>Resource ID: <code>{resource_id}</code></h2>
 
     {#if polling_error}
         <article>
@@ -112,12 +139,19 @@
         </article> 
     {/if}
 
+
+    <Chat {resource_id} {hypha} /> 
+    {#if reviewer}
+        <Review {resource_id} {hypha} /> 
+    {/if}
     <!--{#if notify_ci_message}-->
         <!--<p>🤖: {notify_ci_message}</p>-->
     <!--{/if}-->
 {:else}
+    <form>
     <SingleLineInputs>
-        <input type="text" bind:value={input_value} placeholder="Enter model name, e.g. affable-shark"/>
-        <button class="icon" on:click={()=>set_model_name(input_value)} ><Search /></button>
+        <input type="text" bind:value={input_value} placeholder="Enter resource ID, e.g. affable-shark"/>
+        <button class="icon" on:click={()=>set_resource_id(input_value)} ><Search /></button>
     </SingleLineInputs>
+    </form>
 {/if}
