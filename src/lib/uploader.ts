@@ -53,6 +53,7 @@ class UploaderStatus {
 function load_yaml(text){
     // Need the schema here to avoid loading Date objects
     const schema = yaml.CORE_SCHEMA;// Schema.create(yaml.CORE_SCHEMA, []);
+    // const yaml.CORE_SCHEMA.extend([...]);
     return yaml.load(text, {schema: schema});
 }
 
@@ -72,9 +73,8 @@ export class Uploader {
     //connection_retry = 0;
     error_object: Error | null = null;
     files: File[] = [];
-    hypha: Hypha;
     //login_url: string | null = null;
-    //user_email: string | null  = ''; 
+    user_email: string | null  = ''; 
     resource_path: ResourceId | null = null;
     package_url: string | null = null;
     rdf: any = null;
@@ -94,7 +94,6 @@ export class Uploader {
 
     constructor() {
         console.log("Creating uploader...");
-        this.hypha = new Hypha();
 
         //this.token = window.sessionStorage.getItem('token');
         //this.status = {message:"", is_finished: false, is_uploading: false, ci_failed: false};
@@ -104,7 +103,6 @@ export class Uploader {
     }
 
     async init() {
-        await this.hypha.init_imjoy();
     }
 
     reset() {
@@ -119,13 +117,19 @@ export class Uploader {
     //}
 
 
-    async loginHypha(){
-        await this.hypha.login();
+    async loginHypha(hypha){
+        await hypha.login();
+        this.set_email(hypha.user_email);
+        this.render();
+    }
+
+    set_email(email){
+        this.user_email = email;
         if(this.rdf){
             if(this.rdf.uploader){
-                this.rdf.uploader.email = this.hypha.user_email;
+                this.rdf.uploader.email = this.user_email;
             }else{
-                this.rdf.uploader = {"email": this.hypha.user_email}
+                this.rdf.uploader = {"email": this.user_email}
             }
         }
     }
@@ -157,7 +161,7 @@ export class Uploader {
         } else {
             this.rdf = {};
         }
-        this.rdf.uploader = {'email': this.hypha.user_email};
+        this.rdf.uploader = {'email': this.user_email};
         console.debug('RDF:');
         console.debug(this.rdf);
         // Empty files and repopulate from the zip file, except for the RDF file
@@ -187,9 +191,9 @@ export class Uploader {
         this.rdf = load_yaml(rdf_text);
     }
 
-    load_validator() {
+    load_validator(hypha) {
         if (this.validator) return this.validator;
-        this.validator = this.hypha.api.getPlugin(
+        this.validator = hypha.api.getPlugin(
             validator_url
         );
         return this.validator;
@@ -226,12 +230,12 @@ export class Uploader {
         
     }
 
-    async validate() {
+    async validate(hypha: Hypha) {
 
         /*
          * Lazy loading of validator
          */
-        const validator = await this.load_validator();
+        const validator = await this.load_validator(hypha);
         let rdf = load_yaml(yaml.dump(this.rdf));
         rdf = clean_rdf(rdf);
 
@@ -258,12 +262,8 @@ export class Uploader {
         console.log("Checking ready to publish");
         if (!this.ready_for_review()) return false;
         if (!this.resource_path) return false;
-        if (!this.hypha.user_email) return false;
+        if (!this.user_email) return false;
         return true;
-    }
-
-    logged_in(): boolean{
-        return this.hypha.is_logged_in();
     }
 
     async regenerate_nickname() {
@@ -283,7 +283,7 @@ export class Uploader {
         }
     }
 
-    async upload_file(file: File, progress_callback: null | ((val: string, tot: string) => null)) {
+    async upload_file(hypha: Hypha, file: File, progress_callback: null | ((val: string, tot: string) => null)) {
         if (!this.resource_path) {
             throw new Error("Unable to upload, resource_path not set");
         };
@@ -312,7 +312,7 @@ export class Uploader {
         this.render();
         const filename = `${this.resource_path.id}/${file.name}`;
         try {
-            return await this.hypha.upload_file(file, filename, onUploadProgress);
+            return await hypha.upload_file(file, filename, onUploadProgress);
         } catch (error) {
             console.error("Upload failed!");
             console.error(error);
@@ -349,7 +349,7 @@ export class Uploader {
         return zipfile;
     }
 
-    async publish() {
+    async publish(hypha: Hypha) {
         console.log("Running upload steps (zip, upload, notify CI)");
         this.render();
         const zipfile = await this.create_zip();
@@ -359,7 +359,7 @@ export class Uploader {
             generate_name_url       : ${generate_name_url}
             notify_ci_url           : ${notify_ci_url}`);
 
-        this.zip_urls = await this.upload_file(zipfile, null);
+        this.zip_urls = await this.upload_file(hypha, zipfile, null);
 
         try {
             await this.notify_ci_bot();

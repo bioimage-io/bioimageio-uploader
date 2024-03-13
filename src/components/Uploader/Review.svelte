@@ -12,6 +12,7 @@
     import atlas from "svelte-highlight/styles/atlas";
 
     export let uploader : Uploader;
+    export let hypha : Hypha;
 
     import JSONTree from 'svelte-json-tree';
     let model_name_message = "";
@@ -34,7 +35,7 @@
     }
 
     async function publish(){
-        uploader.publish();
+        uploader.publish(hypha);
         is_done();
     }
 
@@ -52,10 +53,12 @@
     }
 
     if(!resource_path) regenerate_nickname();
-    if(uploader){
+    if(uploader && hypha){
         uploader.add_render_callback(toggle_rerender);
-        if(!uploader.server){
-            uploader.loginHypha()
+        if(!hypha.server){
+            uploader.loginHypha(hypha).then(() => {uploader.set_email(hypha.user_email)});
+        }else{
+            uploader.set_email(hypha.user_email);
         }
     }
 
@@ -67,15 +70,15 @@
 
 {#key rerender}
 
-{#key uploader.hypha.server}
-    {#if !uploader.hypha.token}
+{#key hypha.server}
+    {#if !hypha.token}
         <Notification deletable={false} >
             Login to the BioEngine to enable Upload 
-            <HyphaLogin bind:hypha={uploader.hypha} modal={false} />
+            <HyphaLogin {hypha} modal={false} />
         </Notification>
     {:else}
-        {#key uploader.hypha.user_email }
-            {#if uploader.hypha.user_email}
+        {#key hypha.user_email }
+            {#if hypha.user_email}
                 <p class="level">
                     {#if model_name_message }({model_name_message}){/if}
                     {#if resource_path}
@@ -103,7 +106,7 @@
 </ButtonWithConfirmation>
 
 <article class="contrast" style="--card-background-color: var(--contrast)">
-    {#key uploader.hypha.user_email }
+    {#key hypha.user_email }
     <!--JSONTree defaultExpandedLevel={1} value={rdf}/-->
         <Highlight language={yamlsyntax} code={yaml.dump(rdf)} /> 
     {/key}

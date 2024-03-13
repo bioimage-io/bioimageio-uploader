@@ -13,7 +13,7 @@
 
 
     export let hypha: Hypha;
-    let uploader = new Uploader(hypha);
+    let uploader = new Uploader();
 
     let step = "add";
 
@@ -36,7 +36,7 @@
         }
     }
 
-    if(!uploader.hypha.api) uploader.init();
+    if(!hypha.api) hypha.init_imjoy();
     window.uploader = uploader;
     
 </script>
@@ -49,7 +49,7 @@
 {:else if step == "validate-json"}
     <ValidateJson {uploader} on:done={()=>{step="review"}} />
 {:else if step == "review"}
-    <Review {uploader} on:done={()=>{step="uploading"}} on:reset={()=>{reset();}}/>
+    <Review {uploader} {hypha} on:done={()=>{step="uploading"}} on:reset={()=>{reset();}}/>
 {:else if step == "uploading"}
     <UploadStatus {uploader} on:done={()=>{step="add"}} />
 <!--{:else if step == "done"}-->
