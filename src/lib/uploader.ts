@@ -52,7 +52,7 @@ class UploaderStatus {
 
 function load_yaml(text){
     // Need the schema here to avoid loading Date objects
-    const schema = yaml.Schema.create(yaml.CORE_SCHEMA, []);
+    const schema = yaml.CORE_SCHEMA;// Schema.create(yaml.CORE_SCHEMA, []);
     return yaml.load(text, {schema: schema});
 }
 
