@@ -2,7 +2,9 @@
     import { createEventDispatcher } from 'svelte';
     import toast from 'svelte-french-toast';
     import {Uploader, UploaderStep} from '../../lib/uploader.ts';
+    import ResetUploaderButton from './ResetUploaderButton.svelte';
     export let uploader: Uploader;
+    import {router} from 'tinro';
     //let status;
     let status_message: string = "Contacting server...";
     let upload_value: string = null;
@@ -11,8 +13,14 @@
     let error_element: Object;
     let last_error_object: Error;
     let step: UploaderStep = uploader.status.step;
-    let model_name = uploader.resource_path.id;
-    const dispatch = createEventDispatcher();
+    let model_name = null;
+    if(uploader){
+        if(uploader.resource_path){
+            model_name = uploader.resource_path.id;
+        }else{
+            router.goto("/");
+        }
+    }
 
     function copy_error_to_clipboard(text: string){
         // Copy the text inside the text field
@@ -49,9 +57,8 @@
 
     function restart(){
         uploader.reset();
-        dispatch('done', {});
+        router.goto("/");
     }
-
 
 </script>
 
@@ -67,7 +74,7 @@
         <p>Please review the error, and try again. If the issue persists, please contact support</p>
         <code>{error}</code>
         <p>Click this box to copy the error message to your clipboard</p>
-        <button on:click={restart}>Start again</button>
+        <ResetUploaderButton {uploader} />
     </article>
 {/if}
 

@@ -1,8 +1,6 @@
 <script lang="ts">
-    import Hypha from '../lib/hypha.ts';
     import { update_chat } from "../lib/chat.ts";
     export let resource_id="";
-    export let hypha: Hypha; 
 
     async function update_status(){
         if(!resource_id) return;

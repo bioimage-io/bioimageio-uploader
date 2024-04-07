@@ -16,14 +16,14 @@ export default async function refresh_status(model_name: string){
 
     try{
         // Using netlify middle-man
-        const resp = await fetch(status_url, {
-            method: 'POST', 
-            headers: {"Content-Type": "application/json"}, 
-            body: JSON.stringify({url: url}),
-        });
+        //const resp = await fetch(status_url, {
+            //method: 'POST', 
+            //headers: {"Content-Type": "application/json"}, 
+            //body: JSON.stringify({url: url}),
+        //});
 
         // If we query EBI-S3 directly
-        //const resp = await fetch(url);
+        const resp = await fetch(url);
         const status = await resp.json();
         if(!status){
             return {last_message:"No status", messages:[]};

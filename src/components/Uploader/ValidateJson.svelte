@@ -1,13 +1,14 @@
 <script charset="utf-8">
-    import { createEventDispatcher } from 'svelte';
     import toast from 'svelte-french-toast';
     import JSONTree from 'svelte-json-tree';
+    import {router} from 'tinro';
+    import ResetUploaderButton from './ResetUploaderButton.svelte';
+
     export let uploader;
 
     let validating = false;
     let error;
-
-    const dispatch = createEventDispatcher();
+    if(uploader && !uploader.rdf) router.goto("/");
 
     async function validate(){
         // Perform RDF validation with Imjoy...
@@ -27,8 +28,8 @@
             validating = false;
             throw(error);
         }
-        dispatch('done', {});
         validating = false;
+        router.goto("/uploader/review");
     }
 
     function validate_with_toast(){
@@ -49,8 +50,11 @@
 {#if validating} 
     <button aria-busy=true>Validating</button>
 {:else}
+    <ResetUploaderButton {uploader} />
     <button on:click={validate_with_toast}>Validate</button>
 {/if}    
+
+
 {#if error}
     <article>
         <p>A validation error occurred!</p>

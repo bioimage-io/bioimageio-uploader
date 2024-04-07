@@ -2,7 +2,6 @@
     import { onMount, onDestroy } from 'svelte';
     import FullScreenConfetti from './FullScreenConfetti.svelte';
     import SingleLineInputs from './SingleLineInputs.svelte';
-    import ErrorBox from './ErrorBox.svelte';
     import refresh_status from "../lib/status.ts";
     import { Search } from 'lucide-svelte';
     import { is_string } from '../lib/utils.ts';
@@ -29,7 +28,10 @@
 
     // Get the reviewer status
     let reviewer: bool;
+
     let logged_in: bool;
+
+    let versions;
 
     onMount(async() => {
         //if(hypha !== null){
@@ -55,18 +57,22 @@
                 if (get_json){
                     //console.log(get_json);
                     console.log("Get status:");
-                    resp = get_json({'url': `https://uk1s3.embassy.ebi.ac.uk/public-datasets/sandbox.bioimage.io/${resource_id}/staged/1/details.json`});
+                    const resp_v = await get_json({'url': `https://uk1s3.embassy.ebi.ac.uk/public-datasets/sandbox.bioimage.io/${resource_id}/versions.json`});
+                    const resp = await get_json({'url': `https://uk1s3.embassy.ebi.ac.uk/public-datasets/sandbox.bioimage.io/${resource_id}/staged/1/details.json`});
                     console.log(resp);
+                    const data = resp.data;
+                    versions = resp_v.data;
+                    console.log(versions);
 
                 //const resp = await refresh_status(resource_id);
-                    last_message = resp.status.name;
-                    messages = resp.messages;
+                    last_message = data.status.name;
+                    messages = data.messages;
                     if((!Array.isArray(messages)) || (!is_string(last_message))){
                         console.debug(resp);
                         throw new Error("Unable to get status messages from server response");
                     }
-                    step = resp.status.step;
-                    num_steps = resp.status.num_steps;
+                    step = data.status.step;
+                    num_steps = data.status.num_steps;
                     error = false;
                 }else{
                     console.debug("get_json not set");
@@ -77,7 +83,7 @@
                 messages = [];
                 console.error("Error polling status:");
                 console.error(err);
-                error = `Error polling status: ${err.message}`;
+                error = true;
                 return;
             }
             is_finished = last_message.startsWith("Publishing complete");
@@ -111,8 +117,21 @@
 {#if resource_id }
     <h2>Resource ID: <code>{resource_id}</code></h2>
 
-    <ErrorBox {error} />
+    <h3>Versions</h3>
 
+    {#if versions}
+        {#each Object.entries(versions) as [name, items]}
+            <h4>{name}</h4>
+            <ul>
+            {#each Object.entries(items) as [version_number, details]}
+                <li><a href="#/status/{resource_id}/{name}/{version_number}">{version_number}</a> [{details.timestamp}] : {details.status.name}</li>    
+            {/each }
+            </ul>
+        {/each}
+    {/if}
+
+
+    <ErrorBox {error} />
     {#if !error}
         <article>Status:
             {#if last_message}

@@ -53,10 +53,23 @@ kbd span svg:hover{
     filter: drop-shadow(0 0 10px red);
 }
 
-nav{
+header{
     background-color: #2196f3;
+    --background-color: #2196f3;
     //--color: #2196f3;
     --color: #ffffff;
+}
+
+header details{
+    background-color: #2196f3;
+    --background-color: #2196f3;
+    //--color: #2196f3;
+    --color: #ffffff;
+
+}
+
+
+nav{
 }
 nav a{
     --color: #ffffff;

@@ -1,19 +1,17 @@
 <script>
-    import { createEventDispatcher } from 'svelte';
     import EditForm from './EditForm/index.svelte';
     import Validate from './Validate.svelte';
+    import {router} from 'tinro';
+
     export let uploader; 
 
-    const dispatch = createEventDispatcher();
-
-    function completed_step() {
-        dispatch('done', {});
-    }
+    if(uploader && !uploader.rdf) router.goto("/");
 </script>
 
 <h2>Edit your submission</h2>
 
 <EditForm {uploader}/>
 
-<Validate {uploader} on:done={completed_step} />
+<Validate {uploader} />
 
+<ResetUploaderButton {uploader} />

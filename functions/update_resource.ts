@@ -16,10 +16,10 @@ export default async (event, context) => {
     const key = `${root_folder}/${folder}/${filename}`;
     const host = "uk1s3.embassy.ebi.ac.uk";
     const hest_url = `https://${host}`;
-    console.log("Using")
-    console.log(S3_ACCESS_KEY_ID);
-    console.log(S3_SECRET_ACCESS_KEY);
-    console.log(`Using object path ${key}`);
+    //console.log("Using")
+    //console.log(S3_ACCESS_KEY_ID);
+    //console.log(S3_SECRET_ACCESS_KEY);
+    //console.log(`Using object path ${key}`);
 
     if(true){
     const minioClient = new Minio.Client({
@@ -37,30 +37,56 @@ export default async (event, context) => {
     //objectsStream.on('error', function (e) {
         //console.log(e)
     //})
-
-    let size = 0;
-
-    let dataStream = await minioClient.getObject(bucket, key);
-
-    let data = [];
-    dataStream.on('data', function (chunk) {
-        data.push(chunk);
-    })
-    let str = "";
     let obj;
-    dataStream.on('end', function () {
-        str = String.fromCharCode(...data);
-        console.log(str);
-        obj = JSON.parse(str);
-    })
-    dataStream.on('error', function (err) {
-        console.log(err)
-    })
+    let stream = await minioClient.getObject(bucket, key);
+    stream.setEncoding('utf8');
+    let data = '';
+    for await (const chunk of stream) {
+        data += chunk;
+    }
+    console.log(data);
+    //await minioClient.getObject(bucket, key, function (err, dataStream) {
+        //let data = [];
+        //if (err) {
+            //return console.log(err)
+        //}
+        //dataStream.on('data', function (chunk) {
+            //console.log(`Streaming...: ${String.fromCharCode(...chunk)}`);
+            //data.push(chunk); 
+        //})
+        //dataStream.on('end', function () {
+            //let str = String.fromCharCode(...data);
+            //console.log(`END - GOT: ${str}`);
+            //obj = JSON.parse(str);
+        //})
+        //dataStream.on('error', function (err) {
+            //console.log(err)
+        //})
+    //});
+
+    //let obj = await new Promise(async resolve => {
+        //let str = "";
+        //let dataStream = await minioClient.getObject(bucket, key);
+        //let obj;
+        //let data = [];
+        //console.log("Getting data...");
+        //dataStream.on('data', function (chunk) {
+            //console.log("Push...");
+            //data.push(chunk);
+        //})
+        //dataStream.on('end', function () {
+            //str = String.fromCharCode(...data);
+            //console.log(`END - GOT: ${str}`);
+            //obj = JSON.parse(str);
+            //resolve(obj);
+        //})
+        //dataStream.on('error', function (err) {
+            //console.log(err)
+        //})
+    //});
 
     //await new Promise(resolve => dataStream.on("end", resolve));
-    let resss = await dataStream;
     console.log(obj);
-    console.log(resss);
     console.log("Done");
     const res = Response.json({ "message": "Success" });
     res.headers.set("Access-Control-Allow-Origin", "*");

@@ -1,23 +1,30 @@
 <script>
     import Dropzone from "svelte-file-dropzone";
     import toast  from 'svelte-french-toast';
-    import { createEventDispatcher } from 'svelte';
 	import { onDestroy } from 'svelte';
+    import {router} from 'tinro';
+    import semver from 'semver';
     
     export let uploader;
 
-    //let rdf_text; 
     let file_info = [];
-    //let processing = false;
-
-    const dispatch = createEventDispatcher();
 
     onDestroy(() => {
         uploader.clear_render_callback();
 	});
 
     function completed_step() {
-        dispatch('done', {});
+        if(((uploader.rdf.type === "model") &&
+           (semver.lt(uploader.rdf.format_version, "0.5.0")))
+            || !uploader.rdf.type
+          ){
+            //step="edit";
+            router.goto("/uploader/edit");
+        }else{
+            console.debug("Falling back to JSON-Schema validation");
+            // step="validate-json";
+            router.goto("/uploader/validate");
+        }
     }
 
     async function handle_files_select(evt){

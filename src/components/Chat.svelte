@@ -1,9 +1,10 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import Hypha from '../lib/hypha.ts';
     import { get_chats, update_chat } from "../lib/chat.ts";
     export let resource_id="";
-    export let hypha: Hypha; 
+    export let staged: bool;
+    export let version_number;
+    export let get_json;
 
     let chats=[];
 
@@ -13,8 +14,15 @@
     let chat_message="";
 
     async function get_chat(){
-        if(resource_id){
-            let new_chats = await get_chats(resource_id);
+        if(resource_id && version_number && get_json){
+            //let new_chats = await get_chats(resource_id);
+            let resp;
+            if(staged){
+                resp = await get_json({'url':`https://uk1s3.embassy.ebi.ac.uk/public-datasets/sandbox.bioimage.io/${resource_id}/staged/${version_number}/chat.json`});
+            }else{
+                resp = await get_json({'url':`https://uk1s3.embassy.ebi.ac.uk/public-datasets/sandbox.bioimage.io/${resource_id}/${version_number}/chat.json`});
+            }
+            let new_chats = resp.messages;
             console.log(new_chats);
             if(Array.isArray(new_chats)){
                 chats = new_chats;

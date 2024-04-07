@@ -2,11 +2,11 @@ import * as imjoyCore from 'imjoy-core';
 import * as imjoyRPC from 'imjoy-rpc';
 import { default as axios, AxiosProgressEvent } from 'axios';
 
+
+
 export default class Hypha{
     static MAX_CONNECTION_RETRIES = 3;
     static server_url = "https://ai.imjoy.io";
-    
-    api: any;
     connection_retry = 0;
     login_url: string | null = null;
     server: any = null;
@@ -23,34 +23,9 @@ export default class Hypha{
         this.show_login_window = (url) => { globalThis.open(url, '_blank') };
     }
 
-    async init_imjoy() {
-        console.log("Starting Imjoy...");
-        // Init Imjoy-Core
-        const imjoy = new imjoyCore.ImJoy({
-            imjoy_api: {},
-            //imjoy config
-        });
-
-        await imjoy.start({ workspace: 'default' });
-        console.log('ImJoy started');
-        this.api = imjoy.api;
-
-    }
-
-
     async init_storage(){
         this.storage = await this.server.get_service("s3-storage");
         this.storage_info = await this.storage.generate_credential();
-    }
-
-    is_logged_in(): boolean{
-        if (!this.server) return false;
-        return true;
-    }
-
-    is_reviewer(): boolean{
-        if(!this.is_logged_in()) return false;
-        return this.user_email === "metz.jp@gmail.com";
     }
 
     async login(){
@@ -121,18 +96,10 @@ export default class Hypha{
             this.storage_info.bucket,
             this.storage_info.prefix + filename
         )
-        console.log(
-            "Used bucket and prefix:",
-            this.storage_info.bucket,
-            this.storage_info.prefix);
-        console.log("url_get:");
-        console.log(url_get);
-        console.log("url_put");
-        console.log(url_put);
-
         const config = {'onUploadProgress': progress_callback }; 
         const response = await axios.put(url_put, file, config);
         console.log("Upload result:", response.data);
+        // TODO: Check response status
         return { 'get': url_get, 'put': url_put };
     }
 
