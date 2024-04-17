@@ -1,71 +1,78 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     //import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword } from 'firebase/auth';
-    import Hypha from "../lib/hypha";
+    import { auth, functions } from "../lib/hypha";
     import user_state from "../stores/user";
+    import {login_url, token} from '../stores/hypha'; 
+    import type UserInfo from "../lib/user_info";
     import { CircleUserRound } from 'lucide-svelte'
+    import toast  from 'svelte-french-toast';
+
     export let show = false;
     export let user = null;
-
-
-    function login(){
-    }
-
+    export let auth_offline=false;
 
     onMount(async () => {
-        console.log(auth);
-        auth.onAuthStateChanged((new_user) => {
+        auth.onAuthStateChanged((new_user: UserInfo) => {
             user_state.set({
                 is_logged_in: new_user !== null,
                 user_info: new_user,
-                firebase_controlled: true,
             });
             console.log("Auth state changed, user (in Login element) is");
             console.log(new_user);
             user = new_user;
-            //if(new_user !== null) show=false;
             show=false;
         });
 
+        try{
+            const details = await functions.check_hypha();
+            console.log(`Hypha responded: ${JSON.stringify(details)}`);
+            toast.success("Login available"); 
+        }catch{
+            toast.error("Login not available!");
+            auth_offline = true;
+        }
+
     })
+    
+    login_url.subscribe((url) => {
+        if(!url) return 
+        console.log("Doing stuff with login url...")
+        show = true;
+    });
 
     async function handleSignout(){
-        await signOut(auth); 
-        user_state.set(null);
+        auth.signOut(); 
         show=false;
     }
 
 </script> 
+<style>
+iframe{      
+    display: block;  /* iframes are inline by default */   
+    height: 100vh;  /* Set height to 100% of the viewport height */   
+    width: 100%;  /* Set width to 100% of the viewport width */     
+    border: none; /* Remove default border */
+}
+</style>
 
-
-<details class="dropdown">
-    <summary>
-        {#if user === null}
-        <span>
+{#if auth_offline}
+    <span title="Authentication system is offline">Login Temporarily<br>Unavailable</span>
+{:else}
+    {#if user === null}
+        <button on:click={()=>{auth.login();}}>
             Login
-        </span>
-        {:else}
-            <span>{user.displayName }</span>
-        {/if}
-    </summary>
-    <ul dir="rtl">
-        {#if user === null}
-            <li><a on:click={()=>{login("google")}}>Google</a></li>
-            <li><a on:click={()=>{login("github")}}>Github</a></li>
-            <li><a on:click={()=>{login("username")}}>Username + Password</a></li>
-        {:else}
-            <li><button on:click={handleSignout}>Logout</button></li>
-        {/if}
-    </ul>
-</details>
+        </button>
+    {:else}
+        <button on:click={()=>{show=true;}}>{user.email}</button>
+    {/if}
+{/if}
 
 
 <dialog open={show}>
     <article>
-        {#if user === null} 
-            <header>Login using one of the following providers</header>
-            <div id="providers" >
-            </div>
+        {#if user === null && $login_url} 
+            <iframe title="Login" src="{$login_url}"></iframe>
         {:else}
             <button on:click={handleSignout}>Logout</button>
         {/if}

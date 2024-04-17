@@ -10,7 +10,7 @@
     import Chat from './Chat.svelte';
     import Review from './Review.svelte';
 
-    import { functions } from '../lib/firebase';
+    import { functions } from '../lib/hypha.ts';
     
     export let resource_id="";
     export let version_number; 
@@ -32,9 +32,9 @@
     let timeout_id;
 
     // Get the reviewer status
-    let reviewer: bool;
+    let reviewer: boolean;
 
-    let logged_in: bool;
+    let logged_in: boolean;
 
     let versions;
     let status;

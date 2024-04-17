@@ -3,9 +3,10 @@
     import FullScreenConfetti from './FullScreenConfetti.svelte';
     import SingleLineInputs from './SingleLineInputs.svelte';
     import ErrorBox from './ErrorBox.svelte';
-    import refresh_status from "../lib/status.ts";
+    import refresh_status from "../lib/status";
     import { Search } from 'lucide-svelte';
-    import { is_string } from '../lib/utils.ts';
+    import { is_string } from '../lib/utils';
+    import user_store from '../stores/user';
 
     import Chat from './Chat.svelte';
     import Review from './Review.svelte';
@@ -30,6 +31,11 @@
     // Get the reviewer status
     let reviewer: bool;
     let logged_in: bool;
+
+    user_store.subscribe(user => {
+        if(user) logged_in = true;
+        if(user.is_reviewer) reviewer = true;
+    }); 
 
     onMount(async() => {
         //if(hypha !== null){

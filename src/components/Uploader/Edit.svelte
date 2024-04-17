@@ -1,5 +1,6 @@
 <script>
     import EditForm from './EditForm/index.svelte';
+
     import Validate from './Validate.svelte';
     import {router} from 'tinro';
 
@@ -13,5 +14,3 @@
 <EditForm {uploader}/>
 
 <Validate {uploader} />
-
-<ResetUploaderButton {uploader} />

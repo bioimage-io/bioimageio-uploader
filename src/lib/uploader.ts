@@ -1,4 +1,4 @@
-import Hypha from './hypha.ts';
+//import Hypha from './hypha.ts';
 // import axios from 'axios'; ///dist/browser/axios.cjs';
 import axios from 'axios';
 //import { Draft, JsonError } from "json-schema-library";
@@ -13,7 +13,7 @@ import { FileFromJSZipZipOject, clean_rdf } from "./utils.ts";
 import yaml from "js-yaml";
 import { default as JSZip } from "jszip";
 
-import { getFunctions, httpsCallable } from "firebase/functions";
+//import { getFunctions, httpsCallable } from "firebase/functions";
 
 
 const regex_zip = /\.zip$/gi;
@@ -77,7 +77,7 @@ export class Uploader {
     //connection_retry = 0;
     error_object: Error | null = null;
     files: File[] = [];
-    firebase_functions: any;
+    functions: any;
     //login_url: string | null = null;
     user_email: string | null  = ''; 
     resource_path: ResourceId | null = null;
@@ -104,14 +104,13 @@ export class Uploader {
         //this.status = {message:"", is_finished: false, is_uploading: false, ci_failed: false};
         this.status = new UploaderStatus();
         //this.show_login_window = (url) => { globalThis.open(url, '_blank') };
-        globalThis.uploader = this;
     }
 
     async init() {
     }
 
-    register_firebase_functions(firebase_functions: any){
-        this.firebase_functions = firebase_functions;
+    register_functions(functions: any){
+        this.functions = functions;
     }
 
 
@@ -204,23 +203,24 @@ export class Uploader {
      */
     async validate_json_schema(){
         console.log("Validating using JSON Schema:");
-        let schema = await (await fetch(url_json_schema_latest)).json();
-        //const draft = "2020-12";
+        const schema = await (await fetch(url_json_schema_latest)).json();
+        const draft = "2020-12";
         //const shortCircuit = false;
         console.debug(this.rdf);
         console.debug(schema);
 
         console.debug("Creating json-schema validator...");
-        const validator = new Validator(schema);
+        const validator = new Validator(schema, draft);
         //const validator = new Validator(schema, draft, shortCircuit);
         console.debug(validator);
 
-        let valid = ajv.validate(schema, this.rdf);
+        const valid = ajv.validate(schema, this.rdf);
         
-        const result = validator.validate(this.rdf);
-        console.log(result);
-        console.log(valid);
+        //const result = validator.validate(this.rdf);
+        //const result = validator.validate(rdf);
         //if (!result.valid) {
+        //console.log(result);
+        console.log(valid);
         if (!valid) {
             console.error("Validation errors:");
             console.error(ajv.errors);
@@ -280,13 +280,11 @@ export class Uploader {
         if (!this.resource_path) {
             throw new Error("Unable to upload, resource_path not set");
         };
-        
-        // FIREBASE CHECKS TODO: REMOVE / REPLACE WITH HYPHA EQUIV
-        if(!this.firebase_functions){
-            throw new Error("Firebase functions not set on uploader");
+        if(!storage){
+            throw new Error("storage not correctly initialised");
         }
-        if(!this.firebase_functions.upload_file){
-            throw new Error("Firebase functions does not have an 'upload_file' entry");
+        if(!storage.upload_file){
+            throw new Error("storage does not have an 'upload_file' entry");
         }
         // HYPHA VERSION - PLACE IN LIB?
         let onUploadProgress: (evt: AxiosProgressEvent) => void;
@@ -314,7 +312,7 @@ export class Uploader {
         const filename = `${this.resource_path.id}/${file.name}`;
         try {
             // FIREBASE VERSION: TODO RELACE / SEE BELOW HYPHA VERSION
-            let url = await this.firebase_functions.upload_file(filename, file, progress_callback)
+            let url = await storage.upload_file(filename, file, onUploadProgress)
             return url;
             
             return await hypha.upload_file(file, filename, onUploadProgress);
@@ -398,11 +396,10 @@ export class Uploader {
         this.status.message = "⌛ Trying to notify bioimage-bot for the new item...";
         this.status.step = UploaderStep.NOTIFYING_CI;
         this.render();
-        // TODO: FIREBASE CHECKS - REMOVE / REPLACE WITH HYPHA EQUIV
-        if(!this.firebase_functions){
-            throw new Error("Firebase functions not set on uploader");
+        if(!this.functions){
+            throw new Error("Remote functions not set on uploader");
         }
-        if(!this.firebase_functions.stage){
+        if(!this.functions.stage){
             throw new Error("Firebase functions does not have a 'stage' entry");
         }
         console.log(this.resource_path);
@@ -416,7 +413,7 @@ export class Uploader {
         // trigger CI with the bioimageio bot endpoint
         try {
             // TODO: FIREBASE VERSION - REPLACE / DELETE
-            const res = await this.firebase_functions.stage(data);
+            const res = await this.functions.stage(data);
             console.log(res);
             if(res.data.status !== 204){
                 throw new Error(`😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: Code: ${res.data.status}, Message: ${res.data.message}`);

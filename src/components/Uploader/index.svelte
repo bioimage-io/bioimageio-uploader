@@ -1,22 +1,31 @@
 <script lang="ts">
-    import {Route, router} from 'tinro'; 
+    //import {Route, router} from 'tinro'; 
+    import { Route } from 'tinro'; 
     import { Toaster } from 'svelte-french-toast';
     import { Uploader } from '../../lib/uploader';
+    import user_state from "../../stores/user";
+    import type { UserState } from "../../stores/user";
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
     import ValidateJson from './ValidateJson.svelte';
     import UploadStatus   from './UploadStatus.svelte';
-    import Notification from '../Notification.svelte';
+    //import Notification from '../Notification.svelte';
+    export let uploader : Uploader;
 
-    export let uploader;  
+    
+    user_state.subscribe((user: UserState)=>{
+        if(user.user_info && user.user_info.email){
+            uploader.set_email(user.user_info.email);
+        } 
+    });
 
 </script>
 
 <Toaster />
 
 <Route path="/add">
-    <Add { uploader } />
+    <Add {uploader} />
 </Route>
 <Route path="/edit">
     <Edit {uploader} />

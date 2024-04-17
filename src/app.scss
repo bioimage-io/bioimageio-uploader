@@ -21,6 +21,16 @@ article{
     --contrast: hsl(205, 20%, 90%);
 }
 
+article.warning{
+    background-color: lightyellow;
+}
+article.warning > header{
+    background-color: lightyellow;
+}
+article.warning > footer{
+    background-color: lightyellow;
+}
+
 button{
     background-color: #2196f3;
     box-shadow: none;

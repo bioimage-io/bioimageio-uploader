@@ -5,6 +5,7 @@
     export let min_length = 2;
     export let autocomplete = [];
     export let placeholder = "";
+    export let style = "";
 
     let invalid_tag = false;
     let matches = [];
@@ -99,7 +100,7 @@
 <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="tags">
+<div class="tags" style="{style}">
     {#each tags as tag, i}
         <kbd>{tag} <span on:click={()=>remove_tag(i)}><X/></span></kbd>
     {/each}

@@ -1,5 +1,5 @@
-import { readable, writable } from 'svelte/store';
-import Uploader from './index.js';
+//import { readable, writable } from 'svelte/store';
+//import Uploader from './index.js';
 
 //export const files = writeable([]);
 //export const rdf = writeable({});
@@ -10,4 +10,4 @@ import Uploader from './index.js';
 //export const storage = readable({});
 //export const storage_info = readable({});
 //
-export const uploader = readable(new Uploader());
+//export const uploader = readable(new Uploader());
