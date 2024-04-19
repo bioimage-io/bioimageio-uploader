@@ -13,7 +13,10 @@
     export let auth_offline=false;
 
     onMount(async () => {
-        user_state.subscribe(value => {user = value.user_info;});
+        user_state.subscribe(value => {
+            user = value.user_info;
+            show = false;
+        });
 
         try{
             await functions.check_hypha();
@@ -26,8 +29,9 @@
     })
     
     login_url.subscribe((url) => {
+        console.log("Doing stuff with login url...:", url);
+        console.log(user);
         if(!url) return 
-        console.log("Doing stuff with login url...")
         show = true;
     });
 
@@ -62,7 +66,7 @@ iframe{
 <dialog open={show}>
     <article>
         <button on:click={()=>{show = false;}}><X /></button>
-        {#if user === null && $login_url} 
+        {#if !user && $login_url} 
             <iframe title="Login" src="{$login_url}"></iframe>
         {:else}
             <button on:click={handleSignout}>Logout</button>

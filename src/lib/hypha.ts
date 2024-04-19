@@ -155,7 +155,8 @@ export const auth = {
     },
     signOut: ()=> {
         token.set(null);
-        auth_state_changed(null);
+        set_user(null);
+        login_url.set(null);
     }, 
 };
 
