@@ -2,36 +2,39 @@
     import { onMount, onDestroy } from 'svelte';
     import FullScreenConfetti from './FullScreenConfetti.svelte';
     import SingleLineInputs from './SingleLineInputs.svelte';
-    import refresh_status from "../lib/status.ts";
+    import ErrorBox from './ErrorBox.svelte';
+    import refresh_status from "../lib/status";
     import { Search } from 'lucide-svelte';
-    import { is_string } from '../lib/utils.ts';
+    import { is_string, get_json } from '../lib/utils';
+    import { RESOURCE_URL } from '../lib/config';
 
     import Chat from './Chat.svelte';
     import Review from './Review.svelte';
 
     export let resource_id="";
-    export let get_json;
+    export let version_number=""; 
 
     let step = 0;
     let messages = [];
     let last_message = "Getting status...";
     let num_steps;
-    let error = false;
+    let error = null;
     //let error;
     //let error_element;
     //let last_error_object;
     let input_value;
     let is_finished = false;
-    let value=0;
-    let max=0;
+    let value='0';
+    let max='0';
     let timeout_id;
 
     // Get the reviewer status
-    let reviewer: bool;
+    let reviewer: boolean;
 
-    let logged_in: bool;
+    let logged_in: boolean;
 
     let versions;
+    let details;
 
     onMount(async() => {
         //if(hypha !== null){
@@ -54,36 +57,26 @@
     async function poll_status(){
         if(resource_id){ 
             try{
-                if (get_json){
-                    //console.log(get_json);
-                    console.log("Get status:");
-                    const resp_v = await get_json({'url': `https://uk1s3.embassy.ebi.ac.uk/public-datasets/sandbox.bioimage.io/${resource_id}/versions.json`});
-                    const resp = await get_json({'url': `https://uk1s3.embassy.ebi.ac.uk/public-datasets/sandbox.bioimage.io/${resource_id}/staged/1/details.json`});
-                    console.log(resp);
-                    const data = resp.data;
-                    versions = resp_v.data;
-                    console.log(versions);
-
-                //const resp = await refresh_status(resource_id);
-                    last_message = data.status.name;
-                    messages = data.messages;
-                    if((!Array.isArray(messages)) || (!is_string(last_message))){
-                        console.debug(resp);
-                        throw new Error("Unable to get status messages from server response");
-                    }
-                    step = data.status.step;
-                    num_steps = data.status.num_steps;
-                    error = false;
-                }else{
-                    console.debug("get_json not set");
+                //console.log(get_json);
+                console.log("Get status:");
+                details = await get_json(`${RESOURCE_URL}/${resource_id}/staged/1/details.json`);
+            //const resp = await refresh_status(resource_id);
+                last_message = details.status.name;
+                messages = details.messages;
+                if((!Array.isArray(messages)) || (!is_string(last_message))){
+                    console.debug(details);
+                    throw new Error("Unable to get status messages from server response");
                 }
+                step = details.status.step;
+                num_steps = details.status.num_steps;
+                error = null;
             }catch(err){
                 //messages = ["Error polling status 😬. Please let the dev-team know 🙏"];
                 last_message = "Error polling status 😬. Please let the dev-team know 🙏";
                 messages = [];
                 console.error("Error polling status:");
                 console.error(err);
-                error = true;
+                error = err;
                 return;
             }
             is_finished = last_message.startsWith("Publishing complete");
@@ -101,7 +94,7 @@
         }
     }
 
-    function set_resource_id(text){
+    function set_resource_id(text: string){
         resource_id = text;
         poll_status();
     }
@@ -141,7 +134,7 @@
             {/if}
 
             {#if !is_finished }
-                {#if max > 0 }
+                {#if +max > 0 }
                     <br>
                     <progress value="{value}" max="{max}">{value}</progress>
                 {:else}
@@ -161,13 +154,14 @@
                 {/each}
                 </code>
             {/if}
+            <Log {resource_id} staged={false} {version_number} />
 
             <!--<progress {value} {max}>15%</progress>-->
         </article> 
     {/if}
 
 
-    <Chat {resource_id} {get_json}/> 
+    <Chat {resource_id} /> 
     {#if reviewer}
         <Review {resource_id} /> 
     {/if}

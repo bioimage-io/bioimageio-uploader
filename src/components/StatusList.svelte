@@ -1,24 +1,25 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    import FullScreenConfetti from './FullScreenConfetti.svelte';
-    import SingleLineInputs from './SingleLineInputs.svelte';
-    import ErrorBox from './ErrorBox.svelte';
-    import refresh_status from "../lib/status.ts";
+    
     import { Search } from 'lucide-svelte';
-    import { is_string } from '../lib/utils.ts';
 
-    import Chat from './Chat.svelte';
-    import Review from './Review.svelte';
+    import ErrorBox from './ErrorBox.svelte';
+    import refresh_status from "../lib/status";
+    import { time_ago, get_json } from '../lib/utils';
+    import { RESOURCE_URL } from '../lib/config';
 
     export let resource_id="";
-    export let get_json;
+
 
     let error = null;
     let timeout_id;
-    let versions;
+    let versions_info;
+    let staged = {};
+    let published = {};
 
     onMount(async() => {
     });
+
 
 
     ///
@@ -30,19 +31,24 @@
 
 
     async function poll_status(){
-        if(resource_id && get_json){ 
+        if(resource_id){ 
             try{
-                const resp = await get_json({'url': `https://uk1s3.embassy.ebi.ac.uk/public-datasets/sandbox.bioimage.io/${resource_id}/versions.json`});
-                versions = resp.data;
+                versions_info = await get_json(`${RESOURCE_URL}/${resource_id}/versions.json`);
+                staged = versions_info.staged;
+                published = versions_info.published;
                 error = "";
             }catch(err){
                 //messages = ["Error polling status 😬. Please let the dev-team know 🙏"];
-                error = "Error polling versions 😬. Please let the dev-team know 🙏";
-                messages = [];
+                error = "Unable to get versions. If you just submitted, this is normal. If the problem persists, please let the dev-team know 🙏";
+                versions_info = null;
+                staged = [];
+                published = [];
                 console.error("Error polling status:");
                 console.error(err);
                 return;
             }
+        }else{
+            console.log("Resource id not set");
         }
         timeout_id = setTimeout(poll_status, 5000);
     }
@@ -57,15 +63,19 @@
 
     <h3>Versions</h3>
 
-    {#if versions}
-        {#each Object.entries(versions) as [name, items]}
-            <h4>{name}</h4>
-            <ul>
-            {#each Object.entries(items) as [version_number, details]}
-                <li><a href="#/status/{resource_id}/{name}/{version_number}">{version_number}</a> [{details.timestamp}] : {details.status.name}</li>    
-            {/each }
-            </ul>
-        {/each}
+    {#if versions_info}
+        <h4>Staged</h4>
+        <ul>
+        {#each Object.entries(staged) as [version_number, details]}
+                <li title="Submitted at {details.timestamp}"><a href="#/status/{resource_id}/staged/{version_number}">{version_number}</a> [{time_ago(details.timestamp)}] : {details.status.name}</li>    
+        {/each }
+        </ul>
+        <h4>Published</h4>
+        <ul>
+        {#each Object.entries(published) as [version_number, details]}
+                <li><a href="#/status/{resource_id}/published/{version_number}">{version_number}</a> [{details.timestamp}] : {details.status.name}</li>    
+        {/each }
+        </ul>
     {/if}
 {/if }
 

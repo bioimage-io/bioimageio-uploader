@@ -5,7 +5,7 @@
     import user_state from "../stores/user";
     import {login_url, token} from '../stores/hypha'; 
     import type UserInfo from "../lib/user_info";
-    import { CircleUserRound } from 'lucide-svelte'
+    import { CircleUserRound, X } from 'lucide-svelte'
     import toast  from 'svelte-french-toast';
 
     export let show = false;
@@ -13,25 +13,15 @@
     export let auth_offline=false;
 
     onMount(async () => {
-        auth.onAuthStateChanged((new_user: UserInfo) => {
-            user_state.set({
-                is_logged_in: new_user !== null,
-                user_info: new_user,
-            });
-            console.log("Auth state changed, user (in Login element) is");
-            console.log(new_user);
-            user = new_user;
-            show=false;
-        });
+        user_state.subscribe(value => {user = value.user_info;});
 
         try{
-            const details = await functions.check_hypha();
-            console.log(`Hypha responded: ${JSON.stringify(details)}`);
-            toast.success("Login available"); 
+            await functions.check_hypha();
         }catch{
             toast.error("Login not available!");
             auth_offline = true;
         }
+        if(user) show = false;
 
     })
     
@@ -50,7 +40,7 @@
 <style>
 iframe{      
     display: block;  /* iframes are inline by default */   
-    height: 100vh;  /* Set height to 100% of the viewport height */   
+    height: 90vh;  /* Set height to 100% of the viewport height */   
     width: 100%;  /* Set width to 100% of the viewport width */     
     border: none; /* Remove default border */
 }
@@ -59,18 +49,19 @@ iframe{
 {#if auth_offline}
     <span title="Authentication system is offline">Login Temporarily<br>Unavailable</span>
 {:else}
-    {#if user === null}
+    {#if !user }
         <button on:click={()=>{auth.login();}}>
             Login
         </button>
     {:else}
-        <button on:click={()=>{show=true;}}>{user.email}</button>
+        <button on:click={()=>{show=true;}}><CircleUserRound /> {user.email}</button>
     {/if}
 {/if}
 
 
 <dialog open={show}>
     <article>
+        <button on:click={()=>{show = false;}}><X /></button>
         {#if user === null && $login_url} 
             <iframe title="Login" src="{$login_url}"></iframe>
         {:else}

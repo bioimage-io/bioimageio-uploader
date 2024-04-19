@@ -19,16 +19,22 @@
     // TODO: REMOVE / REPLACE WITH HYPHA FUNCTIONS?
     //import { functions } from './lib/firebase';
     import LoginButton from './components/LoginButton.svelte';
+    import { functions } from "./lib/hypha";
 
     router.mode.hash();
     let uploader = new UploaderClass();
+    let hypha_version = "";
+    let auth_offline = false;
+
     // TODO: REMOVE / REPLACE WITH REGISTERING HYPHA FUNCTIONS?
     //uploader.register_firebase_functions(functions);
 
+    onMount(async () => {
+        const details = await functions.check_hypha();
+        console.log(`Hypha responded: ${JSON.stringify(details)}`);
+        hypha_version = details.version;
+    })
 
-
-    let show_login = false;
-    let auth_offline = false;
 </script>
 
 
@@ -39,10 +45,13 @@
             <li><strong>BioImage.IO</strong></li>
         </ul>
         <ul>
+            {#if hypha_version}
+                <li><span style="font-family:monospace;">Hypha: {hypha_version}</span></li>
+            {/if}
             <li><a href="/uploader">Uploader</a></li>
             <li><a href="/status">Status</a></li>
             <li>
-                <LoginButton bind:show={show_login} bind:auth_offline={auth_offline}/>
+                <LoginButton bind:auth_offline={auth_offline}/>
             </li>
         </ul>
     </nav>

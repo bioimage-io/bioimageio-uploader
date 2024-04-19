@@ -9,8 +9,6 @@
     let error;
 
     if(uploader && !uploader.rdf) router.goto("/");
-    if(!uploader.validator) uploader.load_validator();
-
 
     async function validate(){
         // Perform RDF validation with Imjoy...
@@ -21,7 +19,6 @@
         try {
             await uploader.validate();
         } catch (e) {
-            window.DB_ERR = e;
             error = e.message;
         }
         if(error){

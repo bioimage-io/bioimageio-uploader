@@ -3,6 +3,7 @@
     import Notification from '../Notification.svelte';
     import ResetUploaderButton from './ResetUploaderButton.svelte';
     import { Uploader } from '../../lib/uploader';
+    import type { ResourceId } from '../../lib/uploader';
     import yaml from "js-yaml";
     import Highlight from "svelte-highlight";
     import {yaml as yamlsyntax} from "svelte-highlight/languages/yaml";
@@ -10,13 +11,14 @@
     import user_state from "../../stores/user";
     import toast  from 'svelte-french-toast';
     import {router} from 'tinro';
+    import JSONTree from 'svelte-json-tree';
 
     export let uploader : Uploader;
 
-    import JSONTree from 'svelte-json-tree';
     let model_name_message = "";
     let rerender = false;
-    let resource_path = uploader.resource_path;
+    let resource_path:  ResourceId = uploader.resource_path;
+    let can_regenerate = true;
     let rdf = uploader.rdf;
     let ready_to_stage = uploader.ready_to_stage();
 
@@ -80,7 +82,12 @@
         toggle_rerender();
     }
 
-    if(!resource_path) regenerate_nickname();
+    if(!resource_path){
+        regenerate_nickname();
+    }else{
+        can_regenerate = false;
+    }
+
     if(uploader){
         if(!uploader.rdf) router.goto("/");
         uploader.add_render_callback(toggle_rerender);
@@ -103,11 +110,13 @@
         Your model nickname is:
         <code style="min-width:10em;">{resource_path.id} {resource_path.emoji}&nbsp;</code>
     {/if}
+    {#if can_regenerate}
     <button on:click={regenerate_nickname}>Regenerate nickname</button>
+    {/if}
 </p>
 
 {#if user}
-    <p>Hi {user.displayName}, please review your submission carefully, then press Upload</p>
+    <p>Hi {user.email}, please review your submission carefully, then press Upload</p>
     
     {#if ready_to_stage}
         <button class="button is-primary" on:click={stage}>Upload</button>

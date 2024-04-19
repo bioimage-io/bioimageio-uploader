@@ -1,17 +1,20 @@
 //import Hypha from './hypha.ts';
 // import axios from 'axios'; ///dist/browser/axios.cjs';
 import axios from 'axios';
+import { AxiosProgressEvent } from 'axios';
 //import { Draft, JsonError } from "json-schema-library";
 import { Validator } from '@cfworker/json-schema';
 import Ajv from 'ajv';
 
 import generate_name from './generate_name';
 
-import { FileFromJSZipZipOject, clean_rdf } from "./utils.ts";
+import { FileFromJSZipZipOject, clean_rdf } from "./utils";
 //import { fetch_with_progress } from "./utils.ts";
 
 import yaml from "js-yaml";
 import { default as JSZip } from "jszip";
+
+import { storage, functions } from "./hypha";
 
 //import { getFunctions, httpsCallable } from "firebase/functions";
 
@@ -21,11 +24,7 @@ const regex_rdf = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml)$/gi;
 const ajv = new Ajv({allErrors: true, strict: false});
 
 const hostname = `${window.location.protocol}//${window.location.host}`;
-//const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
-//const notify_ci_url = `${hostname}/.netlify/functions/notify_ci`;
-//const validator_url = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/main/scripts/bio-rdf-validator.imjoy.html"
 const url_json_schema_latest = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/gh-pages/bioimageio_schema_latest.json"; 
-//const validator_url = `${hostname}/static/bio-rdf-validator.imjoy.html`
 
 export enum UploaderStep {
     NOT_STARTED = "not-started",
@@ -62,57 +61,30 @@ function load_yaml(text: string){
 }
 
 
-class ResourceId {
-    id = "";
-    emoji = "";
+export interface ResourceId {
+    id: string;
+    emoji: string;
 }
 
 
 export class Uploader {
-
-    //static MAX_CONNECTION_RETRIES = 3;
-    //static server_url = "https://ai.imjoy.io";
-
-    //api: any;
-    //connection_retry = 0;
     error_object: Error | null = null;
     files: File[] = [];
-    functions: any;
-    //login_url: string | null = null;
     user_email: string | null  = ''; 
     resource_path: ResourceId | null = null;
     package_url: string | null = null;
-    rdf: any = null;
+    rdf: unknown = null;
     render_callbacks: (() => void)[] = [];
-    //server: any = null;
-    //server_url: string | null = null;
-    //show_login_window: (url: string) => void;
     status: UploaderStatus;
-    //storage: any = null;
-    //storage_info: any = null;
-    //token: string | null = '';
-    validator: any = null
     zip_url: string | null = null;
-    //this.status = {message:"", is_finished: false, is_uploading: false, ci_failed: false};
-    //server_url = "https://hypha.bioimage.io";
-    //server_url = "https://hypha.bioimage.io/public/apps/hypha-login/";
 
     constructor() {
-        console.log("Creating uploader...");
-
-        //this.token = window.sessionStorage.getItem('token');
-        //this.status = {message:"", is_finished: false, is_uploading: false, ci_failed: false};
+        console.debug("Creating uploader...");
         this.status = new UploaderStatus();
-        //this.show_login_window = (url) => { globalThis.open(url, '_blank') };
     }
 
     async init() {
     }
-
-    register_functions(functions: any){
-        this.functions = functions;
-    }
-
 
     reset() {
         this.resource_path = null;
@@ -192,10 +164,13 @@ export class Uploader {
 
     read_model_text(rdf_text: string) {
         this.rdf = load_yaml(rdf_text);
-    }
-
-    load_validator() {
-        //alert("Code replacement alidator");
+        if(this.rdf.id){
+            // Model already has an id, set the resource path
+            this.resource_path = {
+                id: this.rdf.id,
+                emoji: this.rdf.id_emoji,
+            };
+        }
     }
 
     /**
@@ -232,24 +207,6 @@ export class Uploader {
 
     async validate() {
         return await this.validate_json_schema();
-        /*
-         * Lazy loading of validator
-         */
-        //const validator = await this.load_validator(hypha);
-        let rdf = load_yaml(yaml.dump(this.rdf));
-        rdf = clean_rdf(rdf);
-
-        console.log("RDF after cleaning: ", rdf);
-
-        console.warn("STRIPPING UNSUPPORTED FIELDS IN RDF: TODO - THIS SHOULD BE A TEMPORARY FIX");
-        const rdf_copy = { ...rdf }
-        delete rdf_copy.uploader;
-
-        //const results = await validator.validate(rdf_copy);
-        //if (results.error) {
-            //throw new Error(results.error);
-        //}
-        //this.rdf = rdf;
     }
 
     ready_for_review() {
@@ -311,11 +268,7 @@ export class Uploader {
         this.render();
         const filename = `${this.resource_path.id}/${file.name}`;
         try {
-            // FIREBASE VERSION: TODO RELACE / SEE BELOW HYPHA VERSION
-            let url = await storage.upload_file(filename, file, onUploadProgress)
-            return url;
-            
-            return await hypha.upload_file(file, filename, onUploadProgress);
+            return await storage.upload_file(file, filename, onUploadProgress)
         } catch (error) {
             console.error("Upload failed!");
             console.error(error);
@@ -396,46 +349,15 @@ export class Uploader {
         this.status.message = "⌛ Trying to notify bioimage-bot for the new item...";
         this.status.step = UploaderStep.NOTIFYING_CI;
         this.render();
-        if(!this.functions){
-            throw new Error("Remote functions not set on uploader");
-        }
-        if(!this.functions.stage){
-            throw new Error("Firebase functions does not have a 'stage' entry");
-        }
-        console.log(this.resource_path);
-        console.log(this.zip_url);
         console.debug("Notifying CI bot using:");
-        const data = {
-                'resource_path': this.resource_path!.id,
-                'package_url': this.zip_url,
-        };
-        console.debug(data);
-        // trigger CI with the bioimageio bot endpoint
+        console.debug(this.resource_path);
+        console.debug(this.zip_url);
         try {
-            // TODO: FIREBASE VERSION - REPLACE / DELETE
-            const res = await this.functions.stage(data);
-            console.log(res);
-            if(res.data.status !== 204){
-                throw new Error(`😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: Code: ${res.data.status}, Message: ${res.data.message}`);
+            const response_stage = await functions.stage(this.resource_path!.id, this.zip_url);
+            console.log(response_stage);
+            if(response_stage.status !== 204){
+                throw new Error(`😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: Code: ${response_stage.status}, Message: ${response_stage.body}`);
             } 
-	    // NETLIFY VERSION - BETTER TO ENCAPSULATE IN LIB 
-            const resp = await fetch(notify_ci_url, {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            if (resp.status === 200) {
-                const ci_resp = (await resp.json());
-                if (ci_resp.status == 200) {
-                    this.status.message = `🎉 bioimage-bot has successfully detected the item: ${ci_resp.message}`;
-                } else {
-                    throw new Error(`😬 bioimage-bot notification ran into an issue [${ci_resp.status}]: ${ci_resp.message}`);
-                }
-
-            } else {
-                const ci_resp = await resp.text();
-                throw new Error(`😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: ${ci_resp}`);
-            }
         } catch (err) {
             throw new Error(`😬 Error calling bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`);
         }
