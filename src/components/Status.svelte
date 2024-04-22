@@ -17,7 +17,7 @@
 
 <form>
 <SingleLineInputs>
-    <input type="text" bind:value={input_value} placeholder="Enter resource ID, e.g. affable-shark"/>
+    <input type="search" bind:value={input_value} placeholder="Enter resource ID, e.g. affable-shark"/>
     <button class="icon" on:click={()=>set_resource_id(input_value)} ><Search /></button>
 </SingleLineInputs>
 </form>

@@ -4956,7 +4956,9 @@ imjoy-core@^0.14.4:
     spark-md5 "^3.0.0"
 
 imjoy-rpc@^0.5.44, imjoy-rpc@^0.5.9:
-  version "0.5.46"
+  version "0.5.48"
+  resolved "https://registry.npmjs.org/imjoy-rpc/-/imjoy-rpc-0.5.48.tgz"
+  integrity sha512-nzjuKnatuEDj5LinXFT+fhw2QRVMOo8XtApKTS7TIC58aeyv61UE8yavORVx7nrjhLO2RL4c9wKgMCi+38ptgQ==
   dependencies:
     "@msgpack/msgpack" "^2.7.1"
     socket.io-client "^4.6.2"

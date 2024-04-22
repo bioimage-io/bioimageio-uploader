@@ -1,33 +1,36 @@
 <script lang="ts">
+    import { onDestroy } from 'svelte';
     import { get_json } from '../lib/utils';
     import { RESOURCE_URL } from '../lib/config';
 
     import ErrorBox from './ErrorBox.svelte';
 
     export let resource_id="";
-    export let staged: boolean;
-    export let version_number = "";
+    export let version = "";
 
-    let last_message = "";
     let error = "";
-    let timeout_id;
+    let error_object: Error;
+    let timeout_id : ReturnType<typeof setTimeout>;
     let log = {}; // {_: string, Array<{}> } = {};
     let details = [];
 
+    ///
+    /// Clear timeout when navigating away from this page
+    /// 
+    onDestroy(()=>{
+        clearTimeout(timeout_id);
+    });
+
     async function poll(){
-        if(resource_id && version_number){ 
+        if(resource_id && version){ 
             try{
-                log = await get_json(`${RESOURCE_URL}/${resource_id}/staged/${version_number}/log.json`);
-                const details_json= await get_json(`${RESOURCE_URL}/${resource_id}/staged/${version_number}/details.json`);
-                last_message = details_json.status.name;
-                details = details_json.messages;
+                log = await get_json(`${RESOURCE_URL}/${resource_id}/${version}/log.json`);
                 error = "";
             }catch(err){
-                //messages = ["Error polling status 😬. Please let the dev-team know 🙏"];
-                last_message = "Error polling logs 😬. Please let the dev-team know 🙏";
                 console.error("Error polling logs:");
                 console.error(err);
                 error = `😬 Opps - an error occurred while getting the log: ${err.message}`
+                error_object = err;
                 return;
             }
 
@@ -39,7 +42,7 @@
 
 <details>
 <summary>Log</summary>
-<ErrorBox title="Log" {error} />
+<ErrorBox title="Log" {error} {error_object} />
 {#each details as message}
 <code>
     <span title="{message.timestamp}" >{message.text} </span><br>

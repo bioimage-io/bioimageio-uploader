@@ -14,9 +14,7 @@
     --color: #808080;
 }
 
-//input{
-    //--background-color: #eeeeee;
-//}
+
 article{
     --contrast: hsl(205, 20%, 90%);
 }
@@ -34,6 +32,11 @@ article.warning > footer{
 button{
     background-color: #2196f3;
     box-shadow: none;
+    margin-bottom: var(--pico-spacing);
+}
+
+.list-item > button{
+    white-space:nowrap;
 }
 
 [role="button"]{
@@ -79,23 +82,23 @@ header details{
 }
 
 
-nav{
-}
-nav a{
-    --color: #ffffff;
-    -moz-transition: all 0.2s ease-in;
-    -o-transition: all 0.2s ease-in;
-    -webkit-transition: all 0.2s ease-in;
-    transition: all 0.2s ease-in;
-}
-nav a:hover{
-    --color: #ffffff;
-    text-shadow:0px 0px 30px #fdec6e;
-    -moz-transition: all 0.2s ease-in;
-    -o-transition: all 0.2s ease-in;
-    -webkit-transition: all 0.2s ease-in;
-    transition: all 0.2s ease-in;
-}
+//nav{
+//}
+//nav a{
+    //--color: #ffffff;
+    //-moz-transition: all 0.2s ease-in;
+    //-o-transition: all 0.2s ease-in;
+    //-webkit-transition: all 0.2s ease-in;
+    //transition: all 0.2s ease-in;
+//}
+//nav a:hover{
+    //--color: #ffffff;
+    //text-shadow:0px 0px 30px #fdec6e;
+    //-moz-transition: all 0.2s ease-in;
+    //-o-transition: all 0.2s ease-in;
+    //-webkit-transition: all 0.2s ease-in;
+    //transition: all 0.2s ease-in;
+//}
 //font-family: Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;
 //nav > ul> li >strong{
 //    font-family: Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;

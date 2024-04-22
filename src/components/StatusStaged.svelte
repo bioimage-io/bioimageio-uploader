@@ -14,27 +14,28 @@
     import user_state from "../stores/user";
 
     export let resource_id="";
-    export let version_number=""; 
+    export let version=""; 
 
-    let step = 0;
-    let last_message = "Getting status...";
-    let num_steps;
+    let version_number = "";
+
+    let step = "0";
+    let message = "Getting status...";
+    let num_steps = "";
     let error = "";
-    //let error;
-    //let error_element;
-    //let last_error_object;
-    let input_value;
+    let error_object: Error;
+    let input_value = "";
     let is_finished = false;
     let value='0';
     let max='0';
-    let timeout_id;
+    let timeout_id : ReturnType<typeof setTimeout>;
 
-    // Get the reviewer status
+    let chat_element: Chat;
+    let review_element: Review;
+
     let is_reviewer: boolean;
-
     let is_logged_in: boolean;
 
-    let status;
+    let status: {description: string, step: string, num_steps: string};
 
     user_state.subscribe((user) => {
         is_logged_in = user.is_logged_in;
@@ -51,25 +52,27 @@
     });
 
     async function poll_status(){
-        if(resource_id){ 
+        if(resource_id && version){ 
+            version_number = version.split('/')[1];
             try{
                 const resp_version = await get_json(`${RESOURCE_URL}/${resource_id}/versions.json`);
                 status = resp_version.staged[version_number].status;
-                last_message = status.description;
+                // console.debug("Got status:", status);
+                message = status.name;
                 step = status.step;
                 num_steps = status.num_steps;
                 error = "";
             }catch(err){
                 //messages = ["Error polling status 😬. Please let the dev-team know 🙏"];
-                last_message = "Error polling status 😬. Please let the dev-team know 🙏";
+                message = "Error polling status 😬. Please let the dev-team know 🙏";
                 console.error("Error polling status:");
                 console.error(err);
                 error = `😬 Opps - an error occurred while getting the status: ${err.message}`
+                error_object = err;
                 return;
             }
-            if(last_message) is_finished = last_message.startsWith("Publishing complete");
-            if(step > 0){
-                //value = `{status_step}`; 
+            if(message) is_finished = message.startsWith("Publishing complete");
+            if(+step > 0){
                 value = `${step}`; 
                 max = `${num_steps}`; 
             }
@@ -90,14 +93,14 @@
 </script>
 
 {#if resource_id }
-    <h2>Resource ID: <a href="#/status/{resource_id}">{resource_id}</a> - staged - {version_number}</h2>
+    <h2>Resource ID: <a href="#/status/{resource_id}">{resource_id}</a> / {version}</h2>
 
 
-    <ErrorBox {error} />
+    <ErrorBox {error} {error_object} />
     {#if !error}
         <article>Status:
-            {#if last_message}
-                <code>{last_message}</code>
+            {#if message}
+                <code>{message}</code>
             {:else}
                 <code aria-busy="true"></code>
             {/if}
@@ -114,15 +117,15 @@
                 <FullScreenConfetti /> 
             {/if}
 
-            <Log {resource_id} staged={true} {version_number} />
+            <Log {resource_id} {version} />
 
         </article> 
     {/if}
 
     {#if is_logged_in}
-        <Chat {resource_id} staged={true} version_number={version_number} /> 
+        <Chat bind:this={chat_element} {resource_id} {version} /> 
         {#if is_reviewer}
-            <Review {resource_id} /> 
+            <Review bind:this={review_element} {resource_id} {version} /> 
         {/if}
     {:else}
         <article>Login to chat and maintainer tools for maintainers</article>

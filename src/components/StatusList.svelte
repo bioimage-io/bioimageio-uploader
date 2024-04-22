@@ -1,19 +1,13 @@
 <script lang="ts">
     import { onMount, onDestroy } from 'svelte';
-    
-    import { Search } from 'lucide-svelte';
-
     import ErrorBox from './ErrorBox.svelte';
-    import refresh_status from "../lib/status";
     import { time_ago, get_json } from '../lib/utils';
     import { RESOURCE_URL } from '../lib/config';
 
     export let resource_id="";
-
-
     let error = null;
-    let timeout_id;
-    let versions_info;
+    let timeout_id : ReturnType<typeof setTimeout>;
+    let versions_info : {staged: unknown, published: unknown};
     let staged = {};
     let published = {};
 
@@ -66,14 +60,14 @@
     {#if versions_info}
         <h4>Staged</h4>
         <ul>
-        {#each Object.entries(staged) as [version_number, details]}
-                <li title="Submitted at {details.timestamp}"><a href="#/status/{resource_id}/staged/{version_number}">{version_number}</a> [{time_ago(details.timestamp)}] : {details.status.name}</li>    
+        {#each Object.entries(staged) as [version, details]}
+                <li title="Submitted at {details.timestamp}"><a href="#/status/{resource_id}/staged/{version}">{version}</a> [{time_ago(details.timestamp)}] : {details.status.name}</li>    
         {/each }
         </ul>
         <h4>Published</h4>
         <ul>
-        {#each Object.entries(published) as [version_number, details]}
-                <li><a href="#/status/{resource_id}/published/{version_number}">{version_number}</a> [{details.timestamp}] : {details.status.name}</li>    
+        {#each Object.entries(published) as [version, details]}
+                <li><a href="#/status/{resource_id}/{version}">{version}</a> [{details.timestamp}] : {details.status.name}</li>    
         {/each }
         </ul>
     {/if}

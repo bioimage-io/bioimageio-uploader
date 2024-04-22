@@ -1,31 +1,21 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     //import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, GithubAuthProvider, signInWithEmailAndPassword } from 'firebase/auth';
-    import { auth, functions } from "../lib/hypha";
+    import { auth } from "../lib/hypha";
     import user_state from "../stores/user";
-    import {login_url, token} from '../stores/hypha'; 
-    import type UserInfo from "../lib/user_info";
-    import { CircleUserRound, X } from 'lucide-svelte'
-    import toast  from 'svelte-french-toast';
+    import {hypha_version} from "../stores/hypha";
+    import { login_url } from '../stores/hypha'; 
+    import { CircleUserRound, X, CloudOff } from 'lucide-svelte'
 
     export let show = false;
     export let user = null;
-    export let auth_offline=false;
 
     onMount(async () => {
         user_state.subscribe(value => {
             user = value.user_info;
             show = false;
         });
-
-        try{
-            await functions.check_hypha();
-        }catch{
-            toast.error("Login not available!");
-            auth_offline = true;
-        }
         if(user) show = false;
-
     })
     
     login_url.subscribe((url) => {
@@ -50,8 +40,8 @@ iframe{
 }
 </style>
 
-{#if auth_offline}
-    <span title="Authentication system is offline">Login Temporarily<br>Unavailable</span>
+{#if $hypha_version === "unreachable" }
+    <span title="Authentication system is offline"><CloudOff /></span>
 {:else}
     {#if !user }
         <button on:click={()=>{auth.login();}}>
