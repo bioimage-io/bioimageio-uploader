@@ -5,6 +5,7 @@ node_modules
 /package
 .env
 .env.*
+*.local
 __pycache__
 !.env.example
 vite.config.js.timestamp-*

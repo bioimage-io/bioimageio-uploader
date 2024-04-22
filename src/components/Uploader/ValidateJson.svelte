@@ -3,11 +3,11 @@
     import JSONTree from 'svelte-json-tree';
     import {router} from 'tinro';
     import ResetUploaderButton from './ResetUploaderButton.svelte';
+
     export let uploader;
 
     let validating = false;
     let error;
-
     if(uploader && !uploader.rdf) router.goto("/");
 
     async function validate(){
@@ -17,8 +17,9 @@
         console.log("Validating RDF:");
 
         try {
-            await uploader.validate();
+            await uploader.validate_json_schema();
         } catch (e) {
+            window.DB_ERR = e;
             error = e.message;
         }
         if(error){
@@ -42,12 +43,18 @@
     }
 </script>
 
+<h2>Validation</h2>
+
+<p>You are using a schema-version that will be checked with JSON-Schema</p>
+
 {#if validating} 
-    <button aria-busy=true> Validating...</button>
+    <button aria-busy=true>Validating</button>
 {:else}
     <ResetUploaderButton {uploader} />
     <button on:click={validate_with_toast}>Validate</button>
 {/if}    
+
+
 {#if error}
     <article>
         <p>A validation error occurred!</p>

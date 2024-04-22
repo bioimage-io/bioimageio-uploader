@@ -38,7 +38,7 @@ export default async (event, context) => {
         body: JSON.stringify({
             'ref': GITHUB_BRANCH,
             'inputs': {
-                'resource_path': data.resource_path,
+                'resource_id': data.resource_path,
                 'package_url': data.package_url,
             }
         })
@@ -51,7 +51,8 @@ export default async (event, context) => {
             // According to API docs, just expect a 204
             resp_obj = { 'status': resp.status };
         } else {
-            console.error("Bad response from CI: ${resp.status}");
+            console.error(`Bad response from CI: ${resp.status}`);
+            console.error(`Bad response from CI: ${resp.body}`);
             let text = "";
             try {
                 text = await resp.text()

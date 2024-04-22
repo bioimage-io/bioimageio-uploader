@@ -1,5 +1,4 @@
 
-
 async function get_taken_names(){
     // Url of collection
     const url = "https://raw.githubusercontent.com/bioimage-io/collection-bioimage-io/gh-pages/collection.json";
@@ -9,14 +8,14 @@ async function get_taken_names(){
 
 
 async function get_adjectives(){
-    const url = "https://github.com/bioimage-io/collection-bioimage-io/raw/main/adjectives.txt";
+    const url = "https://raw.githubusercontent.com/bioimage-io/collection-bioimage-io/main/adjectives.txt"
     const text = await (await fetch(url)).text();
     return text.split("\n");
 }
 
 
 async function get_animals(){
-    const url = "https://github.com/bioimage-io/collection-bioimage-io/raw/main/animals.yaml";
+    const url = "https://raw.githubusercontent.com/bioimage-io/collection-bioimage-io/main/animals.yaml";
     const text = await (await fetch(url)).text();
     return text.split("\n")
         .filter((line)=>line.trim()[0] !== '#')
@@ -54,23 +53,5 @@ export default async () => {
     while(name in taken_names){
         name = generate_name(adjectives, animals_with_emojis);
     }
-    console.log("Name generated:");
-    console.log(name);
-    const res = Response.json(name);
-    res.headers.set("Access-Control-Allow-Origin", "*");
-    res.headers.append("Access-Control-Allow-Headers", "*");
-    res.headers.append("Access-Control-Allow-Methods", "*");
-    return res;
-    //return {
-      //statusCode: 200,
-      //headers: {
-            //[> Required for CORS support to work <]
-            //'Access-Control-Allow-Origin': '*',
-            //'Access-Control-Allow-Headers': 'Content-Type',
-            //[> Required for cookies, authorization headers with HTTPS <]
-            //'Access-Control-Allow-Credentials': true
-        //},
-        //body: JSON.stringify(name)
-    ////Response.json(name);
-    //}
+    return name; 
 }

@@ -1,26 +1,30 @@
-import * as imjoyCore from 'imjoy-core';
-import * as imjoyRPC from 'imjoy-rpc';
+//import Hypha from './hypha.ts';
 // import axios from 'axios'; ///dist/browser/axios.cjs';
-import { default as axios, AxiosProgressEvent } from 'axios';
+import axios from 'axios';
+import { AxiosProgressEvent } from 'axios';
+//import { Draft, JsonError } from "json-schema-library";
+import { Validator } from '@cfworker/json-schema';
+import Ajv from 'ajv';
 
-import { FileFromJSZipZipOject, clean_rdf } from "./utils.ts";
+import generate_name from './generate_name';
+
+import { FileFromJSZipZipOject, clean_rdf } from "./utils";
 //import { fetch_with_progress } from "./utils.ts";
 
 import yaml from "js-yaml";
 import { default as JSZip } from "jszip";
 
+import { storage, functions } from "./hypha";
+
+//import { getFunctions, httpsCallable } from "firebase/functions";
+
 
 const regex_zip = /\.zip$/gi;
 const regex_rdf = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml)$/gi;
-
+const ajv = new Ajv({allErrors: true, strict: false});
 
 const hostname = `${window.location.protocol}//${window.location.host}`;
-const generate_name_url = `${hostname}/.netlify/functions/generate_name`;
-const notify_ci_url = `${hostname}/.netlify/functions/notify_ci`;
-const validator_url = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/main/scripts/bio-rdf-validator.imjoy.html"
-//const validator_url = `${hostname}/static/bio-rdf-validator.imjoy.html`
-
-
+const url_json_schema_latest = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/gh-pages/bioimageio_schema_latest.json"; 
 
 export enum UploaderStep {
     NOT_STARTED = "not-started",
@@ -30,7 +34,6 @@ export enum UploaderStep {
     FINISHED = "finished",
     FAILED = "failed",
 }
-
 
 class UploaderStatus {
     message = "";
@@ -49,51 +52,38 @@ class UploaderStatus {
     }
 }
 
-class ResourceId {
-    id = "";
-    emoji = "";
+
+function load_yaml(text: string){
+    // Need the schema here to avoid loading Date objects
+    const schema = yaml.CORE_SCHEMA;// Schema.create(yaml.CORE_SCHEMA, []);
+    // const yaml.CORE_SCHEMA.extend([...]);
+    return yaml.load(text, {schema: schema});
+}
+
+
+export interface ResourceId {
+    id: string;
+    emoji: string;
 }
 
 
 export class Uploader {
-
-    static MAX_CONNECTION_RETRIES = 3;
-    static server_url = "https://ai.imjoy.io";
-
-    api: any;
-    connection_retry = 0;
     error_object: Error | null = null;
     files: File[] = [];
-    login_url: string | null = null;
     user_email: string | null  = ''; 
     resource_path: ResourceId | null = null;
     package_url: string | null = null;
-    rdf: any = null;
+    rdf: unknown = null;
     render_callbacks: (() => void)[] = [];
-    server: any = null;
-    server_url: string | null = null;
-    show_login_window: (url: string) => void;
     status: UploaderStatus;
-    storage: any = null;
-    storage_info: any = null;
-    token: string | null = '';
-    validator: any = null
-    zip_urls: { get: string, put: string } | null = null;
-    //this.status = {message:"", is_finished: false, is_uploading: false, ci_failed: false};
-    //server_url = "https://hypha.bioimage.io";
-    //server_url = "https://hypha.bioimage.io/public/apps/hypha-login/";
+    zip_url: string | null = null;
 
     constructor() {
-        console.log("Creating uploader...");
-        this.token = window.sessionStorage.getItem('token');
-        //this.status = {message:"", is_finished: false, is_uploading: false, ci_failed: false};
+        console.debug("Creating uploader...");
         this.status = new UploaderStatus();
-        this.show_login_window = (url) => { globalThis.open(url, '_blank') };
-        globalThis.uploader = this;
     }
 
     async init() {
-        await this.initImjoy();
     }
 
     reset() {
@@ -102,102 +92,34 @@ export class Uploader {
         this.status.reset();
     }
 
-    set_login_url(ctx: any) {
-        this.show_login_window(ctx.login_url);
-        this.login_url = ctx.login_url
-    }
+    //set_login_url(ctx: any) {
+        //this.show_login_window(ctx.login_url);
+        //this.login_url = ctx.login_url
+    //}
 
 
-    async initImjoy() {
-        console.log("Starting Imjoy...");
-        // Init Imjoy-Core
-        const imjoy = new imjoyCore.ImJoy({
-            imjoy_api: {},
-            //imjoy config
-        });
-
-        await imjoy.start({ workspace: 'default' });
-        console.log('ImJoy started');
-        this.api = imjoy.api;
-
-    }
-
-    async loginHypha(){
-        console.log(`Connecting to ${Uploader.server_url}`);
-
-        // Init Imjoy-Hypha
-        if (this.connection_retry > Uploader.MAX_CONNECTION_RETRIES) {
-            console.error("Max retries reached. Please try again later or contact support");
-            return
-        }
-        if (!this.token) {
-            console.log("    Getting token...");
-            console.log("    from:");
-            console.log(imjoyRPC);
-            console.log(`    using url: ${Uploader.server_url}`);
-            this.token = await imjoyRPC.hyphaWebsocketClient.login({
-                server_url: Uploader.server_url,
-                login_callback: this.set_login_url.bind(this),
-
-            });
-            window.sessionStorage.setItem('token', this.token!);
-            console.log('    token saved');
-        }
-        console.log(`Token: ${this.token!.slice(0, 5)}...`);
-
-        try {
-
-            this.server = await imjoyRPC.hyphaWebsocketClient.connectToServer({
-                name: 'BioImageIO.this',
-                server_url: Uploader.server_url,
-                token: this.token,
-            });
-            const login_info = await this.server.get_connection_info();
-            
-            // .user_info.email;
-            if(login_info){
-                this.user_email = ((login_info.user_info || {}).email || ""); 
-                if(this.rdf){
-                    if(this.rdf.uploader){
-                        this.rdf.uploader.email = this.user_email;
-                    }else{
-                        this.rdf.uploader = {"email": this.user_email}
-                    }
-                }
+    set_email(email: string){
+        this.user_email = email;
+        if(this.rdf){
+            if(this.rdf.uploader){
+                this.rdf.uploader.email = this.user_email;
+            }else{
+                this.rdf.uploader = {"email": this.user_email}
             }
-
-
-            this.render();
-        } catch (error) {
-            console.error("Connection to Hypha failed:");
-            console.error(error);
-            this.connection_retry = this.connection_retry + 1;
-            this.token = null;
-            window.sessionStorage.setItem('token', '');
-            this.loginHypha();
         }
-        this.connection_retry = 0;
-        console.log("Hypha connected");
     }
 
-    show_login_message(context: any) {
-        this.login_url = context.login_url;
-    }
-
-
-    async load_from_file(input_file: File) {
-        if (input_file.name.search(regex_zip) !== -1) {
-            await this.load_zip_file(input_file);
-        } else if (input_file.name.search(regex_rdf) !== -1) {
-            await this.load_rdf_file(input_file);
-        } else {
-            throw Error("Invalid file given");
+    async load(files: File[]) {
+        console.debug("Loading model");
+        
+        if( files.length === 1){
+            const input_file = files[0];
+            if (input_file.name.search(regex_zip) !== -1) {
+                await this.load_zip_file(input_file);
+                return
+            } 
         }
-        this.rdf.uploader.email = this.user_email;
-    }
-
-    async load_from_files(files: File[]) {
-        console.debug("Loading model from files");
+    
         const candidates = files.filter((file) => file.name.search(regex_rdf) !== -1)
         // Obtain the RDF file
         if (candidates.length > 1) {
@@ -217,8 +139,10 @@ export class Uploader {
         this.rdf.uploader = {'email': this.user_email};
         console.debug('RDF:');
         console.debug(this.rdf);
-        // Empty files and repopulate from the zip file
-        this.files = files;
+        // Empty files and repopulate from the zip file, except for the RDF file
+
+        // Set files to all files other than the RDF file
+        this.files = files.filter((file) => file.name.search(regex_rdf) === -1);
     }
 
     async load_zip_file(zip_file: File) {
@@ -230,7 +154,7 @@ export class Uploader {
         for (const item of Object.values(zip_package.files)) {
             files.push(await FileFromJSZipZipOject(item));
         };
-        await this.load_from_files(files);
+        await this.load(files);
     }
 
     async load_rdf_file(rdf_file: File) {
@@ -239,37 +163,50 @@ export class Uploader {
     }
 
     read_model_text(rdf_text: string) {
-        this.rdf = yaml.load(rdf_text);
+        this.rdf = load_yaml(rdf_text);
+        if(this.rdf.id){
+            // Model already has an id, set the resource path
+            this.resource_path = {
+                id: this.rdf.id,
+                emoji: this.rdf.id_emoji,
+            };
+        }
     }
 
-    load_validator() {
-        if (this.validator) return this.validator;
-        this.validator = this.api.getPlugin(
-            validator_url
-        );
-        return this.validator;
+    /**
+     * Alternative validator using JSON-schema
+     */
+    async validate_json_schema(){
+        console.log("Validating using JSON Schema:");
+        const schema = await (await fetch(url_json_schema_latest)).json();
+        const draft = "2020-12";
+        //const shortCircuit = false;
+        console.debug(this.rdf);
+        console.debug(schema);
+
+        console.debug("Creating json-schema validator...");
+        const validator = new Validator(schema, draft);
+        //const validator = new Validator(schema, draft, shortCircuit);
+        console.debug(validator);
+
+        const valid = ajv.validate(schema, this.rdf);
+        
+        //const result = validator.validate(this.rdf);
+        //const result = validator.validate(rdf);
+        //if (!result.valid) {
+        //console.log(result);
+        console.log(valid);
+        if (!valid) {
+            console.error("Validation errors:");
+            console.error(ajv.errors);
+            const error_string = JSON.stringify(ajv.errors);
+            throw new Error(error_string);
+        }
+        
     }
 
     async validate() {
-
-        /*
-         * Lazy loading of validator
-         */
-        const validator = await this.load_validator();
-        let rdf = yaml.load(yaml.dump(this.rdf));
-        rdf = clean_rdf(rdf);
-
-        console.log("RDF after cleaning: ", rdf);
-
-        console.warn("STRIPPING UNSUPPORTED FIELDS IN RDF: TODO - THIS SHOULD BE A TEMPORARY FIX");
-        const rdf_copy = { ...rdf }
-        delete rdf_copy.uploader;
-
-        const results = await validator.validate(rdf_copy);
-        if (results.error) {
-            throw new Error(results.error);
-        }
-        this.rdf = rdf;
+        return await this.validate_json_schema();
     }
 
     ready_for_review() {
@@ -278,87 +215,62 @@ export class Uploader {
         return true;
     }
 
-    ready_to_publish(): boolean{
+    ready_to_stage(): boolean{
+        console.log("Checking ready to stage");
         if (!this.ready_for_review()) return false;
         if (!this.resource_path) return false;
         if (!this.user_email) return false;
         return true;
     }
 
-    logged_in(): boolean{
-        if (!this.server) return false;
-        return true;
-    }
-
     async regenerate_nickname() {
-        try {
-            const model_name = Object.assign(new ResourceId, await (await fetch(generate_name_url)).json());
-            console.log("Generated name:", model_name);
-            const error = "";
-            this.resource_path = model_name;
-            this.rdf.nickname = model_name.id;
-            return { model_name, error };
-        } catch (err) {
-            console.error("Failed to generate name:")
-            console.error(err);
-            console.error(`URL used: ${generate_name_url}`);
-            throw Error(err);
-        }
+        const model_name = await generate_name();
+        console.log("Generated name:", model_name);
+        const error = "";
+        this.resource_path = model_name;
+        this.rdf.nickname = model_name.id;
+        this.rdf.id_emoji = model_name.emoji;
+        return { model_name, error };
     }
 
     async upload_file(file: File, progress_callback: null | ((val: string, tot: string) => null)) {
         if (!this.resource_path) {
             throw new Error("Unable to upload, resource_path not set");
         };
+        if(!storage){
+            throw new Error("storage not correctly initialised");
+        }
+        if(!storage.upload_file){
+            throw new Error("storage does not have an 'upload_file' entry");
+        }
+        // HYPHA VERSION - PLACE IN LIB?
+        let onUploadProgress: (evt: AxiosProgressEvent) => void;
+        if (typeof progress_callback === "function") {
+            onUploadProgress = (progressEvent: AxiosProgressEvent) => {
+                this.status.upload_progress_value = `${progressEvent.loaded}`;
+                this.status.upload_progress_max = `${progressEvent.total}`;
+                console.log("Progress (with callback):", this.status);
+                //var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
+                progress_callback(`{progressEvent.loaded}`, `{progressEvent.total}`);
+                this.render();
+            };
+        } else {
+            onUploadProgress = (progressEvent: AxiosProgressEvent) => {
+                this.status.upload_progress_value = `${progressEvent.loaded}`;
+                this.status.upload_progress_max = `${progressEvent.total}`;
+                console.log("Progress (no callback):", this.status);
+                this.render();
+            };
+        }
+
         this.status.message = "Uploading";
         this.status.step = UploaderStep.UPLOADING;
         this.render();
         const filename = `${this.resource_path.id}/${file.name}`;
-        const url_put = await this.storage.generate_presigned_url(
-            this.storage_info.bucket,
-            this.storage_info.prefix + filename,
-            { client_method: "put_object", _rkwargs: true }
-        )
-        const url_get = await this.storage.generate_presigned_url(
-            this.storage_info.bucket,
-            this.storage_info.prefix + filename
-        )
-        console.log(
-            "Used bucket and prefix:",
-            this.storage_info.bucket,
-            this.storage_info.prefix);
-        console.log("url_get:");
-        console.log(url_get);
-        console.log("url_put");
-        console.log(url_put);
-
         try {
-            //const config: object {onUploadProgress: ((arg: AxiosProgressEvent) => void }) = {};
-            const config : {'onUploadProgress': null | ((progressEvent: AxiosProgressEvent) => void) }= {onUploadProgress: null};
-            if (typeof progress_callback === "function") {
-                config.onUploadProgress = (progressEvent: AxiosProgressEvent) => {
-                    this.status.upload_progress_value = `${progressEvent.loaded}`;
-                    this.status.upload_progress_max = `${progressEvent.total}`;
-                    console.log("Progress (with callback):", this.status);
-                    //var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
-                    progress_callback(`{progressEvent.loaded}`, `{progressEvent.total}`);
-                    this.render();
-                };
-            } else {
-                config.onUploadProgress = (progressEvent: AxiosProgressEvent) => {
-                    this.status.upload_progress_value = `${progressEvent.loaded}`;
-                    this.status.upload_progress_max = `${progressEvent.total}`;
-                    console.log("Progress (no callback):", this.status);
-                    this.render();
-                };
-            }
-
-            const response = await axios.put(url_put, file, config);
-            console.log("Upload result:", response.data);
-            return { 'get': url_get, 'put': url_put };
+            return await storage.upload_file(file, filename, onUploadProgress)
         } catch (error) {
             console.error("Upload failed!");
-            console.error(`Unable to PUT ${filename} to ${url_put}`);
             console.error(error);
             return error;
         }
@@ -368,15 +280,19 @@ export class Uploader {
         this.status.message = "Zipping model";
         this.status.step = UploaderStep.ZIPPING;
         this.render();
-        console.debug("Finding yaml file...");
+
+        console.debug("Creating updated yaml file...");
         const rdf_file = this.files.filter(item => item.name === "rdf.yaml")
-        if (rdf_file.length !== 1) {
-            this.status.message = "Publishing failed - unable to find rdf.yaml";
+        if (rdf_file.length > 0) {
+            this.status.message = "Publishing failed - rdf.yaml file should have been purged";
             this.status.step = UploaderStep.FAILED;
             this.render();
-            throw new Error("Could not find RDF file in file list");
-        }
+            throw new Error("Found existing RDF file in file list before creating the new one");
+        } 
+
         const zip = new JSZip();
+        
+        zip.file("rdf.yaml", yaml.dump(this.rdf));
 
         for (const file of this.files) {
             zip.file(file.name, file);
@@ -389,21 +305,20 @@ export class Uploader {
         return zipfile;
     }
 
-    async publish() {
+    async stage() {
         console.log("Running upload steps (zip, upload, notify CI)");
         this.render();
         const zipfile = await this.create_zip();
         this.render();
-        console.log(`
-            hostname                : ${hostname}
-            generate_name_url       : ${generate_name_url}
-            notify_ci_url           : ${notify_ci_url}`);
-        this.storage = await this.server.get_service("s3-storage");
-        this.storage_info = await this.storage.generate_credential();
-        this.zip_urls = await this.upload_file(zipfile, null);
+        
+        try{
+            this.zip_url = await this.upload_file(zipfile, null);
+        }catch(err){
+            throw err;
+        }
 
         try {
-            await this.notify_ci_bot();
+            const res = await this.ci_stage(); 
         } catch (err) {
             console.error("Nofiying the ci-bot failed:");
             console.error(err);
@@ -430,38 +345,21 @@ export class Uploader {
         this.render_callbacks = []; 
     }
 
-    async notify_ci_bot() {
-        if (!notify_ci_url) {
-            console.error("notify_ci_url not set")
-            throw new Error("notify_ci_url not set");
-        }
-        const payload = { 'resource_path': this.resource_path!.id, 'package_url': this.zip_urls!.get};
+    async ci_stage() {
         this.status.message = "⌛ Trying to notify bioimage-bot for the new item...";
         this.status.step = UploaderStep.NOTIFYING_CI;
         this.render();
         console.debug("Notifying CI bot using:");
-        console.debug(payload)
-        // trigger CI with the bioimageio bot endpoint
+        console.debug(this.resource_path);
+        console.debug(this.zip_url);
         try {
-            const resp = await fetch(notify_ci_url, {
-                method: 'POST',
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-            if (resp.status === 200) {
-                const ci_resp = (await resp.json());
-                if (ci_resp.status == 200) {
-                    this.status.message = `🎉 bioimage-bot has successfully detected the item: ${ci_resp.message}`;
-                } else {
-                    throw new Error(`😬 bioimage-bot notification ran into an issue [${ci_resp.status}]: ${ci_resp.message}`);
-                }
-
-            } else {
-                const ci_resp = await resp.text();
-                throw new Error(`😬 bioimage-bot failed to detected the new item, please report the issue to the admin team of bioimage.io: ${ci_resp}`);
-            }
+            const response_stage = await functions.stage(this.resource_path!.id, this.zip_url);
+            console.log(response_stage);
+            if(response_stage.status !== 204){
+                throw new Error(`😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: Code: ${response_stage.status}, Message: ${response_stage.body}`);
+            } 
         } catch (err) {
-            throw new Error(`😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`);
+            throw new Error(`😬 Error calling bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`);
         }
         this.render();
     }

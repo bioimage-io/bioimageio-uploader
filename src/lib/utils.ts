@@ -1,3 +1,13 @@
+import TimeAgo from 'javascript-time-ago';// English.
+import en from 'javascript-time-ago/locale/en'
+
+//const 
+TimeAgo.addDefaultLocale(en)
+const _timeAgo = new TimeAgo('en-US')
+
+export function time_ago(timestamp: string): string{
+    return _timeAgo.format(new Date(timestamp))
+}
 
 
 export async function FileFromJSZipZipOject(zipObject){
@@ -8,7 +18,13 @@ export async function FileFromJSZipZipOject(zipObject){
 }
 
 
-export function clean_rdf(rdf){
+export async function get_json(url:string){
+    //console.debug(`Fetching json from ${url}`);
+    return await (await fetch(url, {cache: "no-cache"})).json();
+}
+
+
+export function clean_rdf(rdf: unknown){
     delete rdf._metadata;
     if (rdf?.config?._deposit) delete rdf.config._deposit;
     // Null or zero-length orcid causes issues 

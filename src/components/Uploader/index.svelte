@@ -1,44 +1,41 @@
 <script lang="ts">
+    //import {Route, router} from 'tinro'; 
+    import { Route } from 'tinro'; 
     import { Toaster } from 'svelte-french-toast';
     import { Uploader } from '../../lib/uploader';
+    import user_state from "../../stores/user";
+    import type { UserState } from "../../stores/user";
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
+    import ValidateJson from './ValidateJson.svelte';
     import UploadStatus   from './UploadStatus.svelte';
-    import Notification from './Notification.svelte';
-    import ButtonWithConfirmation from './ButtonWithConfirmation.svelte';
+    //import Notification from '../Notification.svelte';
+    export let uploader : Uploader;
 
-    let uploader = new Uploader();
-    let step = "add";
-
-    function reset(){
-        uploader.reset();
-        step = "add";
-    }
-
-    if(!uploader.api) uploader.init();
+    
+    user_state.subscribe((user: UserState)=>{
+        if(user.user_info && user.user_info.email){
+            uploader.set_email(user.user_info.email);
+        } 
+    });
 
 </script>
 
 <Toaster />
-{#if step == "add"}
-    <Add {uploader} on:done={()=>{step="edit"}} />
-{:else if step == "edit"}
-    <Edit {uploader} on:done={()=>{step="review"}} />
-{:else if step == "review"}
-    <Review {uploader} on:done={()=>{step="uploading"}} on:reset={()=>{reset();}}/>
-{:else if step == "uploading"}
-    <UploadStatus {uploader} on:done={()=>{step="add"}} />
-<!--{:else if step == "done"}-->
-    <!--<a href="/status/{uploader.resource_path.id}">Go to status page</a>-->
-{:else}
-    <Notification>
-        Opps! something went wrong 😬
-    </Notification>
-{/if}
 
-{#if uploader.rdf && (["add", "edit"].includes(step))}
-    <ButtonWithConfirmation confirm={reset}>
-        Clear model + start again
-    </ButtonWithConfirmation>
-{/if}
+<Route path="/add">
+    <Add {uploader} />
+</Route>
+<Route path="/edit">
+    <Edit {uploader} />
+</Route>
+<Route path="/validate">
+    <ValidateJson {uploader} />
+</Route>
+<Route path="/review">
+    <Review {uploader} />
+</Route>
+<Route path="/uploading">
+    <UploadStatus {uploader} />
+</Route>

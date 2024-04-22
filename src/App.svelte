@@ -2,35 +2,65 @@
     // import "@picocss/pico/css/pico.css"; 
     import "./app.scss";
     import {Route, router} from 'tinro'; 
-    //import {Home} from 'lucide-svelte';
+    import { Toaster } from 'svelte-french-toast';
+    //import user_state from "./stores/user";
     //import {fade} from 'svelte/transition';
+
+    import { Unplug } from 'lucide-svelte'
     import Uploader from './components/Uploader/index.svelte';
     import Status from './components/Status.svelte';
+    import Nav from './components/Nav.svelte';
+    import Notification from './components/Notification.svelte';
+    import StatusList from './components/StatusList.svelte';
+    import StatusPublished from './components/StatusPublished.svelte';
+    import StatusStaged from './components/StatusStaged.svelte';
     import Transition from './components/Transition.svelte';
 
+    import { Uploader as UploaderClass } from './lib/uploader';
+
     router.mode.hash();
+    let uploader = new UploaderClass();
+    let auth_offline = false;
 </script>
-<style>
-</style>
 
-<nav class="container-fluid">
-    <ul>
-        <li><strong>BioImage.IO</strong></li>
-    </ul>
-    <ul>
-        <li><a href="/">Uploader</a></li>
-        <li><a href="/status">Status</a></li>
-    </ul>
-</nav>
 
+<header class="container-fluid">
+    <Nav /> 
+</header>
+
+<goaster />
+
+<main class="container">    
+{#if auth_offline}
+    <Notification classes="warning" deletable={true}>
+        <span slot="header">
+            <Unplug /> Login system offline   
+        </span>
+        You will not be able to upload or chat.<br> 
+        You can still use the <a href="/uploader">Uploader</a> to create a resource locally. 
+        <span slot="footer">
+            If this problem persists, please contact a member of the BioImage.IO team or create an Issue.
+        </span>
+    </Notification>
+{/if}
 <Transition> 
-    <Route path="/">
-        <Uploader />
+    <Route path="/" redirect="/uploader">
+    </Route>
+    <Route path="/uploader/*">
+        <Uploader {uploader}/>
     </Route>
     <Route path="/status">
         <Status />
     </Route>
-    <Route path="/status/:model_name" let:meta>
-        <Status modelName={meta.params.model_name} />
+    <Route path="/status/:resource_id" let:meta>
+        <StatusList resource_id={meta.params.resource_id} />
     </Route>
+    <Route path="/status/:resource_id/:version" let:meta>
+        <StatusPublished resource_id={meta.params.resource_id} version={meta.params.version} />
+    </Route>
+    <Route path="/status/:resource_id/staged/:version" let:meta>
+        <StatusStaged resource_id={meta.params.resource_id} version={`staged/${meta.params.version}`} />
+    </Route>
+    <Route fallback redirect="/uploader/add">No subpage found</Route>
 </Transition>
+</main>

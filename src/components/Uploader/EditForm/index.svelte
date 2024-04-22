@@ -115,7 +115,7 @@
 
     <InputLabel label="Uploader">
         <Input placeholder="Displayed name" bind:value={uploader.rdf.uploader.name} />
-        <Input readonly placeholder="Email will be automatically set before publishing" value={uploader.rdf.uploader.email}/>
+        <Input readonly placeholder="Email will be automatically set before uploading" value={uploader.rdf.uploader.email}/>
     </InputLabel>
     
     <InputLabel label="Authors" required>
