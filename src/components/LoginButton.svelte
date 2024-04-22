@@ -9,6 +9,7 @@
 
     export let show = false;
     export let user = null;
+    export let accepted_tos = false;
 
     onMount(async () => {
         user_state.subscribe(value => {
@@ -44,9 +45,7 @@ iframe{
     <span title="Authentication system is offline"><CloudOff /></span>
 {:else}
     {#if !user }
-        <button on:click={()=>{auth.login();}}>
-            Login
-        </button>
+        <button on:click={()=>{show=true;}}><CircleUserRound /> Login </button>
     {:else}
         <button on:click={()=>{show=true;}}><CircleUserRound /> {user.email}</button>
     {/if}
@@ -58,6 +57,12 @@ iframe{
         <button on:click={()=>{show = false;}}><X /></button>
         {#if !user && $login_url} 
             <iframe title="Login" src="{$login_url}"></iframe>
+        {:else if !user }
+            <input type="checkbox" bind:checked={accepted_tos} name="accept_tos">
+            <label for="accept_tos"> I have read and agree to the <a href="https://bioimage.io/docs/#/terms_of_service" target="_blank">TOS</a></label>
+            <button disabled={!accepted_tos} on:click={()=>{auth.login();}}>
+                Login
+            </button>
         {:else}
             <button on:click={handleSignout}>Logout</button>
         {/if}
