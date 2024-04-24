@@ -28,6 +28,7 @@
         if(resource_id){ 
             try{
                 versions_info = await get_json(`${RESOURCE_URL}/${resource_id}/versions.json`);
+                console.debug(versions_info);
                 staged = versions_info.staged;
                 published = versions_info.published;
                 error = "";

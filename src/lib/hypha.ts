@@ -41,9 +41,9 @@ interface HyphaService{
                               options?: { client_method: string, _rkwargs: boolean }) => Promise<string>,
     // Uploader service 
     is_reviewer?: () => Promise<unknown>,
-    chat?: (resource_id: string, version: string, message: string) => Promise<unknown>,
+    chat?: (resource_id: string, version: string, message: string, sandbox: boolean) => Promise<unknown>,
     stage?: (resource_id: string, package_url: string, sandbox: boolean) => Promise<unknown>,
-    review?: (resource_id: string, version: string, action: string, message: string) => Promise<unknown>,
+    review?: (resource_id: string, version: string, action: string, message: string, sandbox:boolean) => Promise<unknown>,
     proxy?: (url: string) => Promise<string>,
 }
 
@@ -93,10 +93,13 @@ token.subscribe(async (value: string) => {
             set_user({email: user_email, id: user_id});
         }
         connection_tries.set(0);
-       
-        console.warn("TODO: REMOVE THIS IN PRODUCTION");
+
+        const TODO_REMOVE_ME_JM_USERID = 'github|1950756';
+        console.warn("TODO: CURRENTLY CONNECTING TO UPLOADER SERVICE MATCHING", TODO_REMOVE_ME_JM_USERID);
         const services = await server.list_services('public');
-        const uploader_service_ids = services.filter((item: HyphaServiceInfo) => item.id.endsWith('bioimageio-uploader-service'));
+        const uploader_service_ids = services
+                .filter((item: HyphaServiceInfo) => item.id.endsWith('bioimageio-uploader-service'))
+                .filter((item: HyphaServiceInfo) => item.id.includes(TODO_REMOVE_ME_JM_USERID));
         if(uploader_service_ids.length < 1){
             console.error("No uploader services found in hypha server"); 
             // throw new Error("No uploader services found in hypha server");
@@ -107,8 +110,8 @@ token.subscribe(async (value: string) => {
             console.warn("More than 1 public uploader service found on hypha server!!"); 
             alert("More than 1 public uploader service found on hypha server!!"); 
         }
-        
         const uploader_service_id = uploader_service_ids[0].id;
+        console.log('Connecting to service', uploader_service_id)
         upload_service = await server!.get_service(uploader_service_id);
 
     } catch (error) {
@@ -172,16 +175,18 @@ export const storage = {
 export const functions = {
     check_hypha: async () => {
         return await (await fetch(SERVER_URL)).json();},
-    stage: async (resource_path: string, package_url: string) => {
-        return await upload_service.stage!(resource_path, package_url, SANDBOX);},
-    chat: async(resource_id: string, version: string, message: string) =>{
-        return await upload_service.chat!(resource_id, version, message);},
     is_reviewer: async () => {
         return await upload_service.is_reviewer!();},
-    review: async(resource_id: string, version: string, action: string, message: string) => {
-        return await upload_service.review!(resource_id, version, action, message);},
+    stage: async (resource_path: string, package_url: string, sandbox: boolean=false) => {
+        return await upload_service.stage!(resource_path, package_url, sandbox);},
+    chat: async(resource_id: string, version: string, message: string, sandbox: boolean=false) =>{
+        return await upload_service.chat!(resource_id, version, message, sandbox);},
+    review: async(resource_id: string, version: string, action: string, message: string, sandbox: boolean=false) => {
+        return await upload_service.review!(resource_id, version, action, message, sandbox);},
     proxy: (url: string) => {return upload_service.proxy!(url)},
 }
+
+globalThis.functions = functions;
 
 functions.check_hypha().then((version_info)=>{
     hypha_version.set(version_info.version);

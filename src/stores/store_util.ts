@@ -1,4 +1,4 @@
-import {get, writable} from 'svelte/store';
+import {writable} from 'svelte/store';
 
 function persist(key: string, value: unknown) {
     console.debug(`Persisting value of ${key}`);

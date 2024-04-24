@@ -2,6 +2,11 @@
     import SingleLineInputs from './SingleLineInputs.svelte';
     import { Search } from 'lucide-svelte';
     import {router} from 'tinro';
+	  import { COLLECTION_URL } from '../lib/config';
+
+    export let collection_url: string;
+
+    $: if(!collection_url) collection_url=COLLECTION_URL;
 
     //let error;
     //let error_element;
@@ -12,8 +17,9 @@
         resource_id = resource_id.trim();
         router.goto(`/status/${resource_id}`);
     }
-    
 </script>
+
+Collection URL : {collection_url} {!collection_url}
 
 <form>
 <SingleLineInputs>
