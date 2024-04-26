@@ -28,7 +28,7 @@
     <Nav /> 
 </header>
 
-<goaster />
+<Toaster />
 
 <main class="container">    
 {#if auth_offline}
@@ -46,11 +46,11 @@
 <Transition> 
     <Route path="/" redirect="/uploader">
     </Route>
-    <Route path="/uploader/*">
+    <Route path="/uploader/*" let:meta>
         <Uploader {uploader}/>
     </Route>
-    <Route path="/status">
-        <Status />
+    <Route path="/status" let:meta>
+        <Status collection_url={meta.query.collection}/>
     </Route>
     <Route path="/status/:resource_id" let:meta>
         <StatusList resource_id={meta.params.resource_id} />
