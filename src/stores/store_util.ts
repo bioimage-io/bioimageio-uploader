@@ -6,7 +6,7 @@ function persist(key: string, value: unknown) {
     sessionStorage.setItem(key, JSON.stringify(value));
 }
 
-export function writableSession(key: string, initialValue: string) {
+export function writableSession(key: string, initialValue: string|null) {
   let sessionValue=null;
   try{
     sessionValue = JSON.parse(sessionStorage.getItem(key) || "null");

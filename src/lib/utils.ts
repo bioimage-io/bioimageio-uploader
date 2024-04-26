@@ -1,5 +1,9 @@
 import TimeAgo from 'javascript-time-ago';// English.
 import en from 'javascript-time-ago/locale/en'
+import yaml from "js-yaml";
+import { JSZipObject } from "jszip";
+
+import { RDF } from "./rdf";
 
 //const 
 TimeAgo.addDefaultLocale(en)
@@ -10,11 +14,22 @@ export function time_ago(timestamp: string): string{
 }
 
 
-export async function FileFromJSZipZipOject(zipObject){
+export async function FileFromJSZipZipOject(zipObject: JSZipObject){
     if(zipObject.dir) throw new Error("Zip file must be flat (no internal folders)");
     const res =  new File([await zipObject.async("blob")], zipObject.name);
     return res;
+}
 
+
+export function load_yaml(text: string): ReturnType<typeof yaml.load>{
+    // Need the schema here to avoid loading Date objects
+    const schema = yaml.CORE_SCHEMA;// Schema.create(yaml.CORE_SCHEMA, []);
+    // const yaml.CORE_SCHEMA.extend([...]);
+    return yaml.load(text, {schema: schema});
+}
+
+export function dump_yaml(object:any): ReturnType<typeof yaml.dump>{
+    return yaml.dump(object);
 }
 
 
@@ -24,7 +39,7 @@ export async function get_json(url:string){
 }
 
 
-export function clean_rdf(rdf: unknown){
+export function clean_rdf(rdf: RDF){
     delete rdf._metadata;
     if (rdf?.config?._deposit) delete rdf.config._deposit;
     // Null or zero-length orcid causes issues 
@@ -41,7 +56,7 @@ export function clean_rdf(rdf: unknown){
     return rdf;
 }
 
-export const is_string = (value) => typeof value === 'string';
+export const is_string = (value: any) => typeof value === 'string';
 
 /* 
 Fetch API: Inputs to fetch
@@ -142,4 +157,3 @@ export async function fetch_with_progress(resource, options){
         request.send(options.body);
     });
 }
-
