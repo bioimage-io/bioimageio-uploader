@@ -25,3 +25,8 @@ export const REGEX_ZIP = /\.zip$/gi;
 export const REGEX_RDF = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml)$/gi;
 export const MAX_CONNECTION_RETRIES = 3;
 export const UPLOADER_SERVICE_ID = "public/workspace-manager:bioimageio-uploader-service";
+
+console.debug("Uploader configuration loaded:");
+console.debug(`    SANDBOX          : ${SANDBOX}`);
+console.debug(`    RESOURCE_URL     : ${RESOURCE_URL}`);
+

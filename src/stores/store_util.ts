@@ -1,8 +1,6 @@
 import {writable} from 'svelte/store';
 
 function persist(key: string, value: unknown) {
-    console.debug(`Persisting value of ${key}`);
-    console.debug(value);
     sessionStorage.setItem(key, JSON.stringify(value));
 }
 
