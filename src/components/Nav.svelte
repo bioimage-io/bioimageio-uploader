@@ -1,6 +1,7 @@
 <script lang="ts">
     import LoginButton from './LoginButton.svelte';
     import { hypha_version } from '../stores/hypha';
+    import { SANDBOX } from '../lib/config';
 </script>
 <style>
 /* Desktop etc*/ 
@@ -13,7 +14,7 @@
 <nav>
 <!--<nav class="container-fluid">-->
     <ul>
-        <li><strong>BioImage.IO</strong></li>
+        <li><strong>BioImage.IO {#if SANDBOX}SANDBOX{/if}</strong></li>
     </ul>
     <ul class="right-menu">
         {#if $hypha_version}

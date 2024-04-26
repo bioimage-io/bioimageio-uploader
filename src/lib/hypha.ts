@@ -177,12 +177,12 @@ export const functions = {
         return await (await fetch(SERVER_URL)).json();},
     is_reviewer: async () => {
         return await upload_service.is_reviewer!();},
-    stage: async (resource_path: string, package_url: string, sandbox: boolean=false) => {
-        return await upload_service.stage!(resource_path, package_url, sandbox);},
-    chat: async(resource_id: string, version: string, message: string, sandbox: boolean=false) =>{
-        return await upload_service.chat!(resource_id, version, message, sandbox);},
-    review: async(resource_id: string, version: string, action: string, message: string, sandbox: boolean=false) => {
-        return await upload_service.review!(resource_id, version, action, message, sandbox);},
+    stage: async (resource_path: string, package_url: string) => {
+        return await upload_service.stage!(resource_path, package_url, SANDBOX);},
+    chat: async(resource_id: string, version: string, message: string) =>{
+        return await upload_service.chat!(resource_id, version, message, SANDBOX);},
+    review: async(resource_id: string, version: string, action: string, message: string) => {
+        return await upload_service.review!(resource_id, version, action, message, SANDBOX);},
     proxy: (url: string) => {return upload_service.proxy!(url)},
 }
 

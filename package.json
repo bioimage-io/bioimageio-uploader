@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev --port 38283 --host 127.0.0.1",
-    "build": "vite build",
-    "preview": "vite preview",
+    "build": "vite build && VITE_SANDBOX=true vite build --base /sandbox/ --outDir dist/sandbox/",
+    "preview": "vite preview --port 38283 --host 127.0.0.1",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "check": "svelte-check --tsconfig ./tsconfig.json",
