@@ -31,6 +31,9 @@
         show=false;
     }
 
+    function toggle_show(){
+        show = !show;
+    }
 </script> 
 <style>
 iframe{      
@@ -38,6 +41,14 @@ iframe{
     height: 90vh;  /* Set height to 100% of the viewport height */   
     width: 100%;  /* Set width to 100% of the viewport width */     
     border: none; /* Remove default border */
+}
+dialog{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;  /* Set width to 100% of the viewport width */     
+    border: none; /* Remove default border */
+    
 }
 </style>
 
@@ -54,7 +65,7 @@ iframe{
 
 <dialog open={show}>
     <article>
-        <button on:click={()=>{show = false;}}><X /></button>
+        <button on:click={toggle_show}><X /></button>
         {#if !user && $login_url} 
             <iframe title="Login" src="{$login_url}"></iframe>
         {:else if !user }

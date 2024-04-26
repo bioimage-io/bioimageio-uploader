@@ -1,30 +1,20 @@
 //import Hypha from './hypha.ts';
 // import axios from 'axios'; ///dist/browser/axios.cjs';
-import axios from 'axios';
-import { AxiosProgressEvent } from 'axios';
+// import axios from 'axios';
 //import { Draft, JsonError } from "json-schema-library";
+import { AxiosProgressEvent } from 'axios';
 import { Validator } from '@cfworker/json-schema';
 import Ajv from 'ajv';
-
-import generate_name from './generate_name';
-
-import { FileFromJSZipZipOject, clean_rdf } from "./utils";
-//import { fetch_with_progress } from "./utils.ts";
-
-import yaml from "js-yaml";
 import { default as JSZip } from "jszip";
 
+import generate_name from './generate_name';
+import { FileFromJSZipZipOject, load_yaml, dump_yaml } from "./utils";
 import { storage, functions } from "./hypha";
+import { URL_JSON_SCHEMA_LATEST, REGEX_RDF, REGEX_ZIP } from './config';
+import { ResourceId } from './resource';
+import { RDF } from './rdf'; 
 
-//import { getFunctions, httpsCallable } from "firebase/functions";
-
-
-const regex_zip = /\.zip$/gi;
-const regex_rdf = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml)$/gi;
 const ajv = new Ajv({allErrors: true, strict: false});
-
-const hostname = `${window.location.protocol}//${window.location.host}`;
-const url_json_schema_latest = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/gh-pages/bioimageio_schema_latest.json"; 
 
 export enum UploaderStep {
     NOT_STARTED = "not-started",
@@ -53,27 +43,13 @@ class UploaderStatus {
 }
 
 
-function load_yaml(text: string){
-    // Need the schema here to avoid loading Date objects
-    const schema = yaml.CORE_SCHEMA;// Schema.create(yaml.CORE_SCHEMA, []);
-    // const yaml.CORE_SCHEMA.extend([...]);
-    return yaml.load(text, {schema: schema});
-}
-
-
-export interface ResourceId {
-    id: string;
-    emoji: string;
-}
-
-
 export class Uploader {
     error_object: Error | null = null;
     files: File[] = [];
-    user_email: string | null  = ''; 
-    resource_path: ResourceId | null = null;
+    user_email?: string; 
+    resource_path?: ResourceId;
     package_url: string | null = null;
-    rdf: unknown = null;
+    rdf?: RDF;
     render_callbacks: (() => void)[] = [];
     status: UploaderStatus;
     zip_url: string | null = null;
@@ -87,8 +63,8 @@ export class Uploader {
     }
 
     reset() {
-        this.resource_path = null;
-        this.rdf = null;
+        this.resource_path = undefined;
+        this.rdf = undefined;
         this.status.reset();
     }
 
@@ -114,13 +90,13 @@ export class Uploader {
         
         if( files.length === 1){
             const input_file = files[0];
-            if (input_file.name.search(regex_zip) !== -1) {
+            if (input_file.name.search(REGEX_ZIP) !== -1) {
                 await this.load_zip_file(input_file);
                 return
             } 
         }
     
-        const candidates = files.filter((file) => file.name.search(regex_rdf) !== -1)
+        const candidates = files.filter((file) => file.name.search(REGEX_RDF) !== -1)
         // Obtain the RDF file
         if (candidates.length > 1) {
             console.error("Given too many RDF files. Please make sure at most one RDF file is present");
@@ -136,13 +112,13 @@ export class Uploader {
         } else {
             this.rdf = {};
         }
-        this.rdf.uploader = {'email': this.user_email};
+        this.rdf!.uploader = {email: this.user_email || ''};
         console.debug('RDF:');
         console.debug(this.rdf);
         // Empty files and repopulate from the zip file, except for the RDF file
 
         // Set files to all files other than the RDF file
-        this.files = files.filter((file) => file.name.search(regex_rdf) === -1);
+        this.files = files.filter((file) => file.name.search(REGEX_RDF) === -1);
     }
 
     async load_zip_file(zip_file: File) {
@@ -150,7 +126,7 @@ export class Uploader {
         const zip_package = await JSZip.loadAsync(zip_file);
         console.log(zip_package);
 
-        const files = [];
+        const files: File[] = [];
         for (const item of Object.values(zip_package.files)) {
             files.push(await FileFromJSZipZipOject(item));
         };
@@ -163,12 +139,12 @@ export class Uploader {
     }
 
     read_model_text(rdf_text: string) {
-        this.rdf = load_yaml(rdf_text);
+        this.rdf = load_yaml(rdf_text) as RDF;
         if(this.rdf.id){
             // Model already has an id, set the resource path
             this.resource_path = {
                 id: this.rdf.id,
-                emoji: this.rdf.id_emoji,
+                emoji: this.rdf.id_emoji!,
             };
         }
     }
@@ -178,7 +154,7 @@ export class Uploader {
      */
     async validate_json_schema(){
         console.log("Validating using JSON Schema:");
-        const schema = await (await fetch(url_json_schema_latest)).json();
+        const schema = await (await fetch(URL_JSON_SCHEMA_LATEST)).json();
         const draft = "2020-12";
         //const shortCircuit = false;
         console.debug(this.rdf);
@@ -228,8 +204,8 @@ export class Uploader {
         console.log("Generated name:", model_name);
         const error = "";
         this.resource_path = model_name;
-        this.rdf.nickname = model_name.id;
-        this.rdf.id_emoji = model_name.emoji;
+        this.rdf!.nickname = model_name.id;
+        this.rdf!.id_emoji = model_name.emoji;
         return { model_name, error };
     }
 
@@ -292,7 +268,7 @@ export class Uploader {
 
         const zip = new JSZip();
         
-        zip.file("rdf.yaml", yaml.dump(this.rdf));
+        zip.file("rdf.yaml", dump_yaml(this.rdf));
 
         for (const file of this.files) {
             zip.file(file.name, file);
@@ -318,7 +294,7 @@ export class Uploader {
         }
 
         try {
-            const res = await this.ci_stage(); 
+            await this.ci_stage(); 
         } catch (err) {
             console.error("Nofiying the ci-bot failed:");
             console.error(err);
@@ -353,10 +329,10 @@ export class Uploader {
         console.debug(this.resource_path);
         console.debug(this.zip_url);
         try {
-            const response_stage = await functions.stage(this.resource_path!.id, this.zip_url);
+            const response_stage = await functions.stage(this.resource_path!.id, this.zip_url!);
             console.log(response_stage);
-            if(response_stage.status !== 204){
-                throw new Error(`😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: Code: ${response_stage.status}, Message: ${response_stage.body}`);
+            if(!response_stage.success){
+                throw new Error(`😬 Failed to reach to the bioimageio-bot, please report the issue to the admin team of bioimage.io: Message: ${response_stage.error}`);
             } 
         } catch (err) {
             throw new Error(`😬 Error calling bioimageio-bot, please report the issue to the admin team of bioimage.io: ${err}`);
@@ -364,4 +340,3 @@ export class Uploader {
         this.render();
     }
 }
-

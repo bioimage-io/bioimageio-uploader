@@ -6,21 +6,7 @@ import {login_url, token, connection_tries, hypha_version} from '../stores/hypha
 import user_state from "../stores/user";
 // import { persist } from '../stores/store_util';
 import { get } from 'svelte/store';
-import {SERVER_URL, SANDBOX } from './config';
-
-const set_login_url = (context: {login_url: string}) => {
-    login_url.set(context.login_url);
-    console.log("Login url is:", context.login_url);
-}
-
-
-const set_user = (user: UserInfo|undefined) =>{
-    user_state.set({
-        is_logged_in: user !== null,
-        is_reviewer: true, // await functions.is_reviewer(),
-        user_info: user ? user : undefined,
-    })
-}
+import {SERVER_URL, SANDBOX, MAX_CONNECTION_RETRIES } from './config';
 
 interface HyphaConnectionInfo{
     user_info: {email: string, id:string},
@@ -32,6 +18,12 @@ interface HyphaServer{
     list_services: (_: string) => Promise<Array<HyphaServiceInfo>>,
 }
 
+interface UploadServiceResponse{
+    success: boolean,
+    data?: any,
+    error?: string,
+}
+
 // Has to be generic enough to handle all services we use 
 interface HyphaService{
     // Storage service
@@ -40,11 +32,11 @@ interface HyphaService{
                               path: string, 
                               options?: { client_method: string, _rkwargs: boolean }) => Promise<string>,
     // Uploader service 
-    is_reviewer?: () => Promise<unknown>,
-    chat?: (resource_id: string, version: string, message: string, sandbox: boolean) => Promise<unknown>,
-    stage?: (resource_id: string, package_url: string, sandbox: boolean) => Promise<unknown>,
-    review?: (resource_id: string, version: string, action: string, message: string, sandbox:boolean) => Promise<unknown>,
-    proxy?: (url: string) => Promise<string>,
+    is_reviewer?: () => Promise<UploadServiceResponse>,
+    chat?: (resource_id: string, version: string, message: string, sandbox: boolean) => Promise<UploadServiceResponse>,
+    stage?: (resource_id: string, package_url: string, sandbox: boolean) => Promise<UploadServiceResponse>,
+    review?: (resource_id: string, version: string, action: string, message: string, sandbox:boolean) => Promise<UploadServiceResponse>,
+    proxy?: (url: string) => Promise<UploadServiceResponse>,
 }
 
 interface HyphaServiceInfo{
@@ -65,15 +57,32 @@ interface HyphaStorageInfo{
 }
 
 
-const MAX_CONNECTION_RETRIES = 3;
-const uploader_service_id = "public/workspace-manager:bioimageio-uploader-service";
+const set_login_url = (context: {login_url: string}) => {
+    login_url.set(context.login_url);
+    console.log("Login url is:", context.login_url);
+}
+
+
+const set_user = async (user: UserInfo|undefined, is_reviewer?: boolean) =>{
+    if(is_reviewer === undefined){
+        const resp = await functions.is_reviewer();
+        is_reviewer = resp.success && resp.data;
+    }
+    
+    user_state.set({
+        is_logged_in: user !== null,
+        is_reviewer: is_reviewer,
+        user_info: user ? user : undefined,
+    })
+}
+
 
 let server: HyphaServer;
 let upload_service: HyphaService;
 let hypha_storage: HyphaService;
 let hypha_storage_info: HyphaStorageInfo;
 
-token.subscribe(async (value: string) => {
+token.subscribe(async (value: string|null) => {
     if(!value) return; 
     try {
 
@@ -87,12 +96,6 @@ token.subscribe(async (value: string) => {
         console.log(login_info);
         hypha_storage = await server!.get_service("s3-storage");
         hypha_storage_info = await hypha_storage.generate_credential!();
-        if(login_info){
-            const user_email = ((login_info.user_info || {}).email || ""); 
-            const user_id = ((login_info.user_info || {}).id || ""); 
-            set_user({email: user_email, id: user_id});
-        }
-        connection_tries.set(0);
 
         const TODO_REMOVE_ME_JM_USERID = 'github|1950756';
         console.warn("TODO: CURRENTLY CONNECTING TO UPLOADER SERVICE MATCHING", TODO_REMOVE_ME_JM_USERID);
@@ -102,17 +105,24 @@ token.subscribe(async (value: string) => {
                 .filter((item: HyphaServiceInfo) => item.id.includes(TODO_REMOVE_ME_JM_USERID));
         if(uploader_service_ids.length < 1){
             console.error("No uploader services found in hypha server"); 
-            // throw new Error("No uploader services found in hypha server");
             alert("Uploader service not found; You will not be able to upload anything.") 
-            return 
+        }else{
+            if(uploader_service_ids.length > 1){
+                console.warn("More than 1 public uploader service found on hypha server!!"); 
+                alert("More than 1 public uploader service found on hypha server!!"); 
+            }
+            const uploader_service_id = uploader_service_ids[0].id;
+            console.log('Connecting to service', uploader_service_id)
+            upload_service = await server!.get_service(uploader_service_id);
         }
-        if(uploader_service_ids.length > 1){
-            console.warn("More than 1 public uploader service found on hypha server!!"); 
-            alert("More than 1 public uploader service found on hypha server!!"); 
+        
+        if(login_info){
+            const user_email = ((login_info.user_info || {}).email || ""); 
+            const user_id = ((login_info.user_info || {}).id || ""); 
+            await set_user({email: user_email, id: user_id});
         }
-        const uploader_service_id = uploader_service_ids[0].id;
-        console.log('Connecting to service', uploader_service_id)
-        upload_service = await server!.get_service(uploader_service_id);
+        connection_tries.set(0);
+
 
     } catch (error) {
         console.error("Connection to Hypha failed:");
@@ -123,8 +133,6 @@ token.subscribe(async (value: string) => {
         await auth.login();
     }
 });
-
-
 
 export const auth = {
     login: async () => {
@@ -148,12 +156,11 @@ export const auth = {
         console.log(`Token: ${_token!.slice(0, 5)}...`);
     },
     signOut: ()=> {
-        token.set(undefined);
+        token.set(null);
         set_user(undefined);
         login_url.set("");
     }, 
 };
-
 
 export const storage = {
     upload_file: async (file: File, filename: string, progress_callback: (event: AxiosProgressEvent) => void) => {
@@ -176,6 +183,7 @@ export const functions = {
     check_hypha: async () => {
         return await (await fetch(SERVER_URL)).json();},
     is_reviewer: async () => {
+        if(!upload_service) return {success: false, error: "Upload-service not connected"};
         return await upload_service.is_reviewer!();},
     stage: async (resource_path: string, package_url: string) => {
         return await upload_service.stage!(resource_path, package_url, SANDBOX);},
@@ -195,4 +203,3 @@ functions.check_hypha().then((version_info)=>{
     console.warn("Hypha not reachable");
     console.error(err);
 });
-
