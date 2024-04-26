@@ -29,4 +29,5 @@ export const UPLOADER_SERVICE_ID = "public/workspace-manager:bioimageio-uploader
 console.debug("Uploader configuration loaded:");
 console.debug(`    SANDBOX          : ${SANDBOX}`);
 console.debug(`    RESOURCE_URL     : ${RESOURCE_URL}`);
+console.debug("    import.meta.env  : ", import.meta.env);
 
