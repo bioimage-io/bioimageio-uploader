@@ -1,17 +1,17 @@
-// @ts-ignore 
+// @ts-ignore: env is non standard property added by vite  
 export const SERVER_URL = import.meta.env.VITE_HYPHA_SERVER_URL || "https://ai.imjoy.io";
-// @ts-ignore
+// @ts-ignore: env is non standard property added by vite  
 export const SANDBOX = import.meta.env.VITE_SANDBOX === "true" || false;
-// @ts-ignore
+// @ts-ignore: env is non standard property added by vite  
 const S3_HOST = import.meta.env.VITE_S3_HOST || "https://uk1s3.embassy.ebi.ac.uk";
-// @ts-ignore
+// @ts-ignore: env is non standard property added by vite  
 const S3_BUCKET = import.meta.env.VITE_S3_BUCKET || "public-datasets";
-// @ts-ignore
-const S3_FOLDER = import.meta.env.VITE_S3_FOLDER || SANDBOX ? "sandbox.bioimage.io" : "bioimage.io";
-export const RESOURCE_URL = `${S3_HOST}/${S3_BUCKET}/${S3_FOLDER}`; 
-// @ts-ignore
+// @ts-ignore: env is non standard property added by vite  
+const S3_PREFIX = import.meta.env.VITE_S3_PREFIX || SANDBOX ? "sandbox.bioimage.io" : "bioimage.io";
+export const RESOURCE_URL = `${S3_HOST}/${S3_BUCKET}/${S3_PREFIX}`; 
+// @ts-ignore: env is non standard property added by vite  
 export const COLLECTION_URL= import.meta.env.VITE_COLLECTION_URL || `${RESOURCE_URL}/collection.json`;
-// @ts-ignore
+// @ts-ignore: env is non standard property added by vite  
 export const BASE_URL = import.meta.env.BASE_URL;
 
 console.warn("TODO: Migrate animals and adjectives urls");
