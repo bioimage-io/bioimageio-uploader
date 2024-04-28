@@ -20,8 +20,6 @@
     })
     
     login_url.subscribe((url) => {
-        console.log("Doing stuff with login url...:", url);
-        console.log(user);
         if(!url) return 
         show = true;
     });
