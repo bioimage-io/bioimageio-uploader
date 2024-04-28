@@ -5,5 +5,4 @@
   port = 9520
 [build]
   publish = "dist"
-  functions = "functions"
-  command = "npm run build && VITE_SANDBOX=true npm run build -- --base /sandbox/ --outDir dist/sandbox/"
+  command = "npm run build"
