@@ -9,6 +9,14 @@ import { RDF } from "./rdf";
 TimeAgo.addDefaultLocale(en)
 const _timeAgo = new TimeAgo('en-US')
 
+export class ResourceMissingError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ResourceMissingError';
+  }
+}
+
+
 export function time_ago(timestamp: string): string{
     return _timeAgo.format(new Date(timestamp))
 }
@@ -18,6 +26,17 @@ export async function FileFromJSZipZipOject(zipObject: JSZipObject){
     if(zipObject.dir) throw new Error("Zip file must be flat (no internal folders)");
     const res =  new File([await zipObject.async("blob")], zipObject.name);
     return res;
+}
+
+export function copy_to_clipboard(text: string){
+    if(navigator){
+        if(navigator.clipboard){
+            navigator.clipboard.writeText(text);
+            return true
+        }
+    }
+    console.error("Clipboard unavailable");
+    return false;
 }
 
 
@@ -35,7 +54,9 @@ export function dump_yaml(object:any): ReturnType<typeof yaml.dump>{
 
 export async function get_json(url:string){
     //console.debug(`Fetching json from ${url}`);
-    return await (await fetch(url, {cache: "no-cache"})).json();
+    const resp = await fetch(url, {cache: "no-cache"});
+    if(!resp.ok) throw new ResourceMissingError(`Not found: ${url}`);
+    return await resp.json();
 }
 
 

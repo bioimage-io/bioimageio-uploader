@@ -63,11 +63,9 @@
                 num_steps = status.num_steps;
                 error = "";
             }catch(err){
-                //messages = ["Error polling status 😬. Please let the dev-team know 🙏"];
-                message = "Error polling status 😬. Please let the dev-team know 🙏";
                 console.error("Error polling status:");
                 console.error(err);
-                error = `😬 Opps - an error occurred while getting the status: ${err.message}`
+                error = err.message;
                 error_object = err;
                 return;
             }
@@ -95,8 +93,10 @@
 {#if resource_id }
     <h2>Resource ID: <a href="#/status/{resource_id}">{resource_id}</a> / {version}</h2>
 
+    <ErrorBox {error} {error_object} show_copy={false}>
+        <span slot="preamble" />
+    </ErrorBox> 
 
-    <ErrorBox {error} {error_object} />
     {#if !error}
         <article>Status:
             {#if message}

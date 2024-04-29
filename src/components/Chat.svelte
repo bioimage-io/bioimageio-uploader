@@ -39,8 +39,7 @@
             console.log(chat_json);
             chats = chat_json.messages || [];
         }catch(err){
-            error = `Error while getting chats: ${err.message}`;
-
+            error = err.message;
         }
     }
 
@@ -56,7 +55,9 @@
 </script>
 
 <h1>Chat</h1>
-<ErrorBox title="Chat" error={error} />
+<ErrorBox title="Chat" error={error} show_copy={false}>
+    <span slot="preamble" />
+</ErrorBox>
 {#each chats as message}
     <div>
         <code title="{message.timestamp}">[{message.author} | {time_ago(message.timestamp)}]</code> : {message.text}

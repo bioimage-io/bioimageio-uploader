@@ -8,6 +8,8 @@
 
     $: if(!collection_url) collection_url=COLLECTION_URL;
 
+    console.log("Using collection_url:", collection_url);
+
     //let error;
     //let error_element;
     //let last_error_object;
@@ -18,8 +20,6 @@
         router.goto(`/status/${resource_id}`);
     }
 </script>
-
-Collection URL : {collection_url} {!collection_url}
 
 <form>
 <SingleLineInputs>
