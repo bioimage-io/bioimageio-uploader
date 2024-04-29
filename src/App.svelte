@@ -17,10 +17,18 @@
     import Transition from './components/Transition.svelte';
 
     import { Uploader as UploaderClass } from './lib/uploader';
-
+    import { update_token } from './lib/hypha';
     router.mode.hash();
     let uploader = new UploaderClass();
     let auth_offline = false;
+
+    // Extract global query parameters from the router
+    // router.subscribe( ({url, from, path, hash, query})=> {
+    router.subscribe( ({query, ..._route_params})=> {
+        console.log("Query changed: ", query); 
+        if(query.token) update_token(query.token);
+    });
+    
 </script>
 
 
