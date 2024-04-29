@@ -1,15 +1,16 @@
 import {writable} from 'svelte/store';
+const storage = localStorage;
 
 function persist(key: string, value: unknown) {
-    sessionStorage.setItem(key, JSON.stringify(value));
+    storage.setItem(key, JSON.stringify(value));
 }
 
 export function writableSession(key: string, initialValue: string|null) {
   let sessionValue=null;
   try{
-    sessionValue = JSON.parse(sessionStorage.getItem(key) || "null");
+      sessionValue = JSON.parse(storage.getItem(key) || "null");
   }catch(err){
-    console.error(`Failed to load session storage for ${key}`);
+      console.error(`Failed to load storage for ${key}`);
   }
   if (!sessionValue) persist(key, initialValue);
 
