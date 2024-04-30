@@ -1,9 +1,9 @@
-import { COLLECTION_URL, ADJECTIVES_URL, ANIMALS_URL } from './config'; 
+import { COLLECTION_URL_PUBLISHED, COLLECTION_URL_STAGED, ADJECTIVES_URL, ANIMALS_URL } from './config'; 
 
 
 async function get_taken_names(): Promise<Array<string>>{
     // Url of collection
-    const url = COLLECTION_URL;
+    const url = COLLECTION_URL_PUBLISHED;
     const obj = await (await fetch(url)).json();
     return obj.collection.map((item : {nickname: string})=>item.nickname).filter((item : string)=>item !== undefined);
 }
