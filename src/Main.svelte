@@ -52,7 +52,7 @@
     </Notification>
 {/if}
 <Transition> 
-    <Route path="/" redirect="/uploader">
+    <Route path="/" redirect="/uploader/add">
     </Route>
     <Route path="/uploader/*" let:meta>
         <Uploader {uploader}/>
