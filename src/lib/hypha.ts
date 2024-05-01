@@ -122,12 +122,12 @@ const connect_server = async (_token: string) => {
     hypha_storage = await server!.get_service("s3-storage");
     hypha_storage_info = await hypha_storage.generate_credential!();
 
-    const TODO_REMOVE_ME_JM_USERID = 'github|1950756';
-    console.warn("TODO: CURRENTLY CONNECTING TO UPLOADER SERVICE MATCHING", TODO_REMOVE_ME_JM_USERID);
+    // const TODO_REMOVE_ME_JM_USERID = 'github|1950756';
+    // console.warn("TODO: CURRENTLY CONNECTING TO UPLOADER SERVICE MATCHING", TODO_REMOVE_ME_JM_USERID);
     const services = await server.list_services('public');
     const uploader_service_ids = services
-            .filter((item: HyphaServiceInfo) => item.id.endsWith('bioimageio-uploader-service'))
-            .filter((item: HyphaServiceInfo) => item.id.includes(TODO_REMOVE_ME_JM_USERID));
+            .filter((item: HyphaServiceInfo) => item.id.endsWith('bioimageio-uploader-service'));
+            // .filter((item: HyphaServiceInfo) => item.id.includes(TODO_REMOVE_ME_JM_USERID));
     if(uploader_service_ids.length < 1){
         console.error("No uploader services found in hypha server"); 
         alert("Uploader service not found; You will not be able to upload anything.") 
