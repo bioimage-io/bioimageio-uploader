@@ -1,10 +1,10 @@
 <script lang="ts">
     import SingleLineInputs from './SingleLineInputs.svelte';
-    import { Search } from 'lucide-svelte';
     import {router} from 'tinro';
+    import ScrollToTop from './ScrollToTop.svelte'
 	  import { COLLECTION_URL_PUBLISHED, COLLECTION_URL_STAGED } from '../lib/config';
 	  import { get_json } from '../lib/utils';
-	import { onMount } from 'svelte';
+	  import { onMount } from 'svelte';
 
     export let collection_url_published: string;
     export let collection_url_staged: string;
@@ -22,10 +22,18 @@
         router.goto(`/status/${resource_id}`);
     }
 
+    const search_staged = (query: string) => {	
+        if(!query) return all_staged;
+		    return staged = all_staged.filter(item => {
+			      let id = item.id.toLowerCase();
+			      return id.includes(query.toLowerCase())
+		    });
+	  }
+
     let all_published = [];
     let all_staged = [];
     let published = [];
-    let staged = [];
+    $: staged = search_staged(input_value);
 
     onMount(async ()=> {
         all_published = (await get_json(collection_url_published)).collection;
@@ -36,15 +44,41 @@
         staged = all_staged;
     })
 
+    $: staged 
+
+    function scrollIntoView(element){
+        let query = element;
+        if(typeof query !== "string"){
+            query = element.target.getAttribute('href'); 
+        }
+        const el = document.querySelector(query);
+        console.log(el);
+		    if (!el){
+		        console.log(`Nopers: ${query}`);
+		        return
+		    }
+        el.scrollIntoView({
+            behavior: 'smooth'
+        });
+    }
+    
 </script>
 
-<form>
-<SingleLineInputs>
-    <input type="search" bind:value={input_value} placeholder="Enter resource ID, e.g. affable-shark"/>
-    <button class="icon" on:click={()=>set_resource_id(input_value)} ><Search /></button>
-</SingleLineInputs>
-</form>
+<section id="search">
+    <form>
+        <SingleLineInputs>
+            <input type="search" bind:value={input_value} placeholder="Enter resource ID, e.g. affable-shark"/>
+            <!--button class="icon" on:click={()=>set_resource_id(input_value)} ><Search /></button-->
+        </SingleLineInputs>
+    </form>
+</section>
 
+<a href="#staged" on:click|preventDefault={scrollIntoView} >Staged</a>
+<a href="#published" on:click|preventDefault={scrollIntoView}>Published</a>
+
+<ScrollToTop />
+
+<section id="staged">
 <h3>Staged Resources</h3>
 {#each staged as {id, id_emoji}}
     <a href="/status/{id}">
@@ -53,7 +87,9 @@
     </article>
     </a>
 {/each}
+</section>
 
+<section id="published">
 <h3>Published Resources</h3>
 
 <!--div class="grid" -->
@@ -65,3 +101,5 @@
     </a>
 {/each}
 <!--/div-->
+</section>
+

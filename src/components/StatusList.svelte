@@ -12,6 +12,7 @@
     let published = {};
 
     onMount(async() => {
+        console.log("StatusList:", resource_id);
     });
 
 

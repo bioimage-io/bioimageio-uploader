@@ -14,7 +14,7 @@
     import StatusList from './components/StatusList.svelte';
     import StatusPublished from './components/StatusPublished.svelte';
     import StatusStaged from './components/StatusStaged.svelte';
-    import Transition from './components/Transition.svelte';
+    // import Transition from './components/Transition.svelte';
     import Chat from './components/Chat.svelte';
 
     import { Uploader as UploaderClass } from './lib/uploader';
@@ -25,7 +25,7 @@
 
     // Extract global query parameters from the router
     // router.subscribe( ({url, from, path, hash, query})=> {
-    router.subscribe( ({query, ..._route_params})=> {
+    router.subscribe( ({query})=> {
         console.log("Query changed: ", query); 
         if(query.token) update_token(query.token);     
     });
@@ -51,14 +51,18 @@
         </span>
     </Notification>
 {/if}
-<Transition> 
+<!-- NOTE: Transition disabled for now as disrupts rendering on route-change -->
+<!--Transition --> 
     <Route path="/" redirect="/uploader/add">
     </Route>
     <Route path="/uploader/*" let:meta>
         <Uploader {uploader}/>
     </Route>
     <Route path="/status" let:meta>
-        <Status collection_url={meta.query.collection}/>
+        <Status 
+            collection_url_published={meta.query.collection_published} 
+            collection_url_staged={meta.query.collection_staged} 
+        />
     </Route>
     <Route path="/status/:resource_id" let:meta>
         <StatusList resource_id={meta.params.resource_id} />
@@ -76,5 +80,5 @@
         <Chat resource_id={meta.params.resource_id} version={`staged/${meta.params.version}`} />
     </Route>
     <Route fallback redirect="/uploader/add">No subpage found</Route>
-</Transition>
+<!--/Transition -->
 </main>

@@ -7,8 +7,6 @@
     export let code=false;
     export let show_copy=true;
 
-    console.log("Show copy:", show_copy);
-
     interface ErrorLog{
         text: string,
         message: string,
