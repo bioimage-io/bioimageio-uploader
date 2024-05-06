@@ -19,3 +19,6 @@ coverage/
 tests/__snapshots__/
 functions_off/
 .local/.env
+bioimageio_schema_latest.json
+rdf.json
+tsconfig.config.json

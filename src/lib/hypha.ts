@@ -7,6 +7,7 @@ import user_state from "../stores/user";
 // import { persist } from '../stores/store_util';
 import { get } from 'svelte/store';
 import {SERVER_URL, SANDBOX, MAX_CONNECTION_RETRIES } from './config';
+import { copy_to_clipboard } from './utils';
 
 interface HyphaConnectionInfo{
     user_info: {email: string, id:string},
@@ -56,12 +57,10 @@ interface HyphaStorageInfo{
     prefix: string,
 }
 
-
 const set_login_url = (context: {login_url: string}) => {
     login_url.set(context.login_url);
     console.log("Login url is:", context.login_url);
 }
-
 
 const set_user = async (user: UserInfo|undefined, is_reviewer?: boolean) =>{
     if(is_reviewer === undefined){
@@ -76,16 +75,31 @@ const set_user = async (user: UserInfo|undefined, is_reviewer?: boolean) =>{
     })
 }
 
-
 let server: HyphaServer;
 let upload_service: HyphaService;
 let hypha_storage: HyphaService;
 let hypha_storage_info: HyphaStorageInfo;
 
-token.subscribe(async (value: string|null) => {
-    if(!value) return; 
-    try {
+export const update_token = (value:string|null) => {
+    if(value === get(token)) return;    
+    if(token) 
+    token.set(value);
+};
 
+const try_connect_server = async(_token: string) =>{
+    // Catch if already tried too much
+    const num_tries = get(connection_tries);
+    console.debug(`Trying to connect to hypha [${num_tries} / ${MAX_CONNECTION_RETRIES}]`); 
+    if(num_tries > MAX_CONNECTION_RETRIES){
+        console.error("There appears to be a connection problem. Aborting connection with current token");
+        console.error("Please try again later");
+        update_token(null);
+        connection_tries.set(0);
+        return;
+    } 
+    
+    try {
+        await connect_server(_token);
         server = await imjoyRPC.hyphaWebsocketClient.connectToServer({
             name: 'BioImageIO.uploader',
             server_url: SERVER_URL,
@@ -122,16 +136,57 @@ token.subscribe(async (value: string|null) => {
             await set_user({email: user_email, id: user_id});
         }
         connection_tries.set(0);
-
-
     } catch (error) {
         console.error("Connection to Hypha failed:");
         console.error(error);
         connection_tries.update((n: number) => n + 1);
-        token.set(null);
-        // window.sessionStorage.setItem('token', '');
-        await auth.login();
+        // await auth.login();
+        await try_connect_server(_token);
     }
+};
+
+const connect_server = async (_token: string) => {
+    server = await imjoyRPC.hyphaWebsocketClient.connectToServer({
+        name: 'BioImageIO.uploader',
+        server_url: SERVER_URL,
+        token: _token,
+    });
+    const login_info = await server.get_connection_info();
+    console.log("Login info from Hypha:");
+    console.log(login_info);
+    hypha_storage = await server!.get_service("s3-storage");
+    hypha_storage_info = await hypha_storage.generate_credential!();
+
+    // const TODO_REMOVE_ME_JM_USERID = 'github|1950756';
+    // console.warn("TODO: CURRENTLY CONNECTING TO UPLOADER SERVICE MATCHING", TODO_REMOVE_ME_JM_USERID);
+    const services = await server.list_services('public');
+    const uploader_service_ids = services
+            .filter((item: HyphaServiceInfo) => item.id.endsWith('bioimageio-uploader-service'));
+            // .filter((item: HyphaServiceInfo) => item.id.includes(TODO_REMOVE_ME_JM_USERID));
+    if(uploader_service_ids.length < 1){
+        console.error("No uploader services found in hypha server"); 
+        alert("Uploader service not found; You will not be able to upload anything.") 
+    }else{
+        if(uploader_service_ids.length > 1){
+            console.warn("More than 1 public uploader service found on hypha server!!"); 
+            alert("More than 1 public uploader service found on hypha server!!"); 
+        }
+        const uploader_service_id = uploader_service_ids[0].id;
+        console.log('Connecting to service', uploader_service_id)
+        upload_service = await server!.get_service(uploader_service_id);
+    }
+    
+    if(login_info){
+        const user_email = ((login_info.user_info || {}).email || ""); 
+        const user_id = ((login_info.user_info || {}).id || ""); 
+        await set_user({email: user_email, id: user_id});
+        copy_to_clipboard(_token); 
+    }
+};
+
+token.subscribe(async (value: string|null) => {
+    if(!value) return; 
+    await try_connect_server(value);
 });
 
 export const auth = {
@@ -152,11 +207,11 @@ export const auth = {
             console.error("No token from hypha!");
             return
         }
-        token.set(_token);
+        update_token(_token);
         console.log(`Token: ${_token!.slice(0, 5)}...`);
     },
     signOut: ()=> {
-        token.set(null);
+        update_token(null);
         set_user(undefined);
         login_url.set("");
     }, 

@@ -1,7 +1,7 @@
 <script lang="ts">
     //import {Route, router} from 'tinro'; 
     import { Route } from 'tinro'; 
-    import { Toaster } from 'svelte-french-toast';
+    // import { Toaster } from 'svelte-french-toast';
     import { Uploader } from '../../lib/uploader';
     import user_state from "../../stores/user";
     import type { UserState } from "../../stores/user";
@@ -21,8 +21,6 @@
     });
 
 </script>
-
-<Toaster />
 
 <Route path="/add">
     <Add {uploader} />
