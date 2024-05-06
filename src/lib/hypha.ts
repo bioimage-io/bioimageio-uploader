@@ -97,7 +97,7 @@ token.subscribe(async (value: string|null) => {
         hypha_storage = await server!.get_service("s3-storage");
         hypha_storage_info = await hypha_storage.generate_credential!();
 
-        const TODO_REMOVE_ME_JM_USERID = 'github|1950756';
+        const TODO_REMOVE_ME_JM_USERID = 'github|478667';
         console.warn("TODO: CURRENTLY CONNECTING TO UPLOADER SERVICE MATCHING", TODO_REMOVE_ME_JM_USERID);
         const services = await server.list_services('public');
         const uploader_service_ids = services
