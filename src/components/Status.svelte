@@ -2,9 +2,9 @@
     import SingleLineInputs from './SingleLineInputs.svelte';
     import {router} from 'tinro';
     import ScrollToTop from './ScrollToTop.svelte'
-	  import { COLLECTION_URL_PUBLISHED, COLLECTION_URL_STAGED } from '../lib/config';
-	  import { get_json } from '../lib/utils';
-	  import { onMount } from 'svelte';
+    import { COLLECTION_URL_PUBLISHED, COLLECTION_URL_STAGED } from '../lib/config';
+    import { get_json } from '../lib/utils';
+    import { onMount } from 'svelte';
 
     export let collection_url_published: string;
     export let collection_url_staged: string;
@@ -80,12 +80,21 @@
 
 <section id="staged">
 <h3>Staged Resources</h3>
-{#each staged as {id, id_emoji}}
-    <a href="/status/{id}">
+{#each staged as {id, id_emoji, info}}
+    
     <article>
-        {id_emoji} {id}
+        <a href="/status/{id}">
+        <h2>{id_emoji} {id}</h2>
+        </a>
+        {#if info}
+            {#if info.status}
+                <p>Status: {info.status.name} ({info.status.step}/{info.status.num_steps})</p>
+                <p>{info.status.description}</p>
+                <p>{info.status.timestamp} <a href={info.status.run_url} target="_blank"><img src="static/github.svg" alt="github icon">Github CI Logs</a></p>
+            {/if}
+        {/if}
     </article>
-    </a>
+    
 {/each}
 </section>
 
@@ -93,12 +102,19 @@
 <h3>Published Resources</h3>
 
 <!--div class="grid" -->
-{#each published as {id, id_emoji}}
+{#each published as {id, id_emoji, info}}
+<article>
     <a href="/status/{id}">
-    <article>
-        {id_emoji} {id}
-    </article>
+    <h2>{id_emoji} {id}</h2>
     </a>
+    {#if info}
+        {#if info.status}
+            <p>Status: {info.status.name}</p>
+            <p>{info.status.description}</p>
+            <p>{info.status.timestamp}  <a href={info.status.run_url} target="_blank"><img src="static/github.svg" alt="github icon">Github CI Logs</a></p>
+        {/if}
+    {/if}
+</article>
 {/each}
 <!--/div-->
 </section>
