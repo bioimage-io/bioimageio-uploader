@@ -9,12 +9,13 @@
 
     if(!Array.isArray(items)) items = [];
 
-    const newentry = ()=>fields.reduce((acc, field) => ({ ...acc, [field.key]: "" }), {});
+    const newentry = ()=>fields.reduce((acc, field) => ({ ...acc, [field.key]: field.default }), {});
 
     function delete_at_index(index){
         items.splice(index, 1);
         items = items;
     }
+
 </script>
 <style>
     .icon{
@@ -27,7 +28,10 @@
     {#each fields as field}
     <MultipartItemsInputInput 
         placeholder={field.placeholder}
-        bind:value={item[field.key]}
+        onChange={(e)=> {
+            item[field.key] = e.target.value||field.default||null
+            debugger
+        }}
         type={field.type}
         props={field.props}
        />

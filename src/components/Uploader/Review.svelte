@@ -116,7 +116,7 @@
 </p>
 
 {#if user}
-    <p>Hi {user.email}, please review your submission carefully, then press Upload</p>
+    <p>Hi there, please review your submission carefully, then press Upload</p>
     
     {#if ready_to_stage}
         <button class="button is-primary" on:click={stage}>Upload</button>
@@ -131,8 +131,10 @@
 
 <ResetUploaderButton {uploader} />
 
+<details>
 <article class="contrast" style="--card-background-color: var(--contrast)">
     <!--JSONTree defaultExpandedLevel={1} value={rdf}/-->
     <Highlight language={yamlsyntax} code={yaml.dump(rdf)} /> 
 </article>
+</details>
 

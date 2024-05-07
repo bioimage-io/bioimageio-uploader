@@ -75,7 +75,7 @@
         // Remove filename from zip_package and filenames list
         filenames.splice(index, 1);
         filenames = filenames;
-    
+
     }
 
     // TODO: Cant get validation working on tags 😬
