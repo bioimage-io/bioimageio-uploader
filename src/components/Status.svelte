@@ -73,13 +73,14 @@
     </form>
 </section>
 
-<a href="#staged" on:click|preventDefault={scrollIntoView} >Staged</a>
+<a href="#staged" on:click|preventDefault={scrollIntoView} >Pending</a>
+
 <a href="#published" on:click|preventDefault={scrollIntoView}>Published</a>
 
 <ScrollToTop />
 
 <section id="staged">
-<h3>Staged Resources</h3>
+<h3>Pending Resources</h3>
 {#each staged as {id, id_emoji, info, description, version_number}}
     
     <article>

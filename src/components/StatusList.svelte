@@ -60,7 +60,7 @@
     <h3>Versions</h3>
 
     {#if versions_info}
-        <h4>Staged</h4>
+        <h4>Pending</h4>
         <ul>
         {#each Object.entries(staged) as [version, details]}
                 <li title="Submitted at {details.timestamp}"><a href="#/status/{resource_id}/staged/{version}">{version}</a> [{time_ago(details.timestamp)}] : {details.status.name}</li>    

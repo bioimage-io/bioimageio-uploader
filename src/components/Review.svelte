@@ -39,7 +39,7 @@
 
 </script>
 
-<strong>Review Area</strong>
+<strong>Reviewer Comments</strong>
 <ErrorBox title="Review" {error} {error_object} code={true} />
 <form on:submit|preventDefault={() => {request_changes();}}>
 <SingleLineInputs>

@@ -50,12 +50,19 @@
 {/each}
 
 {#each Object.entries(log) as [category, logs_messages]}
+<ul>
+    <h3>{category}</h3>
     {#each logs_messages as message}
-        <code>{category}</code><span title="{message.timestamp}" >{message.log.name} {message.log.status}</span><br>
+    <li>
+        <p> <span title="{message.timestamp}" >{message.log.name || ""} {message.log.status || ""}</span>
+
+        </p>
         {#if message.log}
             <details>
                 <pre>{JSON.stringify(message.log, null, "\t")}</pre>
             </details>
         {/if}
+    </li>
     {/each}
+</ul>
 {/each}
