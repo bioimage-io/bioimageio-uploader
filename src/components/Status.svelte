@@ -27,7 +27,7 @@
 		    return staged = all_staged.filter(item => {
 			      let id = item.id.toLowerCase();
 			      return id.includes(query.toLowerCase())
-		    });
+		    })
 	  }
 
     let all_published = [];
@@ -80,17 +80,19 @@
 
 <section id="staged">
 <h3>Staged Resources</h3>
-{#each staged as {id, id_emoji, info}}
+{#each staged as {id, id_emoji, info, description, version_number}}
     
     <article>
         <a href="/status/{id}">
-        <h2>{id_emoji} {id}</h2>
+        <h2>{id_emoji} {id} ({version_number})</h2>
         </a>
+        <p>{description}</p>
         {#if info}
             {#if info.status}
-                <p>Status: {info.status.name} ({info.status.step}/{info.status.num_steps})</p>
+                <p>⏳ {info.status.name} ({info.status.step}/{info.status.num_steps})</p>
                 <p>{info.status.description}</p>
-                <p>{info.status.timestamp} <a href={info.status.run_url} target="_blank"><img src="static/github.svg" alt="github icon">Github CI Logs</a></p>
+                <p>{new Date(info.status.timestamp).toString()}</p>
+                <a href={info.status.run_url} target="_blank"><img src="static/github.svg" alt="github icon">Github CI Logs</a>
             {/if}
         {/if}
     </article>
@@ -102,16 +104,16 @@
 <h3>Published Resources</h3>
 
 <!--div class="grid" -->
-{#each published as {id, id_emoji, info}}
+{#each published as {id, id_emoji, info, version_number, description}}
 <article>
     <a href="/status/{id}">
-    <h2>{id_emoji} {id}</h2>
+    <h2>{id_emoji} {id} ({version_number})</h2>
     </a>
+    <p>{description}</p>
     {#if info}
         {#if info.status}
             <p>Status: {info.status.name}</p>
             <p>{info.status.description}</p>
-            <p>{info.status.timestamp}  <a href={info.status.run_url} target="_blank"><img src="static/github.svg" alt="github icon">Github CI Logs</a></p>
         {/if}
     {/if}
 </article>
