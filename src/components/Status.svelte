@@ -107,15 +107,10 @@
 {#each published as {id, id_emoji, info, version_number, description}}
 <article>
     <a href="/status/{id}">
-    <h2>{id_emoji} {id} ({version_number})</h2>
+    <h2>{id_emoji} {id}</h2>
     </a>
     <p>{description}</p>
-    {#if info}
-        {#if info.status}
-            <p>Status: {info.status.name}</p>
-            <p>{info.status.description}</p>
-        {/if}
-    {/if}
+    <p>Version: {version_number}</p>
 </article>
 {/each}
 <!--/div-->
