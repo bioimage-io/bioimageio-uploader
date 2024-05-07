@@ -9,7 +9,7 @@
     if(uploader && !uploader.rdf) router.goto("/");
 </script>
 
-<h2>Edit your submission</h2>
+<h2>Review and edit your {uploader.rdf.type || 'submission'}</h2>
 
 <EditForm {uploader}/>
 

@@ -7,7 +7,6 @@ import user_state from "../stores/user";
 // import { persist } from '../stores/store_util';
 import { get } from 'svelte/store';
 import {SERVER_URL, SANDBOX, MAX_CONNECTION_RETRIES } from './config';
-import { copy_to_clipboard } from './utils';
 
 interface HyphaConnectionInfo{
     user_info: {email: string, id:string},
@@ -177,7 +176,6 @@ const connect_server = async (_token?: string) => {
         const user_email = ((login_info.user_info || {}).email || ""); 
         const user_id = ((login_info.user_info || {}).id || ""); 
         await set_user({email: user_email, id: user_id});
-        copy_to_clipboard(_token); 
     }
 };
 

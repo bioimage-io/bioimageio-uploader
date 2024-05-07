@@ -28,9 +28,13 @@ article.warning > header{
 article.warning > footer{
     background-color: lightyellow;
 }
+footer {
+    text-align: center;
+}
 
 button{
-    background-color: #2196f3;
+    background-color: #e5e5e5;
+    color: black;
     box-shadow: none;
     margin-bottom: var(--pico-spacing);
 }
@@ -58,12 +62,18 @@ button svg.lucide-plus:hover{
 }
 
 kbd{
-    background-color: #2196f3;
+    color: rgb(27, 26, 26);
+    background-color: wheat;
 }
 
 kbd span svg:hover{
     color: red;
     filter: drop-shadow(0 0 10px red);
+}
+
+.remove-icon{
+    color: red;
+    background-color: white;
 }
 
 header{
@@ -81,25 +91,21 @@ header details{
 
 }
 
+.button-row {
+    display: flex;
+    justify-content: space-between;
+}
+.dominant-button {
+    width: 300px;
+    background-color: #007BFF; /* Change this to your preferred dominant color */
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+}
 
-//nav{
-//}
-//nav a{
-    //--color: #ffffff;
-    //-moz-transition: all 0.2s ease-in;
-    //-o-transition: all 0.2s ease-in;
-    //-webkit-transition: all 0.2s ease-in;
-    //transition: all 0.2s ease-in;
-//}
-//nav a:hover{
-    //--color: #ffffff;
-    //text-shadow:0px 0px 30px #fdec6e;
-    //-moz-transition: all 0.2s ease-in;
-    //-o-transition: all 0.2s ease-in;
-    //-webkit-transition: all 0.2s ease-in;
-    //transition: all 0.2s ease-in;
-//}
-//font-family: Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;
-//nav > ul> li >strong{
-//    font-family: Roboto, Helvetica Neue, Helvetica, Arial, sans-serif;
-//}
+.dropzone {
+    height: 200px;
+    padding: 5px;
+    margin: 20px;
+}

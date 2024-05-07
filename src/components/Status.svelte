@@ -5,6 +5,7 @@
     import { COLLECTION_URL_PUBLISHED, COLLECTION_URL_STAGED } from '../lib/config';
     import { get_json } from '../lib/utils';
     import { onMount } from 'svelte';
+    import github from '../../static/github.svg';
 
     export let collection_url_published: string;
     export let collection_url_staged: string;
@@ -93,7 +94,7 @@
                 <p>⏳ {info.status.name} ({info.status.step}/{info.status.num_steps})</p>
                 <p>{info.status.description}</p>
                 <p>{new Date(info.status.timestamp).toString()}</p>
-                <a href={info.status.run_url} target="_blank"><img src="static/github.svg" alt="github icon">Github CI Logs</a>
+                <a href={info.status.run_url} target="_blank"><img src="{github}" alt="github icon">Github CI Logs</a>
             {/if}
         {/if}
     </article>

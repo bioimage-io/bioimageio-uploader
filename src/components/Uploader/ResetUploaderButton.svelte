@@ -5,5 +5,5 @@
 </script>
 
 <ButtonWithConfirmation confirm={()=>{uploader.reset(); router.goto("/")}}>
-    Clear model + start again
+   Reset Form
 </ButtonWithConfirmation>

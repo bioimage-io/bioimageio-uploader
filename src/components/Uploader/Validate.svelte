@@ -54,8 +54,10 @@
 {#if validating} 
     <button aria-busy=true> Validating...</button>
 {:else}
-    <ResetUploaderButton {uploader} />
-    <button on:click={validate_with_toast}>Validate</button>
+    <div class="button-row">
+        <ResetUploaderButton {uploader} />
+        <button class="dominant-button" on:click={validate_with_toast}>Validate</button>
+    </div>
 {/if}    
 {#if error}
     <article style="overflow:scroll" id="error-details">

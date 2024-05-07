@@ -16,6 +16,7 @@
     import StatusStaged from './components/StatusStaged.svelte';
     // import Transition from './components/Transition.svelte';
     import Chat from './components/Chat.svelte';
+    import { hypha_version } from './stores/hypha';
 
     import { Uploader as UploaderClass } from './lib/uploader';
     import { update_token } from './lib/hypha';
@@ -81,4 +82,17 @@
     </Route>
     <Route fallback redirect="/uploader/add">No subpage found</Route>
 <!--/Transition -->
+
+{#if $hypha_version}
+    <hr>
+    <footer>
+        <a href="https://ai4life.eurobioimaging.eu/" target="_blank"><img src="https://ai4life.eurobioimaging.eu/wp-content/uploads/2022/09/AI4Life-logo_giraffe-nodes-2048x946.png" alt="AI4Life Icon" style="height: 80px; margin-right: 10px">
+        </a>
+    
+        <a href="https://bioimage.io" target="_blank"><img src="https://bioimage.io/static/img/bioimage-io-logo.svg" alt="BioImage.IO" style="height: 50px; margin-left: 10px"></a>
+        <br>
+        <p style="font-family:monospace">Hypha: {$hypha_version}</p>
+    </footer>
+{/if}
 </main>
+

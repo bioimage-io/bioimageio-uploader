@@ -33,7 +33,7 @@
        />
     {/each}
     <button 
-        class="icon contrast"
+        class="remove-icon"
         title="Delete entry for {item[fields[0].key]}"
         on:click={()=> delete_at_index(index)}>
         <X />

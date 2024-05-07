@@ -45,18 +45,20 @@
     
 </script>
 
-
 <p>Upload <i>resource file</i>. This may be a single zip-archive containing all required files, 
-or you may select / drag and drop the individual files to use.</p>
-
-<p>An <code>rdf.yaml</code> will be required for the upload. You can create this in the next step.</p>
+    or you may select / drag and drop the individual files to use.</p>
 
 <Dropzone on:drop={handle_files_select} multiple={true}>
     {#if file_info.length === 0}
-        Click here to select or drag/drop files
+        Click here to select or drag/drop files for uploading
     {:else}
         {#each file_info as line}
             {line}<br>
         {/each}
     {/if}
 </Dropzone>
+
+
+
+    <p>An <code>rdf.yaml</code> will be required for the upload. You can create this in the next step.</p>
+    
