@@ -128,7 +128,7 @@
             <Review bind:this={review_element} {resource_id} {version} /> 
         {/if}
     {:else}
-        <article>Login to chat and maintainer tools for maintainers</article>
+        <article>Please Login to chat and maintainer tools for maintainers</article>
     {/if}
 
 {:else}

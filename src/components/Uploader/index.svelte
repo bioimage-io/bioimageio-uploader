@@ -8,7 +8,6 @@
     import Add      from './Add.svelte';
     import Edit     from './Edit.svelte';
     import Review   from './Review.svelte';
-    import ValidateJson from './ValidateJson.svelte';
     import UploadStatus   from './UploadStatus.svelte';
     //import Notification from '../Notification.svelte';
     export let uploader : Uploader;
@@ -27,9 +26,6 @@
 </Route>
 <Route path="/edit">
     <Edit {uploader} />
-</Route>
-<Route path="/validate">
-    <ValidateJson {uploader} />
 </Route>
 <Route path="/review">
     <Review {uploader} />

@@ -57,6 +57,11 @@ stateDiagram-v2
 
 Start a development server:
 
+First, we need to make sure we use the correct version of node:
+```bash
+nvm use 20
+```
+
 ```bash
 ntl dev
 

@@ -25,7 +25,7 @@
         if(resource_id && version){ 
             try{
                 log = await get_json(`${RESOURCE_URL}/${resource_id}/${version}/log.json`);
-                // console.debug(log);
+                console.debug(log);
                 error = "";
             }catch(err){
                 console.error("Error polling logs:");
@@ -41,19 +41,21 @@
     if(resource_id) poll();
 </script>
 
-<details>
-<summary>Log</summary>
+
 <ErrorBox title="Log" {error} {error_object} />
 {#each details as message}
 <code>
     <span title="{message.timestamp}" >{message.text} </span><br>
 </code>
 {/each}
-<details>
-    {#each Object.entries(log) as [category, logs_messages]}
-        {#each logs_messages as message}
-            <code>{category}</code><span title="{message.timestamp}" >{message.log.name} {message.log.status}</span><br>
-        {/each}
+
+{#each Object.entries(log) as [category, logs_messages]}
+    {#each logs_messages as message}
+        <code>{category}</code><span title="{message.timestamp}" >{message.log.name} {message.log.status}</span><br>
+        {#if message.log}
+            <details>
+                <pre>{JSON.stringify(message.log, null, "\t")}</pre>
+            </details>
+        {/if}
     {/each}
-</details>
-</details>
+{/each}

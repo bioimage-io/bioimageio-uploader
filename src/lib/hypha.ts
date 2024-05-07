@@ -25,6 +25,12 @@ interface UploadServiceResponse{
     error?: string,
 }
 
+interface ValidationResult{
+    success: boolean,
+    details: string,
+    icon: string,
+}
+
 // Has to be generic enough to handle all services we use 
 interface HyphaService{
     // Storage service
@@ -38,6 +44,7 @@ interface HyphaService{
     stage?: (resource_id: string, package_url: string, sandbox: boolean) => Promise<UploadServiceResponse>,
     review?: (resource_id: string, version: string, action: string, message: string, sandbox:boolean) => Promise<UploadServiceResponse>,
     proxy?: (url: string) => Promise<UploadServiceResponse>,
+    validate?: (rdf_dict: object) => Promise<ValidationResult>,
 }
 
 interface HyphaServiceInfo{
@@ -78,7 +85,6 @@ const set_user = async (user: UserInfo|undefined, is_reviewer?: boolean) =>{
 let server: HyphaServer;
 let upload_service: HyphaService;
 let hypha_storage: HyphaService;
-let hypha_storage_info: HyphaStorageInfo;
 
 export const update_token = (value:string|null) => {
     if(value === get(token)) return;    
@@ -100,16 +106,9 @@ const try_connect_server = async(_token: string) =>{
     
     try {
         await connect_server(_token);
-        server = await imjoyRPC.hyphaWebsocketClient.connectToServer({
-            name: 'BioImageIO.uploader',
-            server_url: SERVER_URL,
-            token: value,
-        });
         const login_info = await server.get_connection_info();
         console.log("Login info from Hypha:");
         console.log(login_info);
-        hypha_storage = await server!.get_service("s3-storage");
-        hypha_storage_info = await hypha_storage.generate_credential!();
 
         const TODO_REMOVE_ME_JM_USERID = 'github|478667';
         console.warn("TODO: CURRENTLY CONNECTING TO UPLOADER SERVICE MATCHING", TODO_REMOVE_ME_JM_USERID);
@@ -145,7 +144,7 @@ const try_connect_server = async(_token: string) =>{
     }
 };
 
-const connect_server = async (_token: string) => {
+const connect_server = async (_token?: string) => {
     server = await imjoyRPC.hyphaWebsocketClient.connectToServer({
         name: 'BioImageIO.uploader',
         server_url: SERVER_URL,
@@ -154,8 +153,6 @@ const connect_server = async (_token: string) => {
     const login_info = await server.get_connection_info();
     console.log("Login info from Hypha:");
     console.log(login_info);
-    hypha_storage = await server!.get_service("s3-storage");
-    hypha_storage_info = await hypha_storage.generate_credential!();
 
     // const TODO_REMOVE_ME_JM_USERID = 'github|1950756';
     // console.warn("TODO: CURRENTLY CONNECTING TO UPLOADER SERVICE MATCHING", TODO_REMOVE_ME_JM_USERID);
@@ -219,6 +216,8 @@ export const auth = {
 
 export const storage = {
     upload_file: async (file: File, filename: string, progress_callback: (event: AxiosProgressEvent) => void) => {
+        const hypha_storage = await server!.get_service("s3-storage");
+        const hypha_storage_info = await hypha_storage.generate_credential!();
         const url_put = await hypha_storage!.generate_presigned_url!(
             hypha_storage_info.bucket,
             hypha_storage_info.prefix + filename,
@@ -241,12 +240,20 @@ export const functions = {
         if(!upload_service) return {success: false, error: "Upload-service not connected"};
         return await upload_service.is_reviewer!();},
     stage: async (resource_path: string, package_url: string) => {
+        if(!upload_service) return {success: false, error: "Upload-service not connected"};
         return await upload_service.stage!(resource_path, package_url, SANDBOX);},
     chat: async(resource_id: string, version: string, message: string) =>{
+        if(!upload_service) return {success: false, error: "Upload-service not connected"};
         return await upload_service.chat!(resource_id, version, message, SANDBOX);},
     review: async(resource_id: string, version: string, action: string, message: string) => {
+        if(!upload_service) return {success: false, error: "Upload-service not connected"};
         return await upload_service.review!(resource_id, version, action, message, SANDBOX);},
-    proxy: (url: string) => {return upload_service.proxy!(url)},
+    proxy: (url: string) => {
+        if(!upload_service) return {success: false, error: "Upload-service not connected"};
+        return upload_service.proxy!(url)},
+    validate: async (rdf_dict: object) => {
+        if(!upload_service) await connect_server();
+        return await upload_service.validate!(rdf_dict);}
 }
 
 globalThis.functions = functions;

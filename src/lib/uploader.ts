@@ -149,40 +149,17 @@ export class Uploader {
         }
     }
 
-    /**
-     * Alternative validator using JSON-schema
-     */
-    async validate_json_schema(){
-        console.log("Validating using JSON Schema:");
-        const schema = await (await fetch(URL_JSON_SCHEMA_LATEST)).json();
-        const draft = "2020-12";
-        //const shortCircuit = false;
-        console.debug(this.rdf);
-        console.debug(schema);
-
-        console.debug("Creating json-schema validator...");
-        const validator = new Validator(schema, draft);
-        //const validator = new Validator(schema, draft, shortCircuit);
-        console.debug(validator);
-
-        const valid = ajv.validate(schema, this.rdf);
-        
-        //const result = validator.validate(this.rdf);
-        //const result = validator.validate(rdf);
-        //if (!result.valid) {
-        //console.log(result);
-        console.log(valid);
-        if (!valid) {
-            console.error("Validation errors:");
-            console.error(ajv.errors);
-            const error_string = JSON.stringify(ajv.errors);
-            throw new Error(error_string);
-        }
-        
-    }
-
     async validate() {
-        return await this.validate_json_schema();
+        console.debug(this.rdf);
+        debugger
+        const result = await functions.validate(this.rdf);
+        console.log(result);
+        
+        if (!result.success) {
+            console.error("Validation errors:");
+            console.error(result.details);
+            throw new Error(`${result.details}`);
+        }
     }
 
     ready_for_review() {

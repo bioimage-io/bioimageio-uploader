@@ -38,7 +38,7 @@
             {
                 loading: 'Validating...',
                 success: 'Success 🥳',
-                error: 'Could not validate 😕',
+                error: 'Validation Failed 😕',
             });
     }
 </script>

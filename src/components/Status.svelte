@@ -83,7 +83,7 @@
 {#each staged as {id, id_emoji, info, description, version_number}}
     
     <article>
-        <a href="/status/{id}">
+        <a href="/status/{id}/{version_number}">
         <h2>{id_emoji} {id} ({version_number})</h2>
         </a>
         <p>{description}</p>

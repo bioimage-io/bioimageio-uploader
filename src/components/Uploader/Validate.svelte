@@ -1,6 +1,6 @@
 <script charset="utf-8">
+    import Markdown from '@magidoc/plugin-svelte-marked';
     import toast from 'svelte-french-toast';
-    import JSONTree from 'svelte-json-tree';
     import {router} from 'tinro';
     import ResetUploaderButton from './ResetUploaderButton.svelte';
     export let uploader;
@@ -37,7 +37,7 @@
             {
                 loading: 'Validating...',
                 success: 'Success 🥳',
-                error: 'Could not validate 😕',
+                error: 'Validation Failed 😢, please see the detailed error.',
             });
     }
 </script>
@@ -53,11 +53,10 @@
         <p>A validation error occurred!</p>
         <p>You have to fix this issue before you can upload your model.</p>
         <p>Details:</p>
-        {#if typeof error === "string" || error instanceof String}
-            <p>{error}</p>
-        {:else}
-            <JSONTree value={error}/>
-        {/if}
+        <Markdown
+        source={error}
+            options={{breaks: true}}
+        />
     </article>
 {/if}
 
