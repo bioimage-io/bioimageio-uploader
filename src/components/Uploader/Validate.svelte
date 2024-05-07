@@ -25,6 +25,15 @@
             console.error("VALIDATION FAILED!");
             console.log(error);
             validating = false;
+            // scroll to the error details
+            // set timeout for 200ms to allow the error details to render
+            setTimeout(()=>{
+                const error_details = document.getElementById("error-details");
+                if(error_details){
+                    error_details.scrollIntoView({behavior: "smooth"});
+                }
+            }, 200);
+            
             throw(error);
         }
         validating = false;
@@ -49,8 +58,8 @@
     <button on:click={validate_with_toast}>Validate</button>
 {/if}    
 {#if error}
-    <article style="overflow:scroll">
-        <p>A validation error occurred!</p>
+    <article style="overflow:scroll" id="error-details">
+        <h2>Validation Error Details</h2>
         <p>You have to fix this issue before you can upload your model.</p>
         <p>Details:</p>
         <Markdown

@@ -150,8 +150,7 @@ export class Uploader {
     }
 
     async validate() {
-        console.debug(this.rdf);
-        debugger
+        console.debug("Validating RDF: ", this.rdf);
         const result = await functions.validate(this.rdf);
         console.log(result);
         
