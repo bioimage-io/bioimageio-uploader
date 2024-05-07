@@ -49,7 +49,7 @@
     <button on:click={validate_with_toast}>Validate</button>
 {/if}    
 {#if error}
-    <article>
+    <article style="overflow:scroll">
         <p>A validation error occurred!</p>
         <p>You have to fix this issue before you can upload your model.</p>
         <p>Details:</p>
