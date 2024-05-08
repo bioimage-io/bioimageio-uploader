@@ -54,13 +54,15 @@
     <h3>{category}</h3>
     {#each logs_messages as message}
     <li>
-        <p> <span title="{message.timestamp}" >{message.log.name || ""} {message.log.status || ""}</span>
+        <p> <span title="{message.timestamp}" >{message.log.message || ""}</span>
 
         </p>
         {#if message.log}
             <details>
+                <code>{message.timestamp}</code>
                 <pre>{JSON.stringify(message.log, null, "\t")}</pre>
             </details>
+            
         {/if}
     </li>
     {/each}

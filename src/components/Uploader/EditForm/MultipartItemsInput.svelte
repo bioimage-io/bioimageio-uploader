@@ -9,8 +9,19 @@
 
     if(!Array.isArray(items)) items = [];
 
-    const newentry = ()=>fields.reduce((acc, field) => ({ ...acc, [field.key]: field.default }), {});
-
+    const newentry = ()=>fields.reduce((acc, field) => ({ ...acc, [field.key]: field.default===undefined?null:field.default }), {});
+    // set default values for each field
+    fields.forEach((field)=>{
+        if(field.default !== undefined){
+            items = items.map((item)=>{
+                if(item[field.key] === undefined){
+                    item[field.key] = field.default;
+                }
+                return item;
+            });
+        }
+    });
+    
     function delete_at_index(index){
         items.splice(index, 1);
         items = items;
@@ -28,10 +39,7 @@
     {#each fields as field}
     <MultipartItemsInputInput 
         placeholder={field.placeholder}
-        onChange={(e)=> {
-            item[field.key] = e.target.value||field.default||null
-            debugger
-        }}
+        bind:value={item[field.key]}
         type={field.type}
         props={field.props}
        />

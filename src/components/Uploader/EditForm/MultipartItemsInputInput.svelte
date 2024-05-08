@@ -3,7 +3,6 @@
     export let value = "";
     export let type = "text";  
     export let props = {};
-    export let onChange;
 
     const handleInput = e => {
         // in here, you can switch on type and implement
@@ -12,7 +11,6 @@
             ? +e.target.value
             : e.target.value;
         if(value === "") value = null;
-        onChange && onChange(e);
     };
 </script>
 <input {type} {value} {placeholder} on:input={handleInput} {...props}/>

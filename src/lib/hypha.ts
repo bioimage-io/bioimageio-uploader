@@ -29,6 +29,9 @@ interface ValidationResult{
     details: string,
     icon: string,
 }
+interface ChatMessages{
+    messages: Array<{author: string, text: string, timestamp: string}>
+}
 
 // Has to be generic enough to handle all services we use 
 interface HyphaService{
@@ -39,11 +42,12 @@ interface HyphaService{
                               options?: { client_method: string, _rkwargs: boolean }) => Promise<string>,
     // Uploader service 
     is_reviewer?: () => Promise<UploadServiceResponse>,
-    chat?: (resource_id: string, version: string, message: string, sandbox: boolean) => Promise<UploadServiceResponse>,
+    chat?: (resource_id: string, version: string, message: string, sandbox: boolean) => Promise<ChatMessages>,
     stage?: (resource_id: string, package_url: string, sandbox: boolean) => Promise<UploadServiceResponse>,
     review?: (resource_id: string, version: string, action: string, message: string, sandbox:boolean) => Promise<UploadServiceResponse>,
     proxy?: (url: string) => Promise<UploadServiceResponse>,
     validate?: (rdf_dict: object) => Promise<ValidationResult>,
+    trigger_test?: (resource_path: string, version: string, sandbox:boolean) => Promise<UploadServiceResponse>,
 }
 
 interface HyphaServiceInfo{
@@ -241,7 +245,7 @@ export const functions = {
         if(!upload_service) return {success: false, error: "Upload-service not connected"};
         return await upload_service.stage!(resource_path, package_url, SANDBOX);},
     chat: async(resource_id: string, version: string, message: string) =>{
-        if(!upload_service) return {success: false, error: "Upload-service not connected"};
+        if(!upload_service) throw new Error("Upload-service not connected");
         return await upload_service.chat!(resource_id, version, message, SANDBOX);},
     review: async(resource_id: string, version: string, action: string, message: string) => {
         if(!upload_service) return {success: false, error: "Upload-service not connected"};
@@ -251,7 +255,10 @@ export const functions = {
         return upload_service.proxy!(url)},
     validate: async (rdf_dict: object) => {
         if(!upload_service) await connect_server();
-        return await upload_service.validate!(rdf_dict);}
+        return await upload_service.validate!(rdf_dict);},
+    trigger_test: async (resource_path: string, version: string) => {
+        if(!upload_service) return {success: false, error: "Upload-service not connected"};
+        return await upload_service.trigger_test!(resource_path, version, SANDBOX);},
 }
 
 globalThis.functions = functions;

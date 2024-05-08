@@ -159,6 +159,9 @@ export class Uploader {
             console.error(result.details);
             throw new Error(`${result.details}`);
         }
+        else{
+            console.log("Validation successful");
+        }
     }
 
     ready_for_review() {

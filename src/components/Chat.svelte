@@ -12,11 +12,11 @@
     // export let staged: boolean;
     export let version="";
 
-    let chats=[];
+    let chats:any = [];
     let error = ""
 
     onMount(async () =>{
-        get_chat();
+        await get_chat();
     })
     let chat_message="";
 
@@ -48,8 +48,8 @@
         if(!version) return;
         let text=chat_message;
         // let version_string = staged ? `staged/${version_number}` : `${version_number}`;
-        await functions.chat(resource_id, version, text);
-        get_chat();
+        const response = await functions.chat(resource_id, version, text);
+        chats = response.messages || [];
         chat_message = "";
     }
 </script>

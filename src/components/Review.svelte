@@ -8,7 +8,10 @@
     let error="";
     let text_input="";
     let error_object :Error;
-        
+    
+    async function test(){
+        return await functions.trigger_test(resource_id, version);
+    };
     function accept(){return review("publish");};
     function request_changes(){return review("requestchanges");}
 
@@ -47,4 +50,5 @@
 <button>Request Changes</button>
 </SingleLineInputs>
 </form>
+<button on:click={()=>{test()}}>Trigger Test</button>
 <button on:click={()=>{accept()}}>Accept</button>

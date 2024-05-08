@@ -14,17 +14,7 @@
 	});
 
     function completed_step() {
-        if(((uploader.rdf.type === "model") &&
-           (semver.lt(uploader.rdf.format_version, "0.5.0")))
-            || !uploader.rdf.type
-          ){
-            //step="edit";
-            router.goto("/uploader/edit");
-        }else{
-            console.debug("Falling back to JSON-Schema validation");
-            // step="validate-json";
-            router.goto("/uploader/validate");
-        }
+        router.goto("/uploader/edit");
     }
 
     async function handle_files_select(evt){

@@ -33,14 +33,14 @@
         {placeholder:"ORCID", key:"orcid", props:{maxlength:"1000"}},
     ];
     const maintainer_fields = [
-        {placeholder:"Name", key:"name", props:{maxlength:"1000"}},
-        {placeholder:"Github", key:"github_user", props:{maxlength:"1000"}},
-        {placeholder:"Email", key:"email", props:{maxlength:"1000"}},
+        {placeholder:"Name", key:"name", props:{maxlength:"1000"}, default: null},
+        {placeholder:"Github", key:"github_user", props:{maxlength:"1000"}, default: null},
+        {placeholder:"Email", key:"email", props:{maxlength:"1000"}, default: null},
     ];
     const citation_fields = [
-        {placeholder:"Citation text", key:"text", props:{maxlength:"1000"}},
-        {placeholder:"DOI", key:"doi", props:{maxlength:"100"}},
-        {placeholder:"url", key:"url", props:{maxlength:"1000"}},
+        {placeholder:"Citation text", key:"text", props:{maxlength:"1000"}, default: null},
+        {placeholder:"DOI", key:"doi", props:{maxlength:"100"}, default: null},
+        {placeholder:"url", key:"url", props:{maxlength:"1000"}, default: null},
     ];
 
     //let {
