@@ -18,6 +18,7 @@
 
         try {
             await uploader.validate();
+            error = null;
         } catch (e) {
             error = e.message;
         }
