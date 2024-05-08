@@ -28,8 +28,8 @@
         <li><img style="height: 50px;" src="https://bioimage.io/static/img/bioimage-io-logo-white.svg" alt="BioImage.IO"><strong>{#if SANDBOX}SANDBOX{/if}</strong></li>
     </ul>
     <ul class="right-menu horizontal">
-        <li><a href="/uploader" style="color: white;">New Upload</a></li>
-        <li><a href="/status" style="color: white;">Overview</a></li>
+        <li><a href="#/uploader" style="color: white;">New Upload</a></li>
+        <li><a href="#/status" style="color: white;">Overview</a></li>
         <li>
             <LoginButton />
         </li>

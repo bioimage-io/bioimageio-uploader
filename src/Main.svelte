@@ -46,7 +46,7 @@
             <Unplug /> Login system offline   
         </span>
         You will not be able to upload or chat.<br> 
-        You can still use the <a href="/uploader">Uploader</a> to create a resource locally. 
+        You can still use the <a href="#/uploader">Uploader</a> to create a resource locally. 
         <span slot="footer">
             If this problem persists, please contact a member of the BioImage.IO team or create an Issue.
         </span>
