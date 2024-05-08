@@ -57,10 +57,10 @@
         <p> <span title="{message.timestamp}" >{message.log.message || ""}</span>
 
         </p>
-        {#if message.log}
+        {#if message.log.details}
             <details>
                 <code>{message.timestamp}</code>
-                <pre>{JSON.stringify(message.log, null, "\t")}</pre>
+                <pre>{JSON.stringify(message.log.details, null, "\t")}</pre>
             </details>
             
         {/if}
