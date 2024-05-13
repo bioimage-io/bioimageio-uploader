@@ -85,7 +85,7 @@
 {#each staged as {id, id_emoji, info, description, version_number}}
     
     <article>
-        <a href="/status/{id}/{version_number}">
+        <a href="#/status/{id}/{version_number}">
         <h2>{id_emoji} {id} ({version_number})</h2>
         </a>
         <p>{description}</p>
@@ -108,7 +108,7 @@
 <!--div class="grid" -->
 {#each published as {id, id_emoji, info, version_number, description}}
 <article>
-    <a href="/status/{id}">
+    <a href="#/status/{id}">
     <h2>{id_emoji} {id}</h2>
     </a>
     <p>{description}</p>
