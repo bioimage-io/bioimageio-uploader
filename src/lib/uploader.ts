@@ -153,6 +153,9 @@ export class Uploader {
         console.debug("Validating RDF: ", this.rdf);
         const result = await functions.validate(this.rdf);
         console.log(result);
+        if (typeof result === "string") {
+            throw new Error(result);
+        }
         
         if (!result.success) {
             console.error("Validation errors:");

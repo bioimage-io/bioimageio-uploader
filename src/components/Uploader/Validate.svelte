@@ -20,7 +20,7 @@
             await uploader.validate();
             error = null;
         } catch (e) {
-            error = e.message;
+            error = `${e}`;
         }
         if(error){
             console.error("VALIDATION FAILED!");
