@@ -2,17 +2,17 @@
 // import axios from 'axios'; ///dist/browser/axios.cjs';
 // import axios from 'axios';
 //import { Draft, JsonError } from "json-schema-library";
-import { AxiosProgressEvent } from 'axios';
+import { type AxiosProgressEvent } from 'axios';
 import { Validator } from '@cfworker/json-schema';
 import Ajv from 'ajv';
 import { default as JSZip } from "jszip";
 
 import generate_name from './generate_name';
-import { FileFromJSZipZipOject, load_yaml, dump_yaml } from "./utils";
+import { FileFromJSZipZipOject, load_yaml, dump_yaml, clean_rdf } from "./utils";
 import { storage, functions } from "./hypha";
 import { URL_JSON_SCHEMA_LATEST, REGEX_RDF, REGEX_ZIP } from './config';
-import { ResourceId } from './resource';
-import { RDF } from './rdf'; 
+import { type ResourceId } from './resource';
+import { type RDF } from './rdf'; 
 
 const ajv = new Ajv({allErrors: true, strict: false});
 
@@ -150,13 +150,10 @@ export class Uploader {
     }
 
     async validate() {
+        clean_rdf(this.rdf);
         console.debug("Validating RDF: ", this.rdf);
         const result = await functions.validate(this.rdf);
         console.log(result);
-        if (typeof result === "string") {
-            throw new Error(result);
-        }
-        
         if (!result.success) {
             console.error("Validation errors:");
             console.error(result.details);
@@ -182,7 +179,7 @@ export class Uploader {
     }
 
     async regenerate_nickname() {
-        const model_name = await generate_name();
+        const model_name = await generate_name(this.rdf.type);
         console.log("Generated name:", model_name);
         const error = "";
         this.resource_path = model_name;

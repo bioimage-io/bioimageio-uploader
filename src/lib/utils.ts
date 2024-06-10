@@ -74,6 +74,10 @@ export function clean_rdf(rdf: RDF){
             delete rdf.maintainers[index].email;
         }
     }
+    if(!rdf.uploader?.email){
+        delete rdf.uploader.email;
+        if(Object.keys(rdf.uploader).length === 0) delete rdf.uploader;
+    }
     return rdf;
 }
 

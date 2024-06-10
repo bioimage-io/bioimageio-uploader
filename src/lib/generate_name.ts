@@ -1,4 +1,4 @@
-import { COLLECTION_URL_PUBLISHED, COLLECTION_URL_STAGED, ADJECTIVES_URL, ANIMALS_URL } from './config'; 
+import { COLLECTION_URL_PUBLISHED, COLLECTION_CONFIG_URL } from './config'; 
 
 
 async function get_taken_names(): Promise<Array<string>>{
@@ -9,28 +9,11 @@ async function get_taken_names(): Promise<Array<string>>{
 }
 
 
-async function get_adjectives(): Promise<Array<string>>{
-    const url = ADJECTIVES_URL;
-    const text = await (await fetch(url)).text();
-    return text.split("\n");
-}
-
-
-async function get_animals(): Promise<Array<Array<string>>>{
-    const url = ANIMALS_URL;
-    const text = await (await fetch(url)).text();
-    return text.split("\n")
-        .filter((line)=>line.trim()[0] !== '#')
-        .filter((line)=>line.trim() !== '')
-        .map((line) => {
-            const comment_index = line.indexOf("#");
-            if(comment_index !== -1){
-                line = line.slice(0, comment_index);
-            }
-            return line;
-        })
-        .map((line) => line.split(":")
-                           .map((entry)=>entry.trim()));
+async function get_id_parts(type: string): Promise<Array<string>>{
+    const url = COLLECTION_CONFIG_URL;
+    const config = await (await fetch(url)).json();
+    
+    return config["id_parts"][type]
 }
 
 
@@ -45,15 +28,15 @@ function generate_name(starts:Array<string>, animals:Array<Array<string>>): {id:
 }
 
 
-export default async (): Promise<{id:string, emoji:string}> => {
+export default async (type): Promise<{id:string, emoji:string}> => {
     console.log("Generating nickname from allowed lists...");
-    const [adjectives, animals_with_emojis, taken_names] = await Promise.all([
-        get_adjectives(),
-        get_animals(),
+    const [id_parts, taken_names] = await Promise.all([
+        get_id_parts(type),
         get_taken_names()]);
-    let name = generate_name(adjectives, animals_with_emojis);
+    const values: Array<Array<string>> = Object.entries(id_parts['nouns']);
+    let name = generate_name(id_parts['adjectives'], values);
     while(name.id in taken_names){
-        name = generate_name(adjectives, animals_with_emojis);
+        name = generate_name(id_parts['adjectives'], values);
     }
     return name; 
 }

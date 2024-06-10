@@ -29,13 +29,13 @@
     const licenses = Object.keys(spdxLicenseList).sort();
     const author_fields = [
         {placeholder:"Full name", key:"name", props:{maxlength:"1000", required:true}},
-        {placeholder:"Affiliation", key:"affiliation", props:{maxlength:"1000"}},
-        {placeholder:"ORCID", key:"orcid", props:{maxlength:"1000"}},
+        {placeholder:"Affiliation", key:"affiliation", props:{maxlength:"1000"}, default: null},
+        {placeholder:"ORCID", key:"orcid", props:{maxlength:"1000"}, default: null},
     ];
     const maintainer_fields = [
         {placeholder:"Name", key:"name", props:{maxlength:"1000"}, default: null},
         {placeholder:"Github", key:"github_user", props:{maxlength:"1000"}, default: null},
-        {placeholder:"Email", key:"email", props:{maxlength:"1000"}, default: null},
+        {placeholder:"Email", key:"email", props:{maxlength:"1000"}, default: undefined},
     ];
     const citation_fields = [
         {placeholder:"Citation text", key:"text", props:{maxlength:"1000"}, default: null},

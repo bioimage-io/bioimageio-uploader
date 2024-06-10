@@ -17,8 +17,7 @@ export const COLLECTION_URL_STAGED= import.meta.env.VITE_COLLECTION_URL || `${RE
 export const BASE_URL = import.meta.env.BASE_URL;
 
 console.warn("TODO: Migrate animals and adjectives urls");
-export const ANIMALS_URL = ` https://raw.githubusercontent.com/bioimage-io/collection-bioimage-io/main/animals.txt`;
-export const ADJECTIVES_URL = `https://raw.githubusercontent.com/bioimage-io/collection-bioimage-io/main/adjectives.txt`;
+export const COLLECTION_CONFIG_URL = `https://raw.githubusercontent.com/bioimage-io/collection/main/bioimageio_collection_config.json`;
 // export const ANIMALS_URL = `${RESOURCE_URL}/animals.json`;
 // export const ADJECTIVES_URL = `${RESOURCE_URL}/adjectives.json`;i
 export const URL_JSON_SCHEMA_LATEST = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/gh-pages/bioimageio_schema_latest.json"; 

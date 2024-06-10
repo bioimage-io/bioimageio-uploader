@@ -107,7 +107,7 @@
 <p class="level">
     {#if model_name_message }({model_name_message}){/if}
     {#if resource_path}
-        Your model nickname is:
+        Your {uploader.rdf.type} nickname is:
         <code style="min-width:10em;">{resource_path.id} {resource_path.emoji}&nbsp;</code>
     {/if}
     {#if can_regenerate}

@@ -9,7 +9,7 @@
 
     if(!Array.isArray(items)) items = [];
 
-    const newentry = ()=>fields.reduce((acc, field) => ({ ...acc, [field.key]: field.default===undefined?null:field.default }), {});
+    const newentry = ()=>fields.reduce((acc, field) => ({ ...acc, [field.key]: field.default===undefined?undefined:field.default }), {});
     // set default values for each field
     fields.forEach((field)=>{
         if(field.default !== undefined){
@@ -19,6 +19,9 @@
                 }
                 return item;
             });
+        }
+        else{
+            delete items[field.key];
         }
     });
     

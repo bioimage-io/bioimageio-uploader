@@ -1,4 +1,6 @@
 <script charset="utf-8">
+// @ts-nocheck
+
     import Markdown from '@magidoc/plugin-svelte-marked';
     import toast from 'svelte-french-toast';
     import {router} from 'tinro';
@@ -14,8 +16,6 @@
         // Perform RDF validation with Imjoy...
         if(validating) return;
         validating = true;
-        console.log("Validating RDF:");
-
         try {
             await uploader.validate();
             error = null;
