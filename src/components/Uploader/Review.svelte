@@ -20,7 +20,6 @@
     let resource_path:  ResourceId = uploader.resource_path;
     let can_regenerate = true;
     let rdf = uploader.rdf;
-    let ready_to_stage = uploader.ready_to_stage();
 
     onDestroy(() => {
         uploader.clear_render_callback();
@@ -31,6 +30,23 @@
 
     async function stage(){
         try{
+            console.log("Checking ready to stage");
+            if(!uploader.rdf){
+                error = "No RDF data to upload";
+                return;
+            }
+            if(!uploader.files){
+                error = "No files to upload";
+                return;
+            }
+            if(!uploader.resource_path){
+                error = "No nickname specified";
+                return;
+            }
+            if(!uploader.user_email){
+                error = "No user email specified, please login before uploading";
+                return;
+            }
             uploader.stage();
             router.goto("/uploader/uploading");
         }catch(err){
@@ -71,13 +87,11 @@
 
     function toggle_rerender(){
         resource_path = uploader.resource_path;
-        ready_to_stage = uploader.ready_to_stage();
         rerender = !rerender;
     }
 
     async function regenerate_nickname(){
         await uploader.regenerate_nickname();
-        console.log("Ready to stage?", ready_to_stage);
         rdf = uploader.rdf;
         toggle_rerender();
     }
@@ -118,9 +132,7 @@
 {#if user}
     <p>Hi there, please review your submission carefully, then press Upload</p>
     
-    {#if ready_to_stage}
-        <button class="button is-primary" on:click={stage}>Upload</button>
-    {/if}
+    <button class="button is-primary" on:click={stage}>Upload</button>
 {:else}
 
     <p>You need to be logged in with an account linked to an email address to upload to the BioImage Model Zoo.</p>

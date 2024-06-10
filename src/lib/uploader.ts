@@ -164,20 +164,6 @@ export class Uploader {
         }
     }
 
-    ready_for_review() {
-        if (!this.rdf) return false;
-        if (!this.files) return false;
-        return true;
-    }
-
-    ready_to_stage(): boolean{
-        console.log("Checking ready to stage");
-        if (!this.ready_for_review()) return false;
-        if (!this.resource_path) return false;
-        if (!this.user_email) return false;
-        return true;
-    }
-
     async regenerate_nickname() {
         const model_name = await generate_name(this.rdf.type);
         console.log("Generated name:", model_name);
