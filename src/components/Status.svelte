@@ -78,7 +78,7 @@
 <ScrollToTop />
 
 <section id="staged">
-<h3>Pending Drafts</h3>
+<h3>Pending Uploads</h3>
 {#each staged as {versions, nickname_icon, info, description, version_number}}
     
     <article>

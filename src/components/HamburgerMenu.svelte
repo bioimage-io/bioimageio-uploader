@@ -27,7 +27,7 @@ button{
                         <li><span style="font-family:monospace;">Hypha: {$hypha_version}</span></li>
                     {/if}
                     <li><a href="/uploader" style="color: white;">New Upload</a></li>
-                    <li><a href="/status" style="color: white;">Overview</a></li>
+                    <li><a href="/status" style="color: white;">Pending Uploads</a></li>
                     <li><LoginButton /></li>      
                 </ul>
             </nav>
