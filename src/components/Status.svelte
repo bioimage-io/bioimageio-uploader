@@ -2,15 +2,13 @@
     import SingleLineInputs from './SingleLineInputs.svelte';
     import {router} from 'tinro';
     import ScrollToTop from './ScrollToTop.svelte'
-    import { COLLECTION_URL_PUBLISHED, COLLECTION_URL_STAGED } from '../lib/config';
+    import { COLLECTION_URL_STAGED } from '../lib/config';
     import { get_json } from '../lib/utils';
     import { onMount } from 'svelte';
     import github from '../../static/github.svg';
 
-    export let collection_url_published: string;
     export let collection_url_staged: string;
 
-    $: if(!collection_url_published) collection_url_published=COLLECTION_URL_PUBLISHED;
     $: if(!collection_url_staged) collection_url_staged=COLLECTION_URL_STAGED;
 
     //let error;
@@ -31,18 +29,19 @@
 		    })
 	  }
 
-    let all_published = [];
     let all_staged = [];
-    let published = [];
     $: staged = search_staged(input_value);
 
     onMount(async ()=> {
-        all_published = (await get_json(collection_url_published)).collection;
         all_staged = (await get_json(collection_url_staged)).collection;
-        console.log(all_published);
         console.log(all_staged);
-        published = all_published;
         staged = all_staged;
+        staged = all_staged.filter(item => {
+            if (item.versions && item.versions[0]) {
+            return item.versions[0].endsWith('/draft');
+            }
+            return false;
+        });
     })
 
     $: staged 
@@ -74,19 +73,17 @@
     </form>
 </section>
 
-<a href="#staged" on:click|preventDefault={scrollIntoView} >Pending</a>
-
-<a href="#published" on:click|preventDefault={scrollIntoView}>Published</a>
+<!-- <a href="#staged" on:click|preventDefault={scrollIntoView} >Pending</a> -->
 
 <ScrollToTop />
 
 <section id="staged">
-<h3>Pending Resources</h3>
-{#each staged as {id, id_emoji, info, description, version_number}}
+<h3>Pending Drafts</h3>
+{#each staged as {versions, nickname_icon, info, description, version_number}}
     
     <article>
-        <a href="/status/{id}/{version_number}">
-        <h2>{id_emoji} {id} ({version_number})</h2>
+        <a href="/status/{versions[0]}">
+        <h2>{nickname_icon} {versions[0]}</h2>
         </a>
         <p>{description}</p>
         {#if info}
@@ -102,19 +99,4 @@
 {/each}
 </section>
 
-<section id="published">
-<h3>Published Resources</h3>
-
-<!--div class="grid" -->
-{#each published as {id, id_emoji, info, version_number, description}}
-<article>
-    <a href="/status/{id}">
-    <h2>{id_emoji} {id}</h2>
-    </a>
-    <p>{description}</p>
-    <p>Version: {version_number}</p>
-</article>
-{/each}
-<!--/div-->
-</section>
 

@@ -55,8 +55,14 @@
         if(resource_id && version){ 
             version_number = version.split('/')[1];
             try{
-                const resp_version = await get_json(`${RESOURCE_URL}/${resource_id}/versions.json`);
-                status = resp_version.staged[version_number].status;
+                const resp_version = await get_json(`${RESOURCE_URL}/${resource_id}/${version}/draft.json`);
+                status = resp_version.status;
+                if(!status){
+                    message = "No status found";
+                    step = "0";
+                    num_steps = "0";
+                    return;
+                }
                 // console.debug("Got status:", status);
                 message = status.name;
                 step = status.step;

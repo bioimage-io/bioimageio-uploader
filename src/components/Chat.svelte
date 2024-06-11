@@ -39,7 +39,12 @@
             console.log(chat_json);
             chats = chat_json.messages || [];
         }catch(err){
-            error = err.message;
+            if(err.message.startsWith("Not found:")){
+                chats = [];
+            }
+            else{
+                error = err.message;
+            }
         }
     }
 

@@ -17,8 +17,6 @@
 
 </script>
 
-TODO: MERGE THIS WITH THE "LOGIN" WHICH USES GOOGLE / FIREBASE LOGIN
-
 {#key hypha.token}
 {#key hypha.server}
 {#if !hypha.token}

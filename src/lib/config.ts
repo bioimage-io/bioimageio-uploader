@@ -12,7 +12,7 @@ export const RESOURCE_URL = `${S3_HOST}/${S3_BUCKET}/${S3_PREFIX}`;
 // @ts-ignore: env is non standard property added by vite  
 export const COLLECTION_URL_PUBLISHED= import.meta.env.VITE_COLLECTION_URL || `${RESOURCE_URL}/collection.json`;
 // @ts-ignore: env is non standard property added by vite  
-export const COLLECTION_URL_STAGED= import.meta.env.VITE_COLLECTION_URL || `${RESOURCE_URL}/collection_staged.json`;
+export const COLLECTION_URL_STAGED= import.meta.env.VITE_COLLECTION_URL || `${RESOURCE_URL}/collection_draft.json`;
 // @ts-ignore: env is non standard property added by vite  
 export const BASE_URL = import.meta.env.BASE_URL;
 

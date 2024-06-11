@@ -5,7 +5,6 @@
     import Uploader from './components/Uploader/index.svelte';
     import Status from './components/Status.svelte';
     import StatusList from './components/StatusList.svelte';
-    import StatusPublished from './components/StatusPublished.svelte';
     import StatusStaged from './components/StatusStaged.svelte';
     import Chat from './components/Chat.svelte';
 
@@ -35,10 +34,7 @@
     <StatusList resource_id={meta.params.resource_id} />
 </Route>
 <Route path="/status/:resource_id/:version" let:meta>
-    <StatusPublished resource_id={meta.params.resource_id} version={meta.params.version} />
-</Route>
-<Route path="/status/:resource_id/staged/:version" let:meta>
-    <StatusStaged resource_id={meta.params.resource_id} version={`staged/${meta.params.version}`} />
+    <StatusStaged resource_id={meta.params.resource_id} version={meta.params.version} />
 </Route>
 <Route path="/chat/:resource_id/:version" let:meta>
     <Chat resource_id={meta.params.resource_id} version={meta.params.version} />

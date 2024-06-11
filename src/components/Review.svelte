@@ -10,7 +10,8 @@
     let error_object :Error;
     
     async function test(){
-        return await functions.trigger_test(resource_id, version);
+        await functions.trigger_test(resource_id, version);
+        alert("Test triggered")
     };
     function accept(){return review("publish");};
     function request_changes(){return review("requestchanges");}
