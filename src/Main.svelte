@@ -11,7 +11,6 @@
     import Status from './components/Status.svelte';
     import Nav from './components/Nav.svelte';
     import Notification from './components/Notification.svelte';
-    import StatusList from './components/StatusList.svelte';
     import StatusStaged from './components/StatusStaged.svelte';
     // import Transition from './components/Transition.svelte';
     import Chat from './components/Chat.svelte';
@@ -65,10 +64,7 @@
         />
     </Route>
     <Route path="/status/:resource_id" let:meta>
-        <StatusList resource_id={meta.params.resource_id} />
-    </Route>
-    <Route path="/status/:resource_id/:version" let:meta>
-        <StatusStaged resource_id={meta.params.resource_id} version={meta.params.version} />
+        <StatusStaged resource_id={meta.params.resource_id} />
     </Route>
     <Route path="/chat/:resource_id/:version" let:meta>
         <Chat resource_id={meta.params.resource_id} version={meta.params.version} />

@@ -4,7 +4,6 @@
     import { Toaster } from 'svelte-french-toast';
     import Uploader from './components/Uploader/index.svelte';
     import Status from './components/Status.svelte';
-    import StatusList from './components/StatusList.svelte';
     import StatusStaged from './components/StatusStaged.svelte';
     import Chat from './components/Chat.svelte';
 
@@ -31,13 +30,10 @@
     <Status collection_url={meta.query.collection}/>
 </Route>
 <Route path="/status/:resource_id" let:meta>
-    <StatusList resource_id={meta.params.resource_id} />
+    <StatusStaged resource_id={meta.params.resource_id} />
 </Route>
-<Route path="/status/:resource_id/:version" let:meta>
-    <StatusStaged resource_id={meta.params.resource_id} version={meta.params.version} />
-</Route>
-<Route path="/chat/:resource_id/:version" let:meta>
-    <Chat resource_id={meta.params.resource_id} version={meta.params.version} />
+<Route path="/chat/:resource_id" let:meta>
+    <Chat resource_id={meta.params.resource_id} />
 </Route>
 <Route path="/chat/:resource_id/staged/:version" let:meta>
     <Chat resource_id={meta.params.resource_id} version={`staged/${meta.params.version}`} />

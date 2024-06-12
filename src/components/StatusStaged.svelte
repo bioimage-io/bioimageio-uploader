@@ -14,10 +14,6 @@
     import user_state from "../stores/user";
 
     export let resource_id="";
-    export let version=""; 
-
-    let version_number = "";
-
     let step = "0";
     let message = "Getting status...";
     let num_steps = "";
@@ -52,10 +48,9 @@
     });
 
     async function poll_status(){
-        if(resource_id && version){ 
-            version_number = version.split('/')[1];
+        if(resource_id){ 
             try{
-                const resp_version = await get_json(`${RESOURCE_URL}/${resource_id}/${version}/draft.json`);
+                const resp_version = await get_json(`${RESOURCE_URL}/${resource_id}/draft/draft.json`);
                 status = resp_version.status;
                 if(!status){
                     message = "No status found";
@@ -97,7 +92,7 @@
 </script>
 
 {#if resource_id }
-    <h2>Resource ID: <a href="#/status/{resource_id}">{resource_id}</a> / {version}</h2>
+    <h2>Resource ID: <a href="#/status/{resource_id}">{resource_id}</a> </h2>
 
     <ErrorBox {error} {error_object} show_copy={false}>
         <span slot="preamble" />
@@ -123,15 +118,15 @@
                 <FullScreenConfetti /> 
             {/if}
 
-            <Log {resource_id} {version} />
+            <Log {resource_id}/>
 
         </article> 
     {/if}
 
     {#if is_logged_in}
-        <Chat bind:this={chat_element} {resource_id} {version} /> 
+        <Chat bind:this={chat_element} {resource_id} /> 
         {#if is_reviewer}
-            <Review bind:this={review_element} {resource_id} {version} /> 
+            <Review bind:this={review_element} {resource_id} /> 
         {/if}
     {:else}
         <article>Please Login to chat and maintainer tools for maintainers</article>

@@ -36,12 +36,6 @@
         all_staged = (await get_json(collection_url_staged)).collection;
         console.log(all_staged);
         staged = all_staged;
-        staged = all_staged.filter(item => {
-            if (item.versions && item.versions[0]) {
-            return item.versions[0].endsWith('/draft');
-            }
-            return false;
-        });
     })
 
     $: staged 
@@ -79,11 +73,11 @@
 
 <section id="staged">
 <h3>Pending Uploads</h3>
-{#each staged as {versions, nickname_icon, info, description, version_number}}
+{#each staged as {id, nickname_icon, info, description}}
     
     <article>
-        <a href="/status/{versions[0]}">
-        <h2>{nickname_icon} {versions[0]}</h2>
+        <a href="/status/{id}">
+        <h2>{nickname_icon} {id}</h2>
         </a>
         <p>{description}</p>
         {#if info}

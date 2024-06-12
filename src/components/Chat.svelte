@@ -10,7 +10,6 @@
     
     export let resource_id="";
     // export let staged: boolean;
-    export let version="";
 
     let chats:any = [];
     let error = ""
@@ -25,15 +24,11 @@
             error = "Resource ID missing";
             return;
         }
-        if(!version){
-            error = "Version missing";
-            return;
-        }
 
         //let new_chats = await get_chats(resource_id);
         try{
             // let url = staged ? `${RESOURCE_URL}/${resource_id}/staged/${version_number}/chat.json` : `${RESOURCE_URL}/${resource_id}/${version_number}/chat.json`;
-            let url = `${RESOURCE_URL}/${resource_id}/${version}/chat.json`;
+            let url = `${RESOURCE_URL}/${resource_id}/draft/chat.json`;
             const chat_json = await get_json(url);
             console.log(`URL: ${url}`);
             console.log(chat_json);
@@ -50,10 +45,9 @@
 
     async function update_remote_chat(){
         if(!resource_id) return;
-        if(!version) return;
         let text=chat_message;
         // let version_string = staged ? `staged/${version_number}` : `${version_number}`;
-        const response = await functions.chat(resource_id, version, text);
+        const response = await functions.chat(resource_id, "draft", text);
         chats = response.messages || [];
         chat_message = "";
     }
