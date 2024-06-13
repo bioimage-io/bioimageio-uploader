@@ -53,33 +53,35 @@
 </code>
 {/each}
 
-{#each Object.entries(log) as [category, logs_messages]}
-<h3>{toTitleCase(category)}</h3>
+{#if log.entries}
+<h2>Log</h2>
+{#each log.entries as message}
 <ul>
 
-    {#each logs_messages as message}
     <li>
         <p>
-            <span title="{message.timestamp}" >{message.log.message || ""}
-                {#if message.log.details && message.log.details.status === 'passed'}
+            <span title="{message.timestamp}" >
+                <code>{message.timestamp}</code> {message.message || ""}
+                {#if message.details && message.details.status === 'passed'}
                 <span>✔️</span>
                 {:else}
                     <span>❌</span>
                 {/if}
-                {#if message.log.run_url}
-                <a href={message.log.run_url} target="_blank"><img src="{github}" alt="github icon">Github CI Logs</a>
+                {#if message.run_url}
+                <a href={message.run_url} target="_blank"><img src="{github}" alt="github icon"> Github CI</a>
                 {/if}
             </span>
         </p>
-        {#if message.log.details}
+        {#if message.details}
             
             <details>
                 <code>{message.timestamp}</code>
-                <pre>{JSON.stringify(message.log.details, null, "\t")}</pre>
+                <pre>{JSON.stringify(message.details, null, "\t")}</pre>
             </details>
             
         {/if}
     </li>
-    {/each}
+
 </ul>
 {/each}
+{/if}

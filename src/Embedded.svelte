@@ -29,6 +29,9 @@
 <Route path="/status" let:meta>
     <Status collection_url={meta.query.collection}/>
 </Route>
+<Route path="/status/:resource_id/:version" let:meta>
+    <StatusStaged resource_id={meta.params.resource_id + "/" + meta.params.version } />
+</Route>
 <Route path="/status/:resource_id" let:meta>
     <StatusStaged resource_id={meta.params.resource_id} />
 </Route>
