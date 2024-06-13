@@ -47,8 +47,8 @@
         if(!resource_id) return;
         let text=chat_message;
         // let version_string = staged ? `staged/${version_number}` : `${version_number}`;
-        const response = await functions.chat(resource_id, "draft", text);
-        chats = response.messages || [];
+        await functions.chat(resource_id, "draft", text);
+        await get_chat()
         chat_message = "";
     }
 </script>

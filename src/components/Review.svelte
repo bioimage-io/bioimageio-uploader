@@ -3,8 +3,8 @@
     import SingleLineInputs from './SingleLineInputs.svelte';
     import { functions } from '../lib/hypha';
     export let resource_id="";
-    export let version="";
 
+    let version = "draft";
     let error="";
     let text_input="";
     let error_object :Error;
@@ -23,6 +23,10 @@
         }
         if(!version){
             error = "Version must be set";
+            return
+        }
+        if(!text_input && action === "requestchanges"){
+            error = "Message must be set";
             return
         }
         const message = text_input;

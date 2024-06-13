@@ -29,7 +29,6 @@
         if(resource_id){ 
             try{
                 log = await get_json(`${RESOURCE_URL}/${resource_id}/draft/log.json`);
-                console.debug("======log=======>", log);
                 error = "";
             }catch(err){
                 console.error("Error polling logs:");
