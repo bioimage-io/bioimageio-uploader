@@ -169,7 +169,7 @@ export class Uploader {
         console.log("Generated name:", model_name);
         const error = "";
         this.resource_path = model_name;
-        this.rdf!.nickname = model_name.id;
+        this.rdf!.id = model_name.id;
         this.rdf!.id_emoji = model_name.emoji;
         return { model_name, error };
     }
