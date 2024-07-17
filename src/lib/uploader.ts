@@ -152,7 +152,14 @@ export class Uploader {
     async validate() {
         clean_rdf(this.rdf);
         console.debug("Validating RDF: ", this.rdf);
+        // the uploader info email won't be complete until the user logs in
+        // so we remove it before validation
+        const uploader_info = this.rdf.uploader;
+        this.rdf.uploader = null;
         const result = await functions.validate(this.rdf);
+        // restore the uploader info
+        this.rdf.uploader = uploader_info;
+
         console.log(result);
         if (!result.success) {
             console.error("Validation errors:");
