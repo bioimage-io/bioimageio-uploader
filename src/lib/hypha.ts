@@ -1,5 +1,4 @@
-// import * as imjoyCore from 'imjoy-core';
-import * as imjoyRPC from 'imjoy-rpc';
+import { hyphaWebsocketClient } from "hypha-rpc";
 import { default as axios, AxiosProgressEvent } from 'axios';
 import UserInfo from './user_info';
 import {login_url, token, connection_tries, hypha_version} from '../stores/hypha'; 
@@ -9,13 +8,13 @@ import { get } from 'svelte/store';
 import {SERVER_URL, SANDBOX, MAX_CONNECTION_RETRIES } from './config';
 
 interface HyphaConnectionInfo{
-    user_info: {email: string, id:string},
+    user: {email: string, id:string},
 }
 
 interface HyphaServer{
-    get_connection_info: () => Promise<HyphaConnectionInfo>,
-    get_service: (_: string) => Promise<HyphaService>,
-    list_services: (_: string) => Promise<Array<HyphaServiceInfo>>,
+    config: any,
+    getService: (_: string) => Promise<HyphaService>,
+    listServices: (_: string) => Promise<Array<HyphaServiceInfo>>,
 }
 
 interface UploadServiceResponse{
@@ -109,32 +108,21 @@ const try_connect_server = async(_token: string) =>{
     
     try {
         await connect_server(_token);
-        const login_info = await server.get_connection_info();
+        const login_info = server.config;
         console.log("Login info from Hypha:");
         console.log(login_info);
+        try{
 
-        const TODO_REMOVE_ME_JM_USERID = 'github|478667';
-        console.warn("TODO: CURRENTLY CONNECTING TO UPLOADER SERVICE MATCHING", TODO_REMOVE_ME_JM_USERID);
-        const services = await server.list_services('public');
-        const uploader_service_ids = services
-                .filter((item: HyphaServiceInfo) => item.id.endsWith('bioimageio-uploader-service'))
-                .filter((item: HyphaServiceInfo) => item.id.includes(TODO_REMOVE_ME_JM_USERID));
-        if(uploader_service_ids.length < 1){
-            console.error("No uploader services found in hypha server"); 
+            upload_service = await server!.getService("ws-user-github|478667/bioimageio-uploader-service");
+        }
+        catch(e){
+            console.error(e);
             alert("Uploader service not found; You will not be able to upload anything.") 
-        }else{
-            if(uploader_service_ids.length > 1){
-                console.warn("More than 1 public uploader service found on hypha server!!"); 
-                alert("More than 1 public uploader service found on hypha server!!"); 
-            }
-            const uploader_service_id = uploader_service_ids[0].id;
-            console.log('Connecting to service', uploader_service_id)
-            upload_service = await server!.get_service(uploader_service_id);
         }
         
         if(login_info){
-            const user_email = ((login_info.user_info || {}).email || ""); 
-            const user_id = ((login_info.user_info || {}).id || ""); 
+            const user_email = ((login_info.user || {}).email || ""); 
+            const user_id = ((login_info.user || {}).id || ""); 
             await set_user({email: user_email, id: user_id});
         }
         connection_tries.set(0);
@@ -148,37 +136,29 @@ const try_connect_server = async(_token: string) =>{
 };
 
 const connect_server = async (_token?: string) => {
-    server = await imjoyRPC.hyphaWebsocketClient.connectToServer({
+    server = await hyphaWebsocketClient.connectToServer({
         name: 'BioImageIO.uploader',
         server_url: SERVER_URL,
         token: _token,
     });
-    const login_info = await server.get_connection_info();
+    const login_info = server.config;
     console.log("Login info from Hypha:");
     console.log(login_info);
 
     // const TODO_REMOVE_ME_JM_USERID = 'github|1950756';
     // console.warn("TODO: CURRENTLY CONNECTING TO UPLOADER SERVICE MATCHING", TODO_REMOVE_ME_JM_USERID);
-    const services = await server.list_services('public');
-    const uploader_service_ids = services
-            .filter((item: HyphaServiceInfo) => item.id.endsWith('bioimageio-uploader-service'));
-            // .filter((item: HyphaServiceInfo) => item.id.includes(TODO_REMOVE_ME_JM_USERID));
-    if(uploader_service_ids.length < 1){
-        console.error("No uploader services found in hypha server"); 
+    try{
+
+        upload_service = await server!.getService("ws-user-github|478667/bioimageio-uploader-service");
+    }
+    catch(e){
+        console.error(e);
         alert("Uploader service not found; You will not be able to upload anything.") 
-    }else{
-        if(uploader_service_ids.length > 1){
-            console.warn("More than 1 public uploader service found on hypha server!!"); 
-            alert("More than 1 public uploader service found on hypha server!!"); 
-        }
-        const uploader_service_id = uploader_service_ids[0].id;
-        console.log('Connecting to service', uploader_service_id)
-        upload_service = await server!.get_service(uploader_service_id);
     }
     
     if(login_info){
-        const user_email = ((login_info.user_info || {}).email || ""); 
-        const user_id = ((login_info.user_info || {}).id || ""); 
+        const user_email = ((login_info.user || {}).email || ""); 
+        const user_id = ((login_info.user || {}).id || ""); 
         await set_user({email: user_email, id: user_id});
     }
 };
@@ -198,7 +178,7 @@ export const auth = {
             connection_tries.set(0);
             return;
         } 
-        const _token = await imjoyRPC.hyphaWebsocketClient.login({
+        const _token = await hyphaWebsocketClient.login({
             server_url: SERVER_URL,
             login_callback: set_login_url,
         });
@@ -218,7 +198,7 @@ export const auth = {
 
 export const storage = {
     upload_file: async (file: File, filename: string, progress_callback: (event: AxiosProgressEvent) => void) => {
-        const hypha_storage = await server!.get_service("s3-storage");
+        const hypha_storage = await server!.getService("s3-storage");
         const hypha_storage_info = await hypha_storage.generate_credential!();
         const url_put = await hypha_storage!.generate_presigned_url!(
             hypha_storage_info.bucket,
@@ -237,7 +217,7 @@ export const storage = {
 
 export const functions = {
     check_hypha: async () => {
-        return await (await fetch(SERVER_URL)).json();},
+        return await (await fetch(SERVER_URL + "/assets/config.json")).json();},
     is_reviewer: async () => {
         if(!upload_service) return {success: false, error: "Upload-service not connected"};
         return await upload_service.is_reviewer!();},

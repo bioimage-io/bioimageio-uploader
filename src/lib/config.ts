@@ -1,5 +1,5 @@
 // @ts-ignore: env is non standard property added by vite  
-export const SERVER_URL = import.meta.env.VITE_HYPHA_SERVER_URL || "https://ai.imjoy.io";
+export const SERVER_URL = import.meta.env.VITE_HYPHA_SERVER_URL || "https://hypha.aicell.io";
 // @ts-ignore: env is non standard property added by vite  
 export const SANDBOX = import.meta.env.VITE_SANDBOX === "true" || false;
 // @ts-ignore: env is non standard property added by vite  

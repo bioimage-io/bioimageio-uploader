@@ -7,7 +7,7 @@
     let storage_info;
 
     async function init(){
-        storage = await server.get_service("s3-storage");
+        storage = await server.getService("s3-storage");
         storage_info = await storage.generate_credential();
     }
 

@@ -4931,6 +4931,13 @@ human-signals@^5.0.0:
   resolved "https://registry.npmjs.org/human-signals/-/human-signals-5.0.0.tgz"
   integrity sha512-AXcZb6vzzrFAUE61HnN4mpLqd/cSIwNQjtNWR0euPm6y0iqx3G4gOXaIDdtdDwZmhwe82LA6+zinmW4UBWVePQ==
 
+hypha-rpc@^0.20.32:
+  version "0.20.32"
+  resolved "https://registry.npmjs.org/hypha-rpc/-/hypha-rpc-0.20.32.tgz"
+  integrity sha512-EgXqT9R3N1pkl0lQ+n9ESSIPNNB0l2q1LtTy3/ONcmyBmlS26LXgfd5YLxKUAPk8Y7eYARattryd6wH/TyLQqA==
+  dependencies:
+    "@msgpack/msgpack" "^2.7.1"
+
 iconv-lite@^0.4.24, iconv-lite@0.4.24:
   version "0.4.24"
   resolved "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.24.tgz"
