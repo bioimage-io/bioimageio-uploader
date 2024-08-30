@@ -23,7 +23,7 @@ export const COLLECTION_CONFIG_URL = `https://raw.githubusercontent.com/bioimage
 export const URL_JSON_SCHEMA_LATEST = "https://raw.githubusercontent.com/bioimage-io/spec-bioimage-io/gh-pages/bioimageio_schema_latest.json"; 
 
 export const REGEX_ZIP = /\.zip$/gi;
-export const REGEX_RDF = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml)$/gi;
+export const REGEX_RDF = /(rdf\.yml|rdf\.yaml|bioimage\.yml|bioimage\.yaml|bioimageio\.yml|bioimageio\.yaml)$/gi;
 export const MAX_CONNECTION_RETRIES = 3;
 export const UPLOADER_SERVICE_ID = "public/workspace-manager:bioimageio-uploader-service";
 
