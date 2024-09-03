@@ -4,24 +4,17 @@
     let put_url = "";
     let get_url = "";
     let storage;
-    let storage_info;
 
     async function init(){
-        storage = await server.getService("s3-storage");
-        storage_info = await storage.generate_credential();
+        storage = await server.getService("public/s3-storage");
     }
 
     async function generate_get_url(){
-        get_url = await storage.generate_presigned_url(
-            storage_info["bucket"], 
-            storage_info["prefix"] + filename
-        )
+        get_url = await storage.generate_presigned_url(filename)
     };
     async function generate_put_url(){
         put_url = await storage.generate_presigned_url(
-            storage_info.bucket, 
-            storage_info.prefix + filename,
-            {client_method: "put_object", _rkwargs: true}
+            filename,"put_object"
         )
     };
     

@@ -36,9 +36,8 @@ interface ChatMessages{
 interface HyphaService{
     // Storage service
     generate_credential?: () => Promise<HyphaStorageInfo>,
-    generate_presigned_url?: (bucket: string, 
-                              path: string, 
-                              options?: { client_method: string, _rkwargs: boolean }) => Promise<string>,
+    generate_presigned_url?: (path: string, 
+                            client_method?: string) => Promise<string>,
     // Uploader service 
     is_reviewer?: () => Promise<UploadServiceResponse>,
     chat?: (resource_id: string, version: string, message: string, sandbox: boolean) => Promise<ChatMessages>,
@@ -198,17 +197,11 @@ export const auth = {
 
 export const storage = {
     upload_file: async (file: File, filename: string, progress_callback: (event: AxiosProgressEvent) => void) => {
-        const hypha_storage = await server!.getService("s3-storage");
-        const hypha_storage_info = await hypha_storage.generate_credential!();
+        const hypha_storage = await server!.getService("public/s3-storage");
         const url_put = await hypha_storage!.generate_presigned_url!(
-            hypha_storage_info.bucket,
-            hypha_storage_info.prefix + filename,
-            { client_method: "put_object", _rkwargs: true }
+            filename, "put_object",
         )
-        const url_get = await hypha_storage.generate_presigned_url!(
-            hypha_storage_info.bucket,
-            hypha_storage_info.prefix + filename
-        )
+        const url_get = await hypha_storage.generate_presigned_url!(filename)
         const config = {'onUploadProgress': progress_callback }; 
         await axios.put(url_put, file, config);
         return url_get;
