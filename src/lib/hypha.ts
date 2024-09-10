@@ -200,7 +200,9 @@ export const storage = {
         const url = `${SERVER_URL}/${server.config.workspace}/files/${filename}`;
         const config = {'onUploadProgress': progress_callback, headers: { 'Authorization': `Bearer ${get(token)}` } }; 
         await axios.put(url, file, config);
-        return url;
+        const storage = await server.getService("public/s3-storage");
+        const downloadUrl = await storage.generate_presigned_url(filename, "get_object");
+        return downloadUrl;
     }
 }
 
