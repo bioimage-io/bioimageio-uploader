@@ -197,10 +197,10 @@ export const auth = {
 
 export const storage = {
     upload_file: async (file: File, filename: string, progress_callback: (event: AxiosProgressEvent) => void) => {
-        const url = `${SERVER_URL}/${server.config.workspace}/files/${filename}`;
-        const config = {'onUploadProgress': progress_callback, headers: { 'Authorization': `Bearer ${get(token)}` } }; 
-        await axios.put(url, file, config);
         const storage = await server.getService("public/s3-storage");
+        const uploadUrl = await storage.generate_presigned_url(filename, "put_object");
+        const config = {'onUploadProgress': progress_callback }; 
+        await axios.put(uploadUrl, file, config);
         const downloadUrl = await storage.generate_presigned_url(filename, "get_object");
         return downloadUrl;
     }
