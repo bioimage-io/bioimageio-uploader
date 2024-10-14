@@ -65,7 +65,7 @@
                 <span>✔️</span>
                 {:else if message.details && message.details.status === 'failed'}
                 <span>❌</span>
-                {:else if message.details.status}
+                {:else if message.details && message.details.status}
                 <span>❓</span>
                 {/if}
                 {#if message.run_url}
