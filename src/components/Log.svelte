@@ -71,7 +71,14 @@
                 {/if}
             </span>
         </p>
-        {#if message.details}
+        {#if message.details_formatted}
+            
+            <details>
+                <code>{message.timestamp}</code>
+                <pre>{message.details_formatted}</pre>
+            </details>
+            
+        {:else if message.details}
             
             <details>
                 <code>{message.timestamp}</code>
