@@ -63,8 +63,10 @@
                 <code>{message.timestamp}</code> {message.message || ""}
                 {#if message.details && message.details.status === 'passed'}
                 <span>✔️</span>
-                {:else}
-                    <span>❌</span>
+                {:else if message.details && message.details.status === 'failed'}
+                <span>❌</span>
+                {:else if message.details.status}
+                <span>❓</span>
                 {/if}
                 {#if message.run_url}
                 <a href={message.run_url} target="_blank"><img src="{github}" alt="github icon"> Github CI</a>
