@@ -73,6 +73,12 @@
                 {/if}
             </span>
         </p>
+        {#if message.details_formatted}
+            <details>
+                <summary>Formatted Details</summary>
+                <pre>{message.details_formatted}</pre>
+            </details>
+        {/if}
         {#if message.details}
             
             <details>
