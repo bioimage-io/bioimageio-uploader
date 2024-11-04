@@ -73,6 +73,7 @@
 
 <section id="staged">
 <h3>Under Review</h3>
+These uploaded resource drafts can also be browsed at <a href="https://bioimage.io/#/?repo=https%3A%2F%2Fuk1s3.embassy.ebi.ac.uk%2Fpublic-datasets%2Fbioimage.io%2Fcollection_draft.json"> bioimage.io pointing to the collection_draft.json</a>.
 {#each staged as {id, nickname_icon, info, description, authors, created}}
 
     <article>
