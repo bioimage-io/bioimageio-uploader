@@ -1,11 +1,11 @@
 <script lang="ts">
-    import SingleLineInputs from './SingleLineInputs.svelte';
-    import {router} from 'tinro';
-    import ScrollToTop from './ScrollToTop.svelte'
+    import { onMount } from 'svelte';
+    import { router } from 'tinro';
+    import github from '../../static/github.svg';
     import { COLLECTION_URL_STAGED } from '../lib/config';
     import { get_json } from '../lib/utils';
-    import { onMount } from 'svelte';
-    import github from '../../static/github.svg';
+    import ScrollToTop from './ScrollToTop.svelte';
+    import SingleLineInputs from './SingleLineInputs.svelte';
 
     export let collection_url_staged: string;
 
@@ -21,13 +21,13 @@
         router.goto(`/status/${resource_id}`);
     }
 
-    const search_staged = (query: string) => {	
+    const search_staged = (query: string) => {
         if(!query) return all_staged;
-		    return staged = all_staged.filter(item => {
-			      let id = item.id.toLowerCase();
-			      return id.includes(query.toLowerCase())
-		    })
-	  }
+            return staged = all_staged.filter(item => {
+                let id = item.id.toLowerCase();
+                return id.includes(query.toLowerCase())
+            })
+    }
 
     let all_staged = [];
     $: staged = search_staged(input_value);
@@ -38,24 +38,24 @@
         staged = all_staged;
     })
 
-    $: staged 
+    $: staged
 
     function scrollIntoView(element){
         let query = element;
         if(typeof query !== "string"){
-            query = element.target.getAttribute('href'); 
+            query = element.target.getAttribute('href');
         }
         const el = document.querySelector(query);
         console.log(el);
-		    if (!el){
-		        console.log(`Nopers: ${query}`);
-		        return
-		    }
+            if (!el){
+                console.log(`Nopers: ${query}`);
+                return
+            }
         el.scrollIntoView({
             behavior: 'smooth'
         });
     }
-    
+
 </script>
 
 <section id="search">
@@ -73,12 +73,18 @@
 
 <section id="staged">
 <h3>Pending Uploads</h3>
-{#each staged as {id, nickname_icon, info, description}}
-    
+{#each staged as {id, nickname_icon, info, description, authors, created}}
+
     <article>
         <a href="/status/{id}">
         <h2>{nickname_icon} {id}</h2>
         </a>
+        created: {Date(created)} by:
+        <ul>
+            {#each authors as author}
+            <li>{author.name || ''} {#if author.email}(<a href= "mailto: {author.email}"> {author.email}</a>){/if}</li>
+          {/each}
+        </ul>
         <p>{description}</p>
         {#if info}
             {#if info.status}
@@ -89,8 +95,6 @@
             {/if}
         {/if}
     </article>
-    
+
 {/each}
 </section>
-
-
