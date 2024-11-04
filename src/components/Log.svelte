@@ -4,6 +4,7 @@
     import { RESOURCE_URL } from '../lib/config';
     import github from '../../static/github.svg';
     import ErrorBox from './ErrorBox.svelte';
+    import SvelteMarkdown from 'svelte-markdown';
 
     export let resource_id="";
     function toTitleCase(str) {
@@ -75,17 +76,12 @@
         </p>
         {#if message.details_formatted}
             <details>
-                <summary>Formatted Details</summary>
-                <pre>{message.details_formatted}</pre>
+                <SvelteMarkdown source={message.details_formatted} />
             </details>
-        {/if}
-        {#if message.details}
-            
+        {:else if message.details && message.details.details}
             <details>
-                <code>{message.timestamp}</code>
-                <pre>{JSON.stringify(message.details, null, "\t")}</pre>
+                <pre>{JSON.stringify(message.details.details, null, "\t")}</pre>
             </details>
-            
         {/if}
     </li>
 
