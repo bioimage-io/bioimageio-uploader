@@ -92,7 +92,6 @@ These uploaded resource drafts can also be browsed at <a href="https://bioimage.
             <p>⏳ {status.name} ({status.step}/{status.num_steps})</p>
             <p>{status.description}</p>
             <p>{new Date(status.timestamp)}</p>
-            <a href={status.run_url} target="_blank"><img src="{github}" alt="github icon">Github CI Logs</a>
         {/if}
     </article>
 
