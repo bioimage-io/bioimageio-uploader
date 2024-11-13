@@ -80,7 +80,7 @@ These uploaded resource drafts can also be browsed at <a href="https://bioimage.
         <a href="/status/{id}">
         <h2>{nickname_icon} {id}</h2>
         </a>
-        created: {Date(created)} by:
+        created: {new Date(created)} by:
         <ul>
             {#each authors as author}
             <li>{author.name || ''} {#if author.email}(<a href= "mailto: {author.email}"> {author.email}</a>){/if}</li>
