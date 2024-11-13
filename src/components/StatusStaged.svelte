@@ -91,6 +91,7 @@ import { onMount, onDestroy } from 'svelte';
 
 </script>
 
+
 {#if resource_id }
     <h2>Resource ID: <a href="#/status/{resource_id}">{resource_id}</a> </h2>
 
@@ -117,6 +118,8 @@ import { onMount, onDestroy } from 'svelte';
             {:else}
                 <FullScreenConfetti /> 
             {/if}
+            <a href="https://bioimage.io/#/?repo=https%3A%2F%2Fuk1s3.embassy.ebi.ac.uk%2Fpublic-datasets%2Fbioimage.io%2Fcollection_draft.json&id={resource_id}"><h3>Preview</h3></a><br>
+            <iframe src="https://bioimage.io/#/?repo=https%3A%2F%2Fuk1s3.embassy.ebi.ac.uk%2Fpublic-datasets%2Fbioimage.io%2Fcollection_draft.json&id={resource_id}" width="100%" height="600"><p>Your browser does not support iframes.</p></iframe><br> <br>
 
             <Log {resource_id}/>
 

@@ -53,6 +53,7 @@
     "vitest": "^1.0.4"
   },
   "dependencies": {
-    "hypha-rpc": "^0.20.32"
+    "hypha-rpc": "^0.20.32",
+    "svelte-markdown": "^0.4.1"
   }
 }

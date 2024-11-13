@@ -29,7 +29,7 @@
     </ul>
     <ul class="right-menu horizontal">
         <li><a href="/uploader" style="color: white;">New Upload</a></li>
-        <li><a href="/status" style="color: white;">Pending Uploads</a></li>
+        <li><a href="/status" style="color: white;">Under Review</a></li>
         <li>
             <LoginButton />
         </li>
