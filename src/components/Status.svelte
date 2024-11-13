@@ -74,13 +74,14 @@
 <section id="staged">
 <h3>Under Review</h3>
 These uploaded resource drafts can also be browsed at <a href="https://bioimage.io/#/?repo=https%3A%2F%2Fuk1s3.embassy.ebi.ac.uk%2Fpublic-datasets%2Fbioimage.io%2Fcollection_draft.json"> bioimage.io pointing to the collection_draft.json</a>.
-{#each staged as {id, nickname_icon, info, description, authors, created}}
+{#each staged as {id, nickname_icon, info, description, authors, created, uploader}}
 
     <article>
         <a href="/status/{id}">
         <h2>{nickname_icon} {id}</h2>
         </a>
-        created: {new Date(created)} by:
+        Uploaded {new Date(created)} by {uploader.name || ''} {uploader.email}
+        Authored by:
         <ul>
             {#each authors as author}
             <li>{author.name || ''} {#if author.email}(<a href= "mailto: {author.email}"> {author.email}</a>){/if}</li>
