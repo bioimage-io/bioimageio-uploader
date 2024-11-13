@@ -74,7 +74,7 @@
 <section id="staged">
 <h3>Under Review</h3>
 These uploaded resource drafts can also be browsed at <a href="https://bioimage.io/#/?repo=https%3A%2F%2Fuk1s3.embassy.ebi.ac.uk%2Fpublic-datasets%2Fbioimage.io%2Fcollection_draft.json"> bioimage.io pointing to the collection_draft.json</a>.
-{#each staged as {id, nickname_icon, info, description, authors, created, uploader}}
+{#each staged as {id, nickname_icon, status, description, authors, created, uploader}}
 
     <article>
         <a href="/status/{id}">
@@ -88,13 +88,11 @@ These uploaded resource drafts can also be browsed at <a href="https://bioimage.
           {/each}
         </ul>
         <p>{description}</p>
-        {#if info}
-            {#if info.status}
-                <p>⏳ {info.status.name} ({info.status.step}/{info.status.num_steps})</p>
-                <p>{info.status.description}</p>
-                <p>{new Date(info.status.timestamp).toString()}</p>
-                <a href={info.status.run_url} target="_blank"><img src="{github}" alt="github icon">Github CI Logs</a>
-            {/if}
+        {#if status}
+            <p>⏳ {status.name} ({status.step}/{status.num_steps})</p>
+            <p>{status.description}</p>
+            <p>{new Date(status.timestamp)}</p>
+            <a href={status.run_url} target="_blank"><img src="{github}" alt="github icon">Github CI Logs</a>
         {/if}
     </article>
 
