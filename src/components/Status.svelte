@@ -6,6 +6,7 @@
     import { get_json } from '../lib/utils';
     import ScrollToTop from './ScrollToTop.svelte';
     import SingleLineInputs from './SingleLineInputs.svelte';
+    import SvelteMarkdown from 'svelte-markdown';
 
     export let collection_url_staged: string;
 
@@ -80,18 +81,18 @@ These uploaded resource drafts can also be browsed at <a href="https://bioimage.
         <a href="/status/{id}">
         <h2>{nickname_icon} {id}</h2>
         </a>
-        Uploaded {new Date(created)} by {uploader.name || ''} {uploader.email}
+        Uploaded by {uploader.name || ''} <a href= "mailto: {uploader.email}"> {uploader.email}</a> on {new Date(created)}<br>
         Authored by:
         <ul>
             {#each authors as author}
-            <li>{author.name || ''} {#if author.email}(<a href= "mailto: {author.email}"> {author.email}</a>){/if}</li>
+            <li>{#if author.email}<a href= "mailto: {author.email}">{author.name || author.email}</a>{:else}{author.name || unknown}{/if}</li>
           {/each}
         </ul>
-        <p>{description}</p>
+        <SvelteMarkdown source={description} />
         {#if status}
-            <p>⏳ {status.name} ({status.step}/{status.num_steps})</p>
+        	<label for="progress-bar">{status.icon || '🛈'} {status.name} {new Date(status.timestamp)}</label>
+			<progress id="progress-bar" value="{status.step}" max="{status.num_steps}">{status.step}/{status.num_steps}</progress>
             <p>{status.description}</p>
-            <p>{new Date(status.timestamp)}</p>
         {/if}
     </article>
 
