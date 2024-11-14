@@ -6,6 +6,7 @@
     import { get_json } from '../lib/utils';
     import ScrollToTop from './ScrollToTop.svelte';
     import SingleLineInputs from './SingleLineInputs.svelte';
+    import SvelteMarkdown from 'svelte-markdown';
 
     export let collection_url_staged: string;
 
@@ -87,7 +88,7 @@ These uploaded resource drafts can also be browsed at <a href="https://bioimage.
             <li>{author.name || ''} {#if author.email}(<a href= "mailto: {author.email}"> {author.email}</a>){/if}</li>
           {/each}
         </ul>
-        <p>{description}</p>
+        <SvelteMarkdown source={description} />
         {#if status}
             <p>⏳ {status.name} ({status.step}/{status.num_steps}) {new Date(status.timestamp)}</p>
             <p>{status.description}</p>
