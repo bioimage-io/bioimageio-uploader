@@ -90,7 +90,8 @@ These uploaded resource drafts can also be browsed at <a href="https://bioimage.
         </ul>
         <SvelteMarkdown source={description} />
         {#if status}
-            <p>⏳ {status.name} ({status.step}/{status.num_steps}) {new Date(status.timestamp)}</p>
+        	<label for="progress-bar">{status.icon || '🛈'} {status.name} {new Date(status.timestamp)}</label>
+			<progress id="progress-bar" value="{status.step}" max="{status.num_steps}">{status.step}/{status.num_steps}</progress>
             <p>{status.description}</p>
         {/if}
     </article>
