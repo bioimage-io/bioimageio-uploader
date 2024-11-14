@@ -81,11 +81,11 @@ These uploaded resource drafts can also be browsed at <a href="https://bioimage.
         <a href="/status/{id}">
         <h2>{nickname_icon} {id}</h2>
         </a>
-        Uploaded by {uploader.name || ''} {uploader.email} on {new Date(created)}<br>
+        Uploaded by {uploader.name || ''} <a href= "mailto: {uploader.email}"> {uploader.email}</a> on {new Date(created)}<br>
         Authored by:
         <ul>
             {#each authors as author}
-            <li>{author.name || ''} {#if author.email}(<a href= "mailto: {author.email}"> {author.email}</a>){/if}</li>
+            <li>{#if author.email}<a href= "mailto: {author.email}">{author.name || author.email}</a>{:else}{author.name || unknown}{/if}</li>
           {/each}
         </ul>
         <SvelteMarkdown source={description} />
