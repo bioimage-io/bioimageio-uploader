@@ -80,7 +80,7 @@ These uploaded resource drafts can also be browsed at <a href="https://bioimage.
         <a href="/status/{id}">
         <h2>{nickname_icon} {id}</h2>
         </a>
-        Uploaded {new Date(created)} by {uploader.name || ''} {uploader.email}
+        Uploaded by {uploader.name || ''} {uploader.email} on {new Date(created)}<br>
         Authored by:
         <ul>
             {#each authors as author}
@@ -89,9 +89,8 @@ These uploaded resource drafts can also be browsed at <a href="https://bioimage.
         </ul>
         <p>{description}</p>
         {#if status}
-            <p>⏳ {status.name} ({status.step}/{status.num_steps})</p>
+            <p>⏳ {status.name} ({status.step}/{status.num_steps}) {new Date(status.timestamp)}</p>
             <p>{status.description}</p>
-            <p>{new Date(status.timestamp)}</p>
         {/if}
     </article>
 
