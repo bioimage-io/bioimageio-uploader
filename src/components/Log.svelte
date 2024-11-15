@@ -61,7 +61,7 @@
     <li>
         <p>
             <span title="{message.timestamp}" >
-                <code>{message.timestamp}</code> {message.message || ""}
+                <code>{message.timestamp}</code> <SvelteMarkdown source={message.message || ""} />
                 {#if message.details && message.details.status === 'passed'}
                 <span>✔️</span>
                 {:else if message.details && message.details.status === 'failed'}
